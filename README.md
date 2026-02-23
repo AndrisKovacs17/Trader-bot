@@ -1,3 +1,4 @@
+HEAD
 # Diplomamunka – Async Clean/Hexagonal Trading Architecture (Fully Hexagonal)
 
 High-integrity trading system implementing **Hexagonal Architecture** with AsyncIO.
@@ -114,3 +115,7 @@ config = Config(
 
 **Status**: MVP (Production-ready core, scalable adapter layer)  
 **Date**: 2026-02-22
+=======
+# Trader-bot
+Dipolomamunka trader bot Mamba SSM-kalman filtering alkalmazással
+ 820f0e2c40ce134c69d608791ee1bde53d051800
