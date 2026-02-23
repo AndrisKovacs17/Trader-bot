@@ -1,0 +1,1 @@
+"""Adapter réteg csomag."""
