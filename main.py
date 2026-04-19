@@ -4,6 +4,13 @@ import asyncio
 from datetime import datetime, timezone
 import logging
 import os
+import warnings
+
+# Filter third-party DeprecationWarnings from python-binance/websockets stack.
+# These originate outside our codebase and are already tracked upstream; we
+# suppress them here to keep the operator console clean.
+warnings.filterwarnings("ignore", category=DeprecationWarning, module=r"binance(\..*)?")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module=r"websockets(\..*)?")
 
 # Configure logging to see pipeline debug messages
 logging.basicConfig(
