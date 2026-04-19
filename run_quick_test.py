@@ -14,7 +14,7 @@ from adapters.offline_training.ltsf_benchmark import (
     _load_dataset, _make_fair_mamba, _make_kla_mamba, _make_lstm, _train_one,
 )
 
-# ── Konfig ────────────────────────────────────────────────────────────────────
+# -- Konfig --------------------------------------------------------------------
 DATASETS = ["Exchange", "ETTh1", "ETTh2"]
 STRIDES  = [1, 16]
 NOISES   = [0.0, 1.0, 3.0, 5.0]
@@ -52,13 +52,13 @@ idx = 0
 
 for ds in DATASETS:
     for stride in STRIDES:
-        log(f"\n{'─'*90}")
+        log(f"\n{'-'*90}")
         log(f"  {ds}  |  stride={stride}")
-        log(f"{'─'*90}")
+        log(f"{'-'*90}")
 
         # Egyszer töltjük be noise=0-val (strukturálisan ugyanaz, zaj a Datasetben van)
         # Minden noise-hoz külön loadert kell, de az adat letöltés csak egyszer fut
-        noise_mses: dict[str, dict[str, float]] = {}   # model → noise → mse
+        noise_mses: dict[str, dict[str, float]] = {}   # model -> noise -> mse
 
         for noise in NOISES:
             idx += 1
@@ -98,7 +98,7 @@ for ds in DATASETS:
                                   f"  R={ks.get('R_mean',0):.3f}")
                     log(f"    {mname:<6}  params={p(res['params']):<6}"
                         f"  mse={mse:.6f}  t={res['train_time_s']:.1f}s"
-                        f"  loss↓{res['epoch_losses'][-1]:.4f}{ks_str}")
+                        f"  lossv{res['epoch_losses'][-1]:.4f}{ks_str}")
                     row["models"][key] = {"mse": mse, "params": res["params"],
                                           "losses": res["epoch_losses"], "kalman": ks}
                     noise_mses.setdefault(key, {})[noise] = mse
@@ -108,10 +108,10 @@ for ds in DATASETS:
             # KLA vs Fair
             if "kla" in mses and "fair" in mses:
                 diff = (mses["kla"] - mses["fair"]) / mses["fair"] * 100
-                winner = "KLA ✓" if diff < 0 else "Fair ✓"
+                winner = "KLA [OK]" if diff < 0 else "Fair [OK]"
                 row["kla_vs_fair_pct"] = round(diff, 2)
-                log(f"\n    ► KLA={mses['kla']:.6f}  Fair={mses['fair']:.6f}"
-                    f"  → {winner}  ({abs(diff):.1f}%)")
+                log(f"\n    > KLA={mses['kla']:.6f}  Fair={mses['fair']:.6f}"
+                    f"  -> {winner}  ({abs(diff):.1f}%)")
 
             ranked = sorted(mses.items(), key=lambda x: x[1])
             log("    Sorrend: " + "  ".join(f"{i+1}.{k}={v:.6f}" for i,(k,v) in enumerate(ranked)))
@@ -120,18 +120,18 @@ for ds in DATASETS:
             save()
 
         # Stride-szintű degradáció táblázat
-        log(f"\n  ┌─ Degradáció noise növekedéskor (stride={stride}) ─────────────────┐")
-        log(f"  │ {'modell':<6} " + "  ".join(f"noise={n:<4}" for n in NOISES) + "  │")
+        log(f"\n  +- Degradáció noise növekedéskor (stride={stride}) -----------------+")
+        log(f"  | {'modell':<6} " + "  ".join(f"noise={n:<4}" for n in NOISES) + "  |")
         for key in ["lstm","fair","kla"]:
             vals = [noise_mses.get(key, {}).get(n) for n in NOISES]
             vals_str = "  ".join(f"{v:.6f}" if v else "   n/a  " for v in vals)
-            # degradáció 0→5
+            # degradáció 0->5
             v0, v5 = noise_mses.get(key,{}).get(0.0), noise_mses.get(key,{}).get(5.0)
             deg = f"  +{(v5-v0)/v0*100:.0f}%" if v0 and v5 else ""
-            log(f"  │ {key:<6} {vals_str}{deg}  │")
-        log(f"  └───────────────────────────────────────────────────────────────────┘")
+            log(f"  | {key:<6} {vals_str}{deg}  |")
+        log(f"  +-------------------------------------------------------------------+")
 
-# ── Végső összefoglaló ────────────────────────────────────────────────────────
+# -- Végső összefoglaló --------------------------------------------------------
 log(f"\n{'='*90}")
 log("  ÖSSZEFOGLALÓ: KLA vs Fair nyerések zajszintenként")
 log(f"{'='*90}")
@@ -140,11 +140,11 @@ for noise in NOISES:
     kla_w = sum(1 for r in recs if r["kla_vs_fair_pct"] < -0.5)
     fair_w = sum(1 for r in recs if r["kla_vs_fair_pct"] > 0.5)
     avg = sum(r["kla_vs_fair_pct"] for r in recs) / len(recs) if recs else 0
-    log(f"  noise={noise:.1f}  →  KLA nyer {kla_w}/{len(recs)}  Fair nyer {fair_w}/{len(recs)}"
-        f"  │  átlag KLA−Fair: {avg:+.1f}%")
+    log(f"  noise={noise:.1f}  ->  KLA nyer {kla_w}/{len(recs)}  Fair nyer {fair_w}/{len(recs)}"
+        f"  |  átlag KLA-Fair: {avg:+.1f}%")
 
 # Átlagos degradáció modellenkét
-log(f"\n  Átlagos MSE-növekedés noise 0→5:")
+log(f"\n  Átlagos MSE-növekedés noise 0->5:")
 for key, label in [("kla","KLA-Mamba"),("fair","Fair Mamba"),("lstm","LSTM")]:
     degs = []
     for r0 in [r for r in results if r["noise"]==0.0]:

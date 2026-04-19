@@ -20,7 +20,7 @@ except ImportError:
 torch.manual_seed(42)
 
 
-# ─── real Binance data fetch ──────────────────────────────────────────────────
+# --- real Binance data fetch --------------------------------------------------
 def fetch_btc_bars(days: int = 90) -> list[dict]:
     """Fetch BTCUSDT 5m klines from Binance public API. No API key required."""
     sys.path.insert(0, "/workspace/diplomamunkakod")
@@ -53,7 +53,7 @@ def fetch_btc_bars(days: int = 90) -> list[dict]:
     return bars
 
 
-# ─── feature groups ───────────────────────────────────────────────────────────
+# --- feature groups -----------------------------------------------------------
 # These map to indices in FEATURE_NAMES from feature_engineering.py
 # Group ablation: cumulative (each group adds on top of previous)
 FEATURE_GROUPS: list[tuple[str, list[str]]] = [
@@ -70,7 +70,7 @@ FEATURE_GROUPS: list[tuple[str, list[str]]] = [
 ]
 
 
-# ─── tiny GRU model for speed ─────────────────────────────────────────────────
+# --- tiny GRU model for speed -------------------------------------------------
 class TinyGRU(nn.Module):
     def __init__(self, feat_dim: int) -> None:
         super().__init__()
@@ -155,9 +155,9 @@ def main() -> None:
 
     up_frac = sum(targets) / len(targets)
     print(f"Dataset: {len(feat_rows)} rows, UP={up_frac:.2f}, DOWN={1-up_frac:.2f}")
-    print(f"\n{'─'*62}")
+    print(f"\n{'-'*62}")
     print(f"  {'Group':<22}  {'Feats':>5}  {'ValAcc':>7}  {'Delta':>8}  {'Verdict'}")
-    print(f"{'─'*62}")
+    print(f"{'-'*62}")
 
     active: list[str] = []
     prev_acc: float | None = None
@@ -175,13 +175,13 @@ def main() -> None:
         else:
             d = acc - prev_acc
             delta_str = f"{d:>+8.4f}"
-            verdict = "✓ HELPS" if d > 0.003 else ("✗ HURTS" if d < -0.003 else "~ neutral")
+            verdict = "[OK] HELPS" if d > 0.003 else ("[X] HURTS" if d < -0.003 else "~ neutral")
 
         print(f"  {group_name:<22}  {len(active):>5}  {acc:>7.4f}  {delta_str}  {verdict}  ({elapsed:.1f}s)")
         results.append((group_name, new_feats, acc))
         prev_acc = acc
 
-    print(f"{'─'*62}")
+    print(f"{'-'*62}")
 
     # Individual feature contribution for groups that *hurt*
     hurting = [(g, feats) for g, feats, acc in results for g2, feats2, acc2 in results

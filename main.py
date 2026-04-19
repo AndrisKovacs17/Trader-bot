@@ -49,11 +49,6 @@ from core.ops.contracts import HealthStatus
 from core.ops.contracts import SimpleMetrics
 
 
-# =====================================================
-# HEXAGONAL WIRING: Core + Infrastructure + Adapters
-# =====================================================
-
-
 def dashboard_health(config: Config) -> HealthStatus:
     return HealthStatus(ok=True, details={"env": config.env})
 
@@ -81,19 +76,6 @@ def simulation_snapshot(
 
 
 async def run_demo() -> None:
-    """
-    Main demo: Full hexagonal architecture wiring with:
-    - Core domain (strategy, risk policy)
-    - Application layer (pipeline stages, TradingEngine)
-    - Infrastructure adapters (event bus, broker gateway)
-    - Offline training (TrainingEngine)
-    - Observability (metrics, dashboard)
-    """
-    
-    # =====================================================
-    # 1. CONFIGURATION & SHARED INFRASTRUCTURE
-    # =====================================================
-    
     config = Config(
         env="dev",
         symbols=["BTCUSDT"],
@@ -208,17 +190,9 @@ async def run_demo() -> None:
     wallet.reset()
     time_source = SystemTimeSource()
 
-    # =====================================================
-    # 2. INFRASTRUCTURE ADAPTERS
-    # =====================================================
-    
     bus = AsyncInMemoryEventBus()
     store = EventStoreImpl()
 
-    # =====================================================
-    # 3. CORE DOMAIN SERVICES + ML MODELS
-    # =====================================================
-    
     # KLA feature state builder + KLA predictor
     estimator = KLAStateEstimator()
     predictor = KLAPredictor()
@@ -248,20 +222,12 @@ async def run_demo() -> None:
         MaxAbsPositionRule(max_abs_position_qty=float(config.get("risk_limits.max_abs_position_qty", 0.01))),
     ])
 
-    # =====================================================
-    # 4. BROKER GATEWAY ADAPTER
-    # =====================================================
-    
     broker = MockBrokerGateway(
         initial_cash=float(config.simulation.get("initial_cash", 10000.0)),
         bus=bus,
     )
     await broker.connect()
 
-    # =====================================================
-    # 5. PIPELINE STAGES (Application layer)
-    # =====================================================
-    
     state_stage = StateEstimationStage(estimator=estimator, state_store=state_store)
     pred_stage = PredictionStage(predictor=predictor)
     signal_stage = SignalStage(strategy=strategy)
@@ -276,10 +242,6 @@ async def run_demo() -> None:
         config=config,
     )
 
-    # =====================================================
-    # 6. TRADING ENGINE (Main Facade)
-    # =====================================================
-    
     engine = TradingEngine(
         bus=bus,
         state_store=state_store,

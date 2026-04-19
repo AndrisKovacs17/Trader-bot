@@ -6,7 +6,7 @@ from __future__ import annotations
 import math, random, sys, time
 import urllib.request, json
 
-# ── Hyper-params ─────────────────────────────────────────────────────────────
+# -- Hyper-params -------------------------------------------------------------
 LOOKBACK  = 32
 HORIZON   = 6
 EPOCHS    = 20
@@ -14,7 +14,7 @@ BATCH     = 128
 LR        = 3e-3
 SEED      = 42
 
-# ── Tiny GRU model (pure Python/math, no PyTorch needed here — but we use torch) ──
+# -- Tiny GRU model (pure Python/math, no PyTorch needed here — but we use torch) --
 try:
     import torch
     import torch.nn as nn
@@ -23,7 +23,7 @@ except ImportError:
 
 random.seed(SEED); torch.manual_seed(SEED)
 
-# ── Fetch real BTC data ───────────────────────────────────────────────────────
+# -- Fetch real BTC data -------------------------------------------------------
 def fetch_btc(days: int = 90) -> list[dict]:
     bars = []
     end_ms   = int(time.time() * 1000)
@@ -50,7 +50,7 @@ def fetch_btc(days: int = 90) -> list[dict]:
     print(f"Fetched {len(bars)} bars")
     return bars
 
-# ── Feature engineering (uses the real codebase) ─────────────────────────────
+# -- Feature engineering (uses the real codebase) -----------------------------
 sys.path.insert(0, "/workspace/diplomamunkakod")
 from core.ml.feature_engineering import build_trade_feature_rows, FEATURE_NAMES
 
@@ -60,7 +60,7 @@ def make_dataset(bars: list[dict]):
     print(f"Features ({len(names)}): {names}")
     return rows, names
 
-# ── Label generation ─────────────────────────────────────────────────────────
+# -- Label generation ---------------------------------------------------------
 def make_labels(bars: list[dict], horizon: int, epsilon: float = 5e-5):
     prices = [b["close"] for b in bars]
     labels = []
@@ -72,7 +72,7 @@ def make_labels(bars: list[dict], horizon: int, epsilon: float = 5e-5):
             labels.append(-1)   # invalid
     return labels
 
-# ── Sequence builder ─────────────────────────────────────────────────────────
+# -- Sequence builder ---------------------------------------------------------
 def make_sequences(rows, labels, lookback):
     X, Y = [], []
     for i in range(lookback, len(rows)):
@@ -82,7 +82,7 @@ def make_sequences(rows, labels, lookback):
         Y.append(labels[i])
     return X, Y
 
-# ── TinyGRU ──────────────────────────────────────────────────────────────────
+# -- TinyGRU ------------------------------------------------------------------
 class TinyGRU(nn.Module):
     def __init__(self, n_feat: int):
         super().__init__()
@@ -92,7 +92,7 @@ class TinyGRU(nn.Module):
         _, h = self.gru(x)
         return self.head(h.squeeze(0))
 
-# ── Training loop ─────────────────────────────────────────────────────────────
+# -- Training loop -------------------------------------------------------------
 def train_eval(X, Y, n_feat, tag="model"):
     n = len(X)
     split = int(n * 0.8)
@@ -146,7 +146,7 @@ def train_eval(X, Y, n_feat, tag="model"):
     
     return best_val_acc
 
-# ── Baseline: random / majority ───────────────────────────────────────────────
+# -- Baseline: random / majority -----------------------------------------------
 def baseline_majority(Y, split_ratio=0.8):
     n = len(Y)
     split = int(n * split_ratio)
@@ -155,7 +155,7 @@ def baseline_majority(Y, split_ratio=0.8):
     acc = sum(1 for y in y_val if y == majority) / len(y_val)
     return acc
 
-# ── Main ─────────────────────────────────────────────────────────────────────
+# -- Main ---------------------------------------------------------------------
 if __name__ == "__main__":
     print("=" * 60)
     print("Fetching 90-day BTCUSDT 5m data...")

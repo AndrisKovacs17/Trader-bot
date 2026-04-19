@@ -21,7 +21,7 @@ from adapters.offline_training.ltsf_benchmark import (
     _train_one, _find_lr_fastai,
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 DATASETS   = ["Exchange", "ETTh1", "ETTh2", "ETTm1", "ECL", "M4Hourly", "Weather", "ETTm2"]
 NOISE_VALS = [0.0, 2.0, 3.0]   # 0.0 = baseline referencia
 STRIDE     = 1
@@ -64,9 +64,9 @@ total = len(DATASETS) * len(NOISE_VALS)
 idx   = 0
 
 for ds in DATASETS:
-    log(f"\n{'━'*100}")
+    log(f"\n{'='*100}")
     log(f"  DATASET: {ds}")
-    log(f"{'━'*100}")
+    log(f"{'='*100}")
 
     # noise=0.0 baseline referencia + két zajszint közös loader párban
     ds_row: dict = {"dataset": ds, "noise_results": {}}
@@ -134,8 +134,8 @@ for ds in DATASETS:
             fair_mse = mses["fair_mamba"]
             diff = (kla_mse - fair_mse) / fair_mse * 100
             winner = "KLA" if kla_mse < fair_mse else "Fair"
-            log(f"\n     ► KLA={kla_mse:.6f}  Fair={fair_mse:.6f}"
-                f"  → {winner} nyer  ({abs(diff):.1f}%  diff)")
+            log(f"\n     > KLA={kla_mse:.6f}  Fair={fair_mse:.6f}"
+                f"  -> {winner} nyer  ({abs(diff):.1f}%  diff)")
             noise_row["kla_vs_fair_pct"] = round(diff, 3)
 
         if mses:
@@ -151,8 +151,8 @@ for ds in DATASETS:
         JSON_FILE.write_text(json.dumps(all_results, indent=2, ensure_ascii=False), encoding="utf-8")
         TXT_FILE.write_text("\n".join(lines), encoding="utf-8")
 
-    # Dataset-szintű: mennyit degradálódott minden modell noise 0→2→3
-    log(f"\n  ── {ds} degradációs összefoglaló ──")
+    # Dataset-szintű: mennyit degradálódott minden modell noise 0->2->3
+    log(f"\n  -- {ds} degradációs összefoglaló --")
     r0 = ds_row["noise_results"].get("0.0", {})
     for noise in [2.0, 3.0]:
         rn = ds_row["noise_results"].get(str(noise), {})
@@ -165,9 +165,9 @@ for ds in DATASETS:
                 parts.append(f"{key}:{deg:+.0f}%")
         log(f"     noise={noise}: " + "  ".join(parts))
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Globális összefoglaló
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 log(f"\n{'='*100}")
 log("  GLOBÁLIS ZAJ-ROBUSZTOSSÁGI ÖSSZEFOGLALÓ")
 log(f"{'='*100}")
@@ -182,8 +182,8 @@ for noise in NOISE_VALS:
     log(f"  noise={noise}: KLA nyer {kla_w}/{len(recs)}  Fair nyer {fair_w}/{len(recs)}"
         f"  átlag diff={avd:+.1f}%")
 
-# KLA degradáció vs Fair degradáció noise 0→3
-log(f"\n  Átlagos degradáció (MSE növekedés) noise 0→3:")
+# KLA degradáció vs Fair degradáció noise 0->3
+log(f"\n  Átlagos degradáció (MSE növekedés) noise 0->3:")
 for key, label in [("kla_mamba", "KLA-Mamba"), ("fair_mamba", "Fair Mamba"),
                    ("lstm", "LSTM"), ("dlinear", "DLinear")]:
     degs = []

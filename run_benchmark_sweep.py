@@ -30,9 +30,9 @@ from adapters.offline_training.ltsf_benchmark import (
     _find_lr_fastai,
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Sweep konfiguráció
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 DATASETS = [
     "Exchange",   # 8 dim,   ~7600 lépés  – deviza, lassú drift
@@ -59,13 +59,13 @@ DLINEAR_K = 25
 MODEL_CONFIGS = {
     # név:  (lstm_hidden, fair_heads, fair_state, kla_heads, kla_state)
     "small":  ( 64,  2, 16,  2, 16),   # ~5-15k param
-    "medium": (128,  4, 32,  4, 32),   # ~20-60k param  ← fő config
+    "medium": (128,  4, 32,  4, 32),   # ~20-60k param  <- fő config
     "large":  (256,  4, 64,  4, 64),   # ~80-200k param
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Output
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 OUT_DIR = Path(__file__).parent / "benchmark_results"
 OUT_DIR.mkdir(exist_ok=True)
@@ -102,9 +102,9 @@ def pct_diff(a: float, b: float) -> str:
     return f"{sign}{d:.1f}%"
 
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Header
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 log("=" * 100)
 log(f"  KLA-Mamba vs Fair Mamba vs LSTM vs ARIMA vs DLinear — Teljes Sweep")
@@ -121,12 +121,12 @@ run_idx = 0
 t_sweep_start = time.time()
 
 for ds_name in DATASETS:
-    log(f"\n{'━'*100}")
+    log(f"\n{'='*100}")
     log(f"  DATASET: {ds_name}")
-    log(f"{'━'*100}")
+    log(f"{'='*100}")
 
     for stride in STRIDES:
-        log(f"\n  ── Stride = {stride} ──")
+        log(f"\n  -- Stride = {stride} --")
 
         # Adatbetöltés egyszer stride-onként (minden modell-méret ugyanazt látja)
         try:
@@ -241,8 +241,8 @@ for ds_name in DATASETS:
                 diff_pct = (kla - fair) / fair * 100
                 winner = "KLA" if kla < fair else "Fair"
                 margin = abs(diff_pct)
-                log(f"\n     ► KLA vs Fair Mamba: KLA MSE={kla:.6f}  Fair MSE={fair:.6f}"
-                    f"  → {winner} nyer  ({margin:.1f}% különbség)")
+                log(f"\n     > KLA vs Fair Mamba: KLA MSE={kla:.6f}  Fair MSE={fair:.6f}"
+                    f"  -> {winner} nyer  ({margin:.1f}% különbség)")
                 run_record["kla_vs_fair_pct"] = round(diff_pct, 3)
 
             # Ranglista ezen a configuon
@@ -262,7 +262,7 @@ for ds_name in DATASETS:
 
     # Dataset-szintű összefoglaló
     ds_records = [r for r in all_results if r["dataset"] == ds_name]
-    log(f"\n  ── {ds_name} összefoglaló ──")
+    log(f"\n  -- {ds_name} összefoglaló --")
     for size_name in MODEL_CONFIGS:
         recs_sz = [r for r in ds_records if r["model_size"] == size_name]
         for stride in STRIDES:
@@ -279,9 +279,9 @@ for ds_name in DATASETS:
                 f"kla_vs_fair={kv:+.1f}% ({sign})" if kv is not None
                 else f"     {size_name:<8} stride={stride:<4} best={best}")
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Globális összefoglaló táblázat
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 log("\n" + "=" * 100)
 log("  GLOBÁLIS ÖSSZEFOGLALÓ")
@@ -338,16 +338,16 @@ for s in STRIDES:
             if r["stride"] == s and r.get("kla_vs_fair_pct") is not None]
     if recs:
         avg = sum(r["kla_vs_fair_pct"] for r in recs) / len(recs)
-        log(f"    stride={s:<4}: KLA−Fair átlag = {avg:+.2f}%  "
+        log(f"    stride={s:<4}: KLA-Fair átlag = {avg:+.2f}%  "
             f"({'KLA jobb' if avg < 0 else 'Fair jobb'})")
 
 elapsed = time.time() - t_sweep_start
 log(f"\n  Teljes futási idő: {elapsed/60:.1f} perc")
 log("=" * 100)
 
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 # Kiírás fájlba
-# ─────────────────────────────────────────────────────────────────────────────
+# -----------------------------------------------------------------------------
 
 TXT_FILE.write_text("\n".join(summary_lines), encoding="utf-8")
 print(f"\n  Szöveges riport: {TXT_FILE}")
