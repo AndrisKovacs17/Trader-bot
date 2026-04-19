@@ -590,5 +590,6 @@ setInterval(refresh,3000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
+<script src="/help.js" defer></script>
 </body>
 </html>

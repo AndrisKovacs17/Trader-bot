@@ -317,6 +317,7 @@ class HttpServer:
                     "/chart.umd.min.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "chart.umd.min.js")),
                     "/tailwind.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "tailwind.js")),
                     "/tailwind.min.css": ("text/css", os.path.join(_DASHBOARD_DIR, "tailwind.min.css")),
+                    "/help.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "help.js")),
                 }
                 if path in _STATIC_FILES:
                     mime, fpath = _STATIC_FILES[path]
