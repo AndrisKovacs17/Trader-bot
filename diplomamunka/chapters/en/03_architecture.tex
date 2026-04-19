@@ -1,0 +1,294 @@
+% ============================================================
+%  Chapter 3 — KCMamba Architecture
+% ============================================================
+\chapter{The KCMamba Architecture}
+\label{ch:architektura}
+
+\section{Overview}
+
+KCMamba (Kalman Core-Attention Mamba) is a hybrid neural time-series
+model that embeds a differentiable, content-dependent Kalman filter layer into
+the Mamba SSM~\cite{gu2023mamba}.
+The key idea is that rather than using a fixed forgetting factor $A$, the model
+learns a gain $K$ from the current input and uses it to decide how much to trust
+the new measurement versus the prior state.
+
+The model has two levels: the base processing unit is a
+\texttt{KCMambaBlock} (content-dependent Kalman filtering and state update),
+stacked into a \texttt{KCMambaStack} of $N$ sequential blocks with a
+cross-attention layer at the top.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig08_architecture.png}
+  \caption{Full data-flow diagram of the KCMamba block. Yellow blocks
+           ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) learn the Kalman
+           statistics; the purple block performs the parallel prefix-scan on GPU
+           in $O(\log T)$ synchronisation steps; green blocks denote
+           input/output projections.}
+  \label{fig:arch_overview}
+\end{figure}
+
+\section{KCMamba Block}
+\label{sec:kc_block}
+
+Let the input sequence be $x \in \mathbb{R}^{B \times T \times d}$
+($B$: batch size, $T$: sequence length, $d$: feature dimension).
+
+\subsection{Input Projection and 1D Convolution}
+
+The input is projected into two streams ($x_\text{cw}, x_\text{gate}$) by a
+linear layer, followed by SiLU gating:
+\begin{align}
+    [x_\text{cw}, x_\text{gate}] &= W_\text{in} x, \\
+    \text{gate} &= \mathrm{SiLU}(x_\text{gate}).
+\end{align}
+A depthwise 1D convolution ($k=4$ kernel) on $x_\text{cw}$ integrates local
+context:
+\begin{equation}
+    x_\text{core} = \mathrm{SiLU}\bigl(\mathrm{Conv1D}(x_\text{cw})\bigr).
+\end{equation}
+
+\subsection{Kalman Parameter Networks}
+
+Three small MLP sub-networks learn the Kalman filter statistics:
+\begin{align}
+    Q_t &= \mathrm{softplus}(Q_\text{net}(x_\text{core})) \cdot
+           \mathrm{softplus}(q_\text{scale}), \label{eq:Q_net}\\
+    R_t &= \mathrm{softplus}(R_\text{net}(x_\text{core})) \cdot
+           \mathrm{softplus}(r_\text{scale}). \label{eq:R_net}
+\end{align}
+The initialisations $q_\text{scale} = -2.0$ and $r_\text{scale} = 1.5$ ensure
+$R \gg Q$ at the start, giving $K_\text{base} \approx 0.07$ (strong filtering
+by default).
+
+\subsection{Kalman Gain Computation}
+\label{sec:kalman_gain}
+
+The base Kalman gain follows from the $Q/(Q+R)$ ratio:
+\begin{equation}
+    K_\text{base,t} = \frac{Q_t}{Q_t + R_t + \varepsilon}.
+    \label{eq:K_base}
+\end{equation}
+A content-dependent correction from $K_\text{net}$ is added:
+\begin{equation}
+    K_t = \mathrm{clamp}\bigl(K_\text{base,t} +
+          0.3(\sigma(K_\text{net}(x_\text{core})) - 0.5),\;
+          [10^{-4},\; 0.999]\bigr).
+    \label{eq:K_final}
+\end{equation}
+The $0.3(\sigma(\cdot) - 0.5)$ term is centred around zero, stabilising early
+training.
+
+\subsection{State Update with Parallel Scan}
+
+With forgetting factor $A_t = \mathrm{clamp}(1 - K_t, 0.01, 0.99)$, the
+discrete Kalman recurrence is:
+\begin{align}
+    h_t &= A_t \odot h_{t-1} + K_t \odot v_t, \label{eq:kc_recurrence}\\
+    v_t &= \mathrm{LayerNorm}(W_v \, x_\text{core,t}). \nonumber
+\end{align}
+Efficient evaluation uses the Blelloch parallel prefix-scan~\cite{blelloch1990prefix}:
+\begin{align}
+    A_\text{new}[t] &\leftarrow A[t] \cdot A[t-\text{step}], \\
+    B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
+\end{align}
+where the stride $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ doubles each pass.
+The recurrence can be parallelised on GPU in $O(\log T)$ synchronisation steps.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig09_parallel_scan.png}
+  \caption{Blelloch parallel prefix-scan on a length-8 sequence. Each pass
+           combines two elements separated by the current step size; after
+           $\log_2 T = 3$ passes every $h_t$ contains the full context.
+           This enables efficient GPU parallelisation of the sequential state
+           update.}
+  \label{fig:parallel_scan}
+\end{figure}
+
+\subsection{Output Projection and Residual Connection}
+
+The Kalman state sequence ($\mu$) is combined with the gate:
+\begin{equation}
+    y_\text{KC} = W_\text{out}(\mu \odot \text{gate}).
+\end{equation}
+A scalar-gated residual connection preserves the gradient path:
+\begin{equation}
+    \text{out} = y_\text{KC} + \sigma(b_\text{res}) \cdot
+                 (W_\text{res}\,x - y_\text{KC}),
+\end{equation}
+where $b_\text{res} = -1.0$ gives a small initial $\sigma$ value
+($\sigma(-1) \approx 0.27$), so the SSM path dominates by default.
+
+\section{KCMamba Stack}
+\label{sec:kc_stack}
+
+The stack consists of $N$ blocks with pre-norm LayerNorm layers that prevent
+activation-scale drift. A \emph{multi-scale cross-attention} ($\mathrm{MHA}$)
+layer is appended after the final block:
+\begin{equation}
+    \text{out}[T] = h[T] + \mathrm{MHA}\bigl(h[T],\; h[{::s}],\; h[{::s}]\bigr),
+\end{equation}
+where $h[{::s}]$ selects every $s$-th position (slow, coarser time scale).
+This lets the model consider long-term trends alongside the current fast
+dynamics.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram.png}
+  \caption{KCMamba stack structure. From input to output: input projection,
+           2 KC-blocks with LayerNorm, output normalisation, and cross-attention
+           for the slow ($s=4$) time scale.}
+  \label{fig:stack_diagram}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig11_synth_mamba.png}
+  \caption{Synthetic signal filtering: \textbf{vanilla SSM} (standard Mamba,
+           fixed $A$) vs.\ \textbf{KCMamba} (adaptive $K$-gain) at moderate
+           ($\sigma=2$) and strong ($\sigma=5$) noise.
+           \textit{Top rows:} predicted vs.\ true signal; KCMamba tracks
+           more tightly even under noise.
+           \textit{Bottom rows:} learned $K$ values over time.
+           Vanilla SSM has a fixed $A$; KCMamba's $A$ adapts with noise level.}
+  \label{fig:synth_mamba}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig13_memory_retention.png}
+  \caption{\textbf{Left:} Impulse-response function: exponential state decay
+           $h_k = A^k$ as a function of lag $k$. KCMamba's $A$ grows adaptively
+           with noise ($0.294 \to 0.926$), extending the memory horizon.
+           \textbf{Right:} Effective memory horizon (number of steps until
+           $A^k > 5\%$) vs.\ noise level. LSTM and vanilla SSM have fixed
+           horizons; KCMamba automatically extends memory under noise.}
+  \label{fig:memory_retention}
+\end{figure}
+
+\section{Parameter Complexity}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|r|r|r|}
+        \hline
+        \textbf{Model} & \textbf{Parameters (k)} & \textbf{Layers} & \textbf{State size} \\
+        \hline\hline
+        LSTM       & 71{.}7 & 1 & 128 \\
+        Fair Mamba & 53{.}2 & 2 & H=4, D=32 \\
+        KCMamba  & 46{.}1 & 2 & H=4, D=32 \\
+        \hline
+    \end{tabular}
+    \caption{Parameter complexity of the models used in experiments (medium
+             configuration). KCMamba has fewer parameters than Fair Mamba
+             because the $Q_\text{net}/R_\text{net}/K_\text{net}$ sub-networks
+             redirect resources from the SSM blocks.}
+    \label{tab:params}
+\end{table}
+
+\section{Comparison with Standard Mamba}
+
+The key architectural difference between \textbf{standard (vanilla) SSM} and
+KCMamba lies in how the forgetting factor $A$ is handled.
+Standard Mamba~\cite{gu2023mamba} learns $A$ via the time-step $\Delta$, but
+this process does not separate signal from noise: $\Delta$ must model both
+data structure \emph{and} noise simultaneously.
+
+KCMamba replaces this with an \emph{explicit} $Q/R$ noise domain model:
+the $K = Q/(Q+R)$ ratio determines whether to trust the current measurement or
+the prior state. At high noise ($\sigma=5$), $K \to 0.073$ and $A = 0.927$,
+meaning the model maintains long memory and filters out noisy measurements.
+At low noise ($\sigma=0$), $K = 0.706$, so the model follows the current data.
+
+This is demonstrated on the synthetic test in Fig.~\ref{fig:synth_mamba}:
+standard SSM uses fixed $A=0.88$ regardless of noise level, while KCMamba
+adapts $A$ dynamically (Fig.~\ref{fig:memory_retention}).
+
+\section{System Architecture}
+\label{sec:system_arch}
+
+KCMamba is embedded in a hexagonally structured trading system.
+Fig.~\ref{fig:system_arch} shows the main components:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/system_arch.png}
+  \caption{Hexagonal architecture of the KCMamba trading system. The
+           \textbf{Core} package contains the TradingEngine
+           (pipeline: state estimation $\to$ prediction $\to$ signal $\to$
+           risk $\to$ execution), domain models, and application ports.
+           External adapters (Infrastructure, Web, Testing, Offline Training,
+           Observability, Analytics) communicate with the Core exclusively
+           through interfaces ($\texttt{IEventBusPort}$,
+           $\texttt{IBrokerGatewayPort}$, etc.).}
+  \label{fig:system_arch}
+\end{figure}
+
+\section{Module and Class Structure}
+\label{sec:module_structure}
+
+The source code is split into four main packages. \texttt{core/} contains all
+business logic and holds no references to any adapter; code in \texttt{adapters/}
+accesses the core only through the \texttt{ports.py} interfaces.
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.25}
+  \begin{tabular}{|l|l|p{6.8cm}|}
+    \hline
+    \textbf{Package} & \textbf{Module / class} & \textbf{Responsibility} \\
+    \hline\hline
+    \multirow{4}{*}{\texttt{core/domain/}}
+      & \texttt{models.py}      & Data types: \texttt{Candle}, \texttt{Position}, \texttt{Order}, \texttt{Fill} \\
+      & \texttt{strategy.py}    & \texttt{ThresholdStrategy}: Buy/Sell signal logic,
+                                  \texttt{min\_edge}, \texttt{max\_sigma} filters \\
+      & \texttt{risk.py}        & \texttt{RiskPolicy}: risk rule set
+                                  (MaxQty, Stop-loss, daily loss limit) \\
+      & \texttt{events.py}      & Domain events: \texttt{PriceEvent},
+                                  \texttt{SignalEvent}, \texttt{FillEvent} \\
+    \hline
+    \multirow{5}{*}{\texttt{core/application/}}
+      & \texttt{engine.py}      & \texttt{TradingEngine}: main pipeline orchestrator;
+                                  internal state machine for the trading cycle \\
+      & \texttt{execution.py}   & Order assembly, sizing, and dispatch via
+                                  \texttt{IBrokerGatewayPort} \\
+      & \texttt{ports.py}       & Abstract interfaces:
+                                  \texttt{IEventBusPort}, \texttt{IBrokerGatewayPort},
+                                  \texttt{IMarketFeedPort}, \texttt{ITimeSourcePort} \\
+      & \texttt{stages.py}      & Pipeline stages: \texttt{PredictionStage},
+                                  \texttt{SignalStage}, \texttt{RiskStage},
+                                  \texttt{ExecutionStage} \\
+      & \texttt{stores.py}      & In-memory state: \texttt{PositionStore},
+                                  \texttt{SignalStore}, \texttt{EquityStore} \\
+    \hline
+    \multirow{4}{*}{\texttt{core/ml/}}
+      & \texttt{kc\_mamba.py}         & \texttt{KCMambaModel}: PyTorch module,
+                                          \texttt{forward(x)} → forecast \\
+      & \texttt{mamba\_kalman.py}      & \texttt{KCMambaBlock}: Kalman filter layer,
+                                          parallel prefix-scan \\
+      & \texttt{services.py}           & \texttt{MLService}: model loading,
+                                          online update, forecast cache \\
+      & \texttt{feature\_engineering.py} & OHLCV → feature vector transform,
+                                            normalisation, sliding window \\
+    \hline
+    \multirow{5}{*}{\texttt{adapters/}}
+      & \texttt{binance\_broker.py}    & \texttt{BinanceBroker}: live order execution
+                                          via REST API \\
+      & \texttt{binance\_feed.py}      & \texttt{BinanceFeed}: WebSocket price stream,
+                                          reconnect logic \\
+      & \texttt{event\_bus.py}         & \texttt{InMemoryEventBus}: async
+                                          \texttt{asyncio}-based event routing \\
+      & \texttt{broker.py} (testing)   & \texttt{PaperBroker}, \texttt{SimulationWallet}:
+                                          simulated execution for backtesting \\
+      & \texttt{dashboard.py} (web)    & \texttt{DashboardServer}: aiohttp HTTP/WS
+                                          server, REST JSON endpoints \\
+    \hline
+  \end{tabular}
+  \caption{Module and class structure of the system. Each class depends only
+           on the data types and interfaces of its own package; cross-package
+           dependencies are mediated by the \texttt{ports.py} abstractions.}
+  \label{tab:module_structure}
+\end{table}

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLA-Mamba · LSTM / Mamba összehasonlítás</title>
+  <style id="tw">
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
+html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
+body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margin:0}a{color:inherit;text-decoration:inherit}pre{font-family:ui-monospace,monospace;margin:0}
+.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.grid{display:grid}.hidden{display:none}
+.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}.justify-start{justify-content:flex-start}
+.flex-1{flex:1 1 0%}.flex-none{flex:none}.flex-shrink-0{flex-shrink:0}
+.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}
+.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-auto{margin-left:auto}.mr-2{margin-right:.5rem}.mr-4{margin-right:1rem}.mx-auto{margin-left:auto;margin-right:auto}
+.space-y-4>*+*{margin-top:1rem}
+.w-full{width:100%}.min-h-screen{min-height:100vh}.max-w-screen-2xl{max-width:1536px}.h-12{height:3rem}.h-8{height:2rem}
+.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}
+.relative{position:relative}.sticky{position:sticky}.absolute{position:absolute}.top-0{top:0}.z-20{z-index:20}
+.font-mono{font-family:ui-monospace,monospace}.font-normal{font-weight:400}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-xl{font-size:1.25rem;line-height:1.75rem}
+.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:.1em}
+.text-center{text-align:center}.text-right{text-align:right}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}
+.text-white{color:#fff}
+.text-slate-100{color:#f1f5f9}.text-slate-200{color:#e2e8f0}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-blue-300{color:#93c5fd}.text-blue-400{color:#60a5fa}.text-cyan-400{color:#22d3ee}
+.text-emerald-400{color:#4ade80}.text-amber-400{color:#fbbf24}.text-red-400{color:#f87171}.text-violet-400{color:#a78bfa}
+.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}.bg-slate-950{background-color:#020617}
+.bg-slate-950\/95{background-color:rgba(2,6,23,.95)}
+.border-slate-700{border-color:#334155}.border-slate-800{border-color:#1e293b}
+.border{border-width:1px}.border-b{border-bottom-width:1px}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.backdrop-blur{backdrop-filter:blur(8px)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(96,165,250,0))}
+.to-cyan-400{--tw-gradient-to:#22d3ee}
+.bg-clip-text{-webkit-background-clip:text;background-clip:text}
+.transition-colors{transition-property:color,background-color;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+.cursor-pointer{cursor:pointer}.opacity-50{opacity:.5}
+@media(min-width:1024px){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.h-\[220px\]{height:220px}.h-\[420px\]{height:420px}.max-w-\[480px\]{max-width:480px}
+.grid-autofill-130{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.grid-autofill-240{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+.text-\[11px\]{font-size:11px}
+.text-violet-400{color:#a78bfa}.text-cyan-300{color:#67e8f9}
+.bg-blue-950{background-color:#172554}.bg-emerald-950{background-color:#022c22}.bg-red-950{background-color:#450a0a}
+.border-t{border-top-width:1px}
+.space-y-1>*+*{margin-top:.25rem}
+</style>
+  <script src="/chart.umd.min.js"></script>
+  <style>
+    body { background: #080c14; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .nav-a { color:#94a3b8; text-decoration:none; padding:4px 11px; border-radius:8px; font-size:13px; transition:all .15s; white-space:nowrap; }
+    .nav-a:hover { background:rgba(148,163,184,.1); color:#e2e8f0; }
+    .nav-a.active { background:rgba(96,165,250,.15); color:#60a5fa; font-weight:600; }
+    .nav-dropdown { position:relative; display:inline-block; }
+    .nav-dropdown > button { background:none; border:none; cursor:pointer; font-family:inherit; }
+    .nav-drop { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:4px 0; min-width:220px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .nav-dropdown.open .nav-drop { display:block; }
+    .drop-a { display:block; padding:7px 16px; font-size:13px; color:#94a3b8; text-decoration:none; white-space:nowrap; }
+    .drop-a:hover { background:rgba(148,163,184,.08); color:#e2e8f0; }
+    .drop-a.active { color:#60a5fa; font-weight:600; }
+    .kv { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid rgba(30,41,59,.6); }
+    .kv:last-child { border-bottom:none; }
+    .kv .lbl { color:#64748b; font-size:12px; }
+    .kv .val { font-family:ui-monospace,monospace; font-size:12px; color:#e2e8f0; text-align:right; }
+    .section { background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:20px; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; }
+    .badge-ok   { background:rgba(34,197,94,.15);  color:#4ade80; }
+    .badge-warn { background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-err  { background:rgba(239,68,68,.15);  color:#f87171; }
+    .badge-run  { background:rgba(96,165,250,.15); color:#60a5fa; }
+    .btn-run { background:linear-gradient(135deg,#1d4ed8,#0e7490); color:#fff; border:none; padding:9px 22px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+    .btn-run:hover { opacity:.85; }
+    .btn-run:disabled { opacity:.4; cursor:default; }
+    .card-lstm  { border-color:#475569; }
+    .card-fair  { border-color:#1e3a5f; }
+    .card-kla   { border-color:#1e3a5f; background:#0c1829; }
+    .card-ar    { border-color:#78350f; background:#0c0d02; }
+    .card-dlinear { border-color:#3b1ea8; background:#0d0b1a; }
+    .tbl { width:100%; border-collapse:collapse; font-size:12px; }
+    .tbl th { color:#64748b; text-align:left; padding:4px 10px; border-bottom:1px solid #1e293b; }
+    .tbl td { padding:5px 10px; border-bottom:1px solid rgba(30,41,59,.4); font-family:ui-monospace,monospace; color:#e2e8f0; }
+    .tbl tr:last-child td { border-bottom:none; }
+    .tbl .best { color:#4ade80; font-weight:700; }
+    input[type=number], select { background:#0f172a; border:1px solid #334155; color:#e2e8f0; border-radius:6px; padding:4px 8px; font-size:12px; width:100%; }
+    input[type=number]:focus, select:focus { outline:1px solid #3b82f6; }
+    label { font-size:11px; color:#64748b; display:block; margin-bottom:3px; }
+    /* legend helpers */
+    .leg-s { display:inline-block; height:3px; width:14px; margin-right:5px; vertical-align:middle; }
+    .leg-s-dot { display:inline-block; height:2px; width:14px; margin-right:5px; vertical-align:middle; }
+    .leg-dot { display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:4px; }
+    /* verdict banner */
+    .verdict-banner { border-color:#1e3a5f; background:#0c1829; }
+    /* per-card config row */
+    .card-cfg { display:flex; flex-wrap:wrap; gap:8px; padding:8px 0 12px; margin-bottom:4px; border-bottom:1px solid rgba(30,41,59,.8); }
+    .card-cfg > div { flex:1; min-width:80px; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased">
+
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <div class="nav-dropdown">
+      <button class="nav-a">Pénzügyi ▾</button>
+      <div class="nav-drop">
+        <a href="/" class="drop-a">Áttekintés</a>
+        <a href="/model.html" class="drop-a">Modell</a>
+        <a href="/signals.html" class="drop-a">Jelek</a>
+        <a href="/training.html" class="drop-a">Tréning</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a active">Benchmark ▾</button>
+      <div class="nav-drop">
+        <a href="/benchmark.html" class="drop-a">Szintetikus teszt</a>
+        <a href="/ltsf_benchmark.html" class="drop-a active">LSTM / Mamba összehasonlítás</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">KLA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <span id="statusBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
+      <span class="text-xs text-slate-600" id="navTime">—</span>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-screen-2xl mx-auto px-5 py-5 space-y-4">
+
+  <!-- Header + run controls -->
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-200">LSTM / Mamba összehasonlítás</h1>
+      <p class="text-xs text-slate-500 mt-1">Vanilla LSTM vs Fair Mamba vs KLA-Mamba — valós LTSF adatokon (Exchange / Weather / ECL / ETTh1 / ETTh2 / ETTm1 / ETTm2 / M4 Hourly)</p>
+    </div>
+    <div class="flex items-center gap-3 flex-wrap">
+      <span id="stageLabel" class="text-xs text-slate-500">—</span>
+      <span id="runBadge" class="badge badge-ok hidden">● Kész</span>
+      <button id="btnRun" class="btn-run" onclick="startRun()">▶ Futtatás</button>
+    </div>
+  </div>
+
+  <!-- Config panel -->
+  <div class="section">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció</h2>
+    <div class="grid grid-autofill-130 gap-3">
+      <div><label>Dataset</label>
+        <select id="cfgDataset">
+          <option value="Exchange" selected>Exchange (8 dim)</option>
+          <option value="Weather">Weather (21 dim)</option>
+          <option value="ECL">ECL (321 dim)</option>
+          <option value="ETTh1">ETTh1 — óránkénti vilámhőmérs (7 dim)</option>
+          <option value="ETTh2">ETTh2 — óránkénti vilámhőmérs (7 dim)</option>
+          <option value="ETTm1">ETTm1 — 15 perces vilámhőmérs (7 dim)</option>
+          <option value="ETTm2">ETTm2 — 15 perces villamoshőmérs (7 dim)</option>
+          <option value="M4Hourly">M4 Hourly — 414 autoregresszív sorozat (1 dim)</option>
+        </select></div>
+      <div><label>Seq len</label><input type="number" id="cfgSeqLen" value="96" min="16" max="1024"></div>
+      <div><label>Batch size</label><input type="number" id="cfgBatch" value="64" min="8" max="256"></div>
+      <div><label>Epochs</label><input type="number" id="cfgEpochs" value="5" min="1" max="50"></div>
+      <div><label>Ablak stride</label><input type="number" id="cfgStride" value="1" step="1" min="1" max="96" title="1 = max átfedés; nagy adathalmaznál (Weather, ECL) növelhető"></div>
+      <div><label>Zaj skála (noise)</label><input type="number" id="cfgNoise" value="0" step="0.1" min="0" max="3"></div>
+    </div>
+  </div>
+
+  <!-- Verdict banner -->
+  <div id="verdictBanner" class="hidden section verdict-banner">
+    <p class="text-center text-sm font-bold" id="verdictText"></p>
+  </div>
+
+  <!-- Model cards (5 models) -->
+  <div class="grid gap-4 grid-autofill-240">
+
+    <!-- LSTM card -->
+    <div class="section card-lstm">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-bold text-slate-200">🔷 Vanilla LSTM</span>
+        <span id="lstmBadge" class="badge badge-warn hidden">...</span>
+      </div>
+      <div class="card-cfg">
+        <div><label>Hidden méret</label><input type="number" id="cfgLstmH" value="128" min="32" max="512" step="32" title="params ≈ 4·H·(D+H)"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="lstmParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="lstmLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="lstmMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="lstmTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="lstmVram">—</span></div>
+      </div>
+    </div>
+
+    <!-- Fair Mamba card -->
+    <div class="section card-fair">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-bold text-slate-200">⬜ Fair Mamba</span>
+        <span id="fairBadge" class="badge badge-warn hidden">...</span>
+      </div>
+      <div class="card-cfg">
+        <div><label>Heads</label><input type="number" id="cfgFairHeads" value="4" min="1" max="16"></div>
+        <div><label>State dim</label><input type="number" id="cfgFairState" value="32" min="4" max="128" step="4"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="fairParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="fairLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="fairMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="fairTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="fairVram">—</span></div>
+      </div>
+    </div>
+
+    <!-- KLA card -->
+    <div class="section card-kla">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-bold text-blue-400">🔵 KLA-Mamba</span>
+        <span id="klaBadge" class="badge badge-warn hidden">...</span>
+      </div>
+      <div class="card-cfg">
+        <div><label>Heads</label><input type="number" id="cfgKlaHeads" value="4" min="1" max="16"></div>
+        <div><label>State dim</label><input type="number" id="cfgKlaState" value="32" min="4" max="128" step="4"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="klaParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="klaLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="klaMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="klaTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="klaVram">—</span></div>
+      </div>
+      <div id="klaKalman" class="hidden mt-3 pt-3 border-t border-slate-800">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Kálmán dinamika</p>
+        <div class="space-y-1">
+          <div class="kv"><span class="lbl">K gain (átlag)</span><span class="val" id="klaKmean">—</span></div>
+          <div class="kv"><span class="lbl">K gain (szórás)</span><span class="val" id="klaKstd">—</span></div>
+          <div class="kv"><span class="lbl">A memória (átlag)</span><span class="val" id="klaAmean">—</span></div>
+          <div class="kv"><span class="lbl">R zaj (átlag)</span><span class="val" id="klaRmean">—</span></div>
+          <div class="kv"><span class="lbl">Bypass gate</span><span class="val" id="klaGate">—</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AR / ARIMA card -->
+    <div class="section card-ar">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-bold text-amber-400">📐 ARIMA modell</span>
+        <span id="arBadge" class="badge badge-warn hidden">...</span>
+      </div>
+      <div class="card-cfg">
+        <div><label>p (AR rend)</label><input type="number" id="cfgArimaP" value="5" min="1" max="30"></div>
+        <div><label>q (MA rend)</label><input type="number" id="cfgArimaQ" value="3" min="0" max="15"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="arParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="arLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="arMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="arTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="arVram">—</span></div>
+      </div>
+    </div>
+
+    <!-- DLinear card -->
+    <div class="section card-dlinear">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-sm font-bold text-violet-400">📏 DLinear</span>
+        <span id="dlinearBadge" class="badge badge-warn hidden">...</span>
+      </div>
+      <div class="card-cfg">
+        <div><label>MA kernel</label><input type="number" id="cfgDlinearK" value="25" min="3" max="99" step="2"></div>
+      </div>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="dlinearParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="dlinearLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="dlinearMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="dlinearTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="dlinearVram">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results table -->
+  <div class="section hidden" id="resultTableWrap">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló</h2>
+    <div class="overflow-auto">
+      <table class="tbl">
+        <thead><tr>
+          <th>Modell</th><th>Test MSE</th><th>Paraméterek</th><th>Tréning idő (s)</th><th>Peak VRAM (MB)</th>
+        </tr></thead>
+        <tbody id="resultTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Combined prediction chart (full width) -->
+  <div class="section">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Predikció vs valós — utolsó feature (teszt minta)</h2>
+    <p class="text-xs text-slate-600 mb-3">Ground Truth + mind az 5 modell predikciója együtt (utolsó feature, teszt minta)</p>
+    <div class="h-[420px]"><canvas id="cPred"></canvas></div>
+    <div class="flex flex-wrap gap-5 mt-3 text-[11px] text-slate-500">
+      <span><span class="leg-s" style="background:rgba(203,213,225,.9)"></span>Valós (Ground Truth)</span>
+      <span id="noisyLegendItem"><span class="leg-s" style="background:rgba(251,146,60,.6)"></span>Zajos bemenet</span>
+      <span><span class="leg-s" style="background:#60a5fa"></span>LSTM <span id="lblLstmMseInline" class="text-blue-400"></span></span>
+      <span><span class="leg-s" style="background:#94a3b8"></span>Fair Mamba <span id="lblFairMseInline" class="text-slate-400"></span></span>
+      <span><span class="leg-s" style="background:#4ade80"></span>KLA-Mamba <span id="lblKlaMseInline" class="text-emerald-400"></span></span>
+      <span><span class="leg-s" style="background:#f59e0b"></span>ARIMA modell <span id="lblArMseInline" class="text-amber-400"></span></span>
+      <span><span class="leg-s" style="background:#a78bfa"></span>DLinear <span id="lblDlinearMseInline" class="text-violet-400"></span></span>
+      <span><span class="leg-s-dot" style="border-top:2px dotted #67e8f9"></span>KLA szűrt (μ)</span>
+    </div>
+  </div>
+
+  <!-- Epoch loss curve -->
+  <div class="section max-w-[480px]">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tréning loss görbék (epoch)</h2>
+    <div class="h-[220px]"><canvas id="cLoss"></canvas></div>
+    <div class="flex flex-wrap gap-4 mt-2 text-[11px] text-slate-500">
+      <span><span class="leg-dot" style="background:#60a5fa"></span>LSTM</span>
+      <span><span class="leg-dot" style="background:#94a3b8"></span>Fair Mamba</span>
+      <span><span class="leg-dot" style="background:#4ade80"></span>KLA-Mamba</span>
+      <span><span class="leg-dot" style="background:#f59e0b"></span>ARIMA modell</span>
+      <span><span class="leg-dot" style="background:#a78bfa"></span>DLinear</span>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Chart setup ──────────────────────────────────────────────────────────────
+const _def = {
+  responsive:true, maintainAspectRatio:false,
+  plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}},
+  animation:{duration:300},
+  scales:{
+    x:{display:true,ticks:{color:'#475569',maxTicksLimit:8},grid:{color:'rgba(30,41,59,.5)'}},
+    y:{display:true,ticks:{color:'#475569'},grid:{color:'rgba(30,41,59,.5)'}},
+  }
+};
+function mkChart(id, datasets, opts){
+  const ctx=document.getElementById(id);
+  if(!ctx) return null;
+  return new Chart(ctx,{type:'line',data:{datasets},options:{..._def,...opts}});
+}
+
+let cLoss=null, cPred=null;
+function initCharts(){
+  cLoss = mkChart('cLoss',[
+    {label:'LSTM',         data:[], borderColor:'#60a5fa', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'Fair Mamba',   data:[], borderColor:'#94a3b8', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'KLA-Mamba',    data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
+    {label:'ARIMA modell', data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'DLinear',      data:[], borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:.3},
+  ],{scales:{x:{type:'linear',title:{display:false}},y:{type:'linear'}}});
+
+  cPred = mkChart('cPred',[
+    {label:'Valós',         data:[], borderColor:'rgba(203,213,225,.95)', borderWidth:2,   pointRadius:1.5, pointHoverRadius:4, pointBackgroundColor:'rgba(203,213,225,.95)', tension:0},
+    {label:'Zajos bemenet', data:[], borderColor:'rgba(251,146,60,.5)',   borderWidth:1,   pointRadius:0, tension:0},
+    {label:'LSTM',          data:[], borderColor:'#60a5fa', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
+    {label:'Fair Mamba',    data:[], borderColor:'#94a3b8', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
+    {label:'KLA-Mamba',     data:[], borderColor:'#4ade80', borderWidth:1, pointRadius:0, tension:0, borderDash:[2,2]},
+    {label:'ARIMA modell',  data:[], borderColor:'#f59e0b', borderWidth:1, pointRadius:0, tension:0, borderDash:[6,3]},
+    {label:'DLinear',       data:[], borderColor:'#a78bfa', borderWidth:1, pointRadius:0, tension:0, borderDash:[3,2]},
+    {label:'KLA szűrt (μ)', data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
+  ],{scales:{x:{type:'linear'},y:{type:'linear'}}});
+}
+initCharts();
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const fmt2 = v => (v==null?'—':Number.isFinite(v)?v.toFixed(5):'—');
+const fmtN = v => (v==null?'—':v.toLocaleString());
+const fmtT = v => (v==null?'—':v.toFixed(1)+'s');
+const fmtV = v => (v==null?'—':v.toFixed(1)+' MB');
+
+function setCard(prefix, m){
+  if(!m) return;
+  $(prefix+'Params').textContent = fmtN(m.params);
+  $(prefix+'Mse').textContent    = fmt2(m.test_mse);
+  $(prefix+'Time').textContent   = fmtT(m.train_time_s);
+  $(prefix+'Vram').textContent   = fmtV(m.peak_vram_mb);
+  const lrEl = $(prefix+'Lr');
+  if(lrEl) lrEl.textContent = m.found_lr != null ? m.found_lr.toExponential(2) : '—';
+  const b = $(prefix+'Badge');
+  if(b){ b.textContent = m.error ? '✗ Hiba' : '✓ Kész'; b.className = m.error ? 'badge badge-err' : 'badge badge-ok'; b.classList.remove('hidden'); }
+}
+
+function updateLoss(models){
+  if(!cLoss || !models) return;
+  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  keys.forEach((k,i)=>{
+    const m = models[k];
+    if(!m || !m.epoch_losses) return;
+    cLoss.data.datasets[i].data = m.epoch_losses.map((v,j)=>({x:j+1,y:v}));
+  });
+  cLoss.update('none');
+}
+
+function updatePred(models){
+  if(!cPred || !models) return;
+  const anyModel = models.lstm || models.fair_mamba || models.kla_mamba || models.ar_model;
+  const base  = anyModel?.sample?.true;
+  const noisy = anyModel?.sample?.noisy;
+  if(!base) return;
+  cPred.data.datasets[0].data = base.map((v,i)=>({x:i,y:v}));
+  // dataset[1] = zajos bemenet
+  if(noisy && noisy.length)
+    cPred.data.datasets[1].data = noisy.map((v,i)=>({x:i,y:v}));
+  else
+    cPred.data.datasets[1].data = [];
+  // Hide noisy legend item when noise=0 (noisy == clean)
+  const noisyLegend = document.getElementById('noisyLegendItem');
+  if(noisyLegend){ if(noisy && noisy.length) noisyLegend.classList.remove('hidden'); else noisyLegend.classList.add('hidden'); }
+  const predsMap = [models.lstm, models.fair_mamba, models.kla_mamba, models.ar_model, models.dlinear];
+  predsMap.forEach((m,i)=>{
+    if(m && m.sample && m.sample.pred)
+      cPred.data.datasets[i+2].data = m.sample.pred.map((v,j)=>({x:j,y:v}));
+  });
+  // KLA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[7]
+  const klaFilt = models.kla_mamba?.sample?.kla_filtered;
+  cPred.data.datasets[7].data = (klaFilt && klaFilt.length)
+    ? klaFilt.map((v,i)=>({x:i,y:v})) : [];
+  cPred.options.scales.x.min = 0;
+  cPred.options.scales.x.max = base.length - 1;
+  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblDlinearMseInline'];
+  const keyMap = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  keyMap.forEach((k,i)=>{
+    const mse = models[k]?.test_mse;
+    const el = document.getElementById(idMap[i]);
+    if(el && mse!=null) el.textContent = '(MSE: '+mse.toFixed(5)+')';
+  });
+  cPred.update('none');
+}
+
+function buildTable(models){
+  if(!models) return;
+  $('resultTableWrap').classList.remove('hidden');
+  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const mseMins = keys.map(k=>models[k]?.test_mse ?? Infinity);
+  const minMse  = Math.min(...mseMins);
+  const rows    = keys.map((k,i)=>{
+    const m = models[k];
+    if(!m) return '';
+    const isBest = (m.test_mse===minMse);
+    return `<tr>
+      <td>${m.name||k}</td>
+      <td class="${isBest?'best':''}">${fmt2(m.test_mse)}</td>
+      <td>${fmtN(m.params)}</td>
+      <td>${fmtT(m.train_time_s)}</td>
+      <td>${fmtV(m.peak_vram_mb)}</td>
+    </tr>`;
+  }).join('');
+  $('resultTbody').innerHTML = rows;
+}
+
+function buildVerdict(models){
+  if(!models) return;
+  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const entries = keys.map(k=>({k,m:models[k]})).filter(x=>x.m&&x.m.test_mse!=null);
+  if(entries.length < 2) return;
+  entries.sort((a,b)=>a.m.test_mse - b.m.test_mse);
+  const win = entries[0];
+  const second = entries[1];
+  const pct = ((second.m.test_mse - win.m.test_mse) / second.m.test_mse * 100).toFixed(1);
+  $('verdictBanner').classList.remove('hidden');
+  $('verdictText').innerHTML =
+    `🏆 Legjobb: <span style="color:#4ade80">${win.m.name}</span> — Test MSE: <strong>${fmt2(win.m.test_mse)}</strong> (${pct}% jobb mint ${second.m.name})`;
+}
+
+// ── Polling ───────────────────────────────────────────────────────────────────
+let _polling = false;
+let _hasRun  = false;  // true only after a run was started in this page session
+
+async function sf(url){
+  const r = await fetch(url, {cache:'no-store'}); return r.json();
+}
+
+async function poll(){
+  let d;
+  try{ d = await sf('/ltsf_benchmark'); } catch(e){ setTimeout(poll, 2000); return; }
+
+  $('navTime').textContent = new Date().toLocaleTimeString('hu-HU');
+
+  const badge = $('statusBadge');
+  if(d.status==='running'){
+    badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
+    badge.textContent='● Fut...';
+    $('stageLabel').textContent = d.stage || '...';
+    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kla_mamba); setCard('ar', d.models.ar_model); setCard('dlinear', d.models.dlinear); updateLoss(d.models); }
+    setTimeout(poll, 1500);
+  } else if(d.status==='done'){
+    if(_hasRun){
+      badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400';
+      badge.textContent='● Kész';
+      $('runBadge').classList.remove('hidden');
+    } else {
+      badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400';
+      badge.textContent='● Előző eredmény';
+      $('runBadge').classList.add('hidden');
+    }
+    $('btnRun').disabled=false;
+    $('stageLabel').textContent = '';
+    if(d.models){
+      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kla_mamba); setCard('ar', d.models.ar_model); setCard('dlinear', d.models.dlinear);
+      // KLA Kálmán stats
+      const ks = d.models.kla_mamba?.kalman_stats;
+      if(ks && Object.keys(ks).length){
+        $('klaKalman').classList.remove('hidden');
+        $('klaKmean').textContent = ks.K_mean?.toFixed(4) ?? '—';
+        $('klaKstd').textContent  = ks.K_std?.toFixed(4)  ?? '—';
+        $('klaAmean').textContent = ks.A_mean?.toFixed(4) ?? '—';
+        $('klaRmean').textContent = ks.R_mean?.toFixed(4) ?? '—';
+        $('klaGate').textContent  = ks.res_gate_mean?.toFixed(4) ?? '—';
+      }
+      updateLoss(d.models);
+      updatePred(d.models);
+      buildTable(d.models);
+      buildVerdict(d.models);
+    }
+    _polling = false;
+  } else if(d.status==='failed'){
+    badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-950 text-red-400';
+    badge.textContent='● Hiba';
+    $('stageLabel').textContent = d.error || 'Ismeretlen hiba';
+    $('btnRun').disabled=false;
+    _polling=false;
+  } else {
+    badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400';
+    badge.textContent='● Inaktív';
+    _polling=false;
+  }
+}
+
+async function startRun(){
+  // Reset model card badges and results
+  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge'],['dlinear','dlinearBadge']].forEach(([,bid])=>{
+    const b=$(bid); if(b){b.textContent='...'; b.className='badge badge-warn'; b.classList.add('hidden');}
+  });
+  $('klaKalman').classList.add('hidden');
+  $('resultTableWrap').classList.add('hidden');
+  [['lstm','Params'],['lstm','Mse'],['lstm','Time'],['lstm','Vram'],['lstm','Lr'],
+   ['fair','Params'],['fair','Mse'],['fair','Time'],['fair','Vram'],['fair','Lr'],
+   ['kla','Params'],['kla','Mse'],['kla','Time'],['kla','Vram'],['kla','Lr'],
+   ['ar','Params'],['ar','Mse'],['ar','Time'],['ar','Vram'],['ar','Lr'],
+   ['dlinear','Params'],['dlinear','Mse'],['dlinear','Time'],['dlinear','Vram'],['dlinear','Lr']
+  ].forEach(([p,f])=>{ const el=$(p+f); if(el) el.textContent='—'; });
+  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblDlinearMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
+  if(cLoss){ cLoss.data.datasets.forEach(ds=>ds.data=[]); cLoss.update('none'); }
+  if(cPred){ cPred.data.datasets.forEach(ds=>ds.data=[]); cPred.update('none'); }
+  const cfg = {
+    dataset:     $('cfgDataset').value,
+    seq_len:     +$('cfgSeqLen').value,
+    batch_size:  +$('cfgBatch').value,
+    epochs:      +$('cfgEpochs').value,
+    stride:         +$('cfgStride').value,
+    noise_scale:    +$('cfgNoise').value,
+    lstm_hidden:    +$('cfgLstmH').value,
+    fair_heads:     +$('cfgFairHeads').value,
+    fair_state:     +$('cfgFairState').value,
+    kla_heads:      +$('cfgKlaHeads').value,
+    kla_state:      +$('cfgKlaState').value,
+    arima_p:        +$('cfgArimaP').value,
+    arima_q:        +$('cfgArimaQ').value,
+    dlinear_kernel: +$('cfgDlinearK').value,
+  };
+  $('btnRun').disabled=true;
+  $('runBadge').classList.add('hidden');
+  $('verdictBanner').classList.add('hidden');
+  _hasRun = true;
+  await fetch('/ltsf_benchmark/run',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(cfg)});
+  _polling = true;
+  poll();
+}
+
+// Initial poll
+poll();
+document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
+</script>
+</body>
+</html>

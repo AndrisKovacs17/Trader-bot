@@ -1,0 +1,157 @@
+% ============================================================
+%  KCMamba: Kalman-Guided State-Space Model for Time Series Forecasting
+%  ELTE Faculty of Informatics — BSc Thesis (English version)
+%  Template: mcserep/elteikthesis v2.4  (MIT Licence)
+% ============================================================
+\documentclass[
+    % parspace,
+    % noindent,
+    % nohyp,
+    % twoside,
+    % draft,
+    % final,
+]{elteikthesis}[2024/04/26]
+
+% ------------------------------------------------------------
+% Document metadata
+% ------------------------------------------------------------
+\title{KCMamba: Kalman-Guided Selective State-Space Model\\
+       for Robust Time Series Forecasting}
+\date{2026}
+
+\author{András Kovács (K2WEMI)}
+\degree{Computer Science BSc}
+
+\supervisor{Kristian Fenech Arian}
+\affiliation{lecturer}
+
+\university{Eötvös Loránd University}
+\faculty{Faculty of Informatics}
+\department{Department of Artificial Intelligence}
+\city{Budapest}
+\logo{elte_cimer_szines}
+
+\PassOptionsToPackage{table}{xcolor}
+\usepackage{colortbl}
+
+\addbibresource{bib/references.bib}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\documentlang{english}
+
+\maketitle
+
+% ---- Declaration -------------------------------------------
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+\thispagestyle{empty}
+
+I, \textbf{András Kovács}, student of Computer Science BSc at Eötvös Loránd
+University, hereby declare that the work presented in this thesis was carried
+out independently, using only the sources listed in the bibliography. Every
+part taken verbatim or paraphrased from another source has been clearly marked
+and properly cited.
+
+\vspace{2.5cm}
+Budapest, April 2026
+
+\vspace{1.5cm}
+\noindent
+\makebox[6cm]{\dotfill} \\[4pt]
+András Kovács \\
+student
+
+\cleardoublepage
+
+% ---- Abstract ----------------------------------------------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This thesis presents \textbf{KCMamba} (Kalman Core-Attention Mamba),
+a hybrid neural architecture that integrates a differentiable Kalman filtering
+mechanism into the Mamba selective state-space model (SSM) for noise-robust
+time series forecasting. The proposed architecture employs learned
+$Q_\text{net}$, $R_\text{net}$, and $K_\text{net}$ subnetworks that adaptively
+regulate the ratio of process and measurement noise --- enabling the model to
+behave as a passive predictor on clean data and as an active filter under noisy
+conditions.
+
+We conduct empirical evaluation on three public LTSF benchmarks
+(Exchange-Rate, ETTh1, ETTh2) under synthetically injected noise
+($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
+(stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
+MSE degradation of $+1\,528\%$ as noise increases from $\sigma\!=\!0$ to
+$\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba --- a
+$18{.}5\times$ robustness advantage. Under the EC-MSE metric --- which
+penalises parameter count, VRAM usage, and training speed --- KCMamba
+wins in 18 out of 24 evaluated configurations.
+
+The thesis also describes the complete production software system: an
+asynchronous, event-driven trading engine built in a hexagonal architecture,
+a web-based dashboard, a backtesting framework, and a live Binance
+trading adapter.
+
+\cleardoublepage
+
+% ---- Table of Contents -------------------------------------
+\tableofcontents
+\cleardoublepage
+
+% ============================================================
+%  MAIN TEXT
+% ============================================================
+
+\input{chapters/en/01_introduction}
+\cleardoublepage
+
+\input{chapters/en/02_related_work}
+\cleardoublepage
+
+\input{chapters/en/03_architecture}
+\cleardoublepage
+
+\input{chapters/en/04_experiments}
+\cleardoublepage
+
+\input{chapters/en/06_implementation}
+\cleardoublepage
+
+\input{chapters/en/05_conclusion}
+\cleardoublepage
+
+% ---- Acknowledgements --------------------------------------
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+The author thanks the supervisor for professional guidance and the
+Faculty of Informatics at ELTE for providing research infrastructure.
+Special thanks to the time series forecasting community for the open
+datasets (ETT, Exchange-Rate) without which the empirical evaluation
+would not have been possible.
+
+% ============================================================
+%  BACK MATTER
+% ============================================================
+\appendix
+
+% ---- Bibliography ------------------------------------------
+\phantomsection
+\addcontentsline{toc}{chapter}{\biblabel}
+\printbibliography[title=\biblabel]
+\cleardoublepage
+
+% ---- List of Figures ----------------------------------------
+\phantomsection
+\addcontentsline{toc}{chapter}{\lstfigurelabel}
+\listoffigures
+\cleardoublepage
+
+% ---- List of Tables -----------------------------------------
+\phantomsection
+\addcontentsline{toc}{chapter}{\lsttablelabel}
+\listoftables
+\cleardoublepage
+
+\end{document}

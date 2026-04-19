@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLA-Mamba · Benchmark</title>
+  <style id="tw">
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
+html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
+body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margin:0}a{color:inherit;text-decoration:inherit}pre{font-family:ui-monospace,monospace;margin:0}details summary{list-style:none}details summary::-webkit-details-marker{display:none}img,canvas,video{display:block}table{border-collapse:collapse}
+.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.block{display:block}.inline-block{display:inline-block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.contents{display:contents}
+.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.justify-start{justify-content:flex-start}.justify-end{justify-content:flex-end}
+.flex-1{flex:1 1 0%}.flex-none{flex:none}.flex-auto{flex:1 1 auto}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}
+.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.p-0{padding:0}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}
+.px-1{padding-left:.25rem;padding-right:.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}
+.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pb-2{padding-bottom:.5rem}.pb-4{padding-bottom:1rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pl-2{padding-left:.5rem}
+.m-0{margin:0}.mx-auto{margin-left:auto;margin-right:auto}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-auto{margin-left:auto}.ml-2{margin-left:.5rem}.ml-4{margin-left:1rem}.mr-2{margin-right:.5rem}.mr-4{margin-right:1rem}
+.space-y-1>*+*{margin-top:.25rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}
+.w-full{width:100%}.w-auto{width:auto}.min-w-0{min-width:0}.min-h-screen{min-height:100vh}.max-w-screen-2xl{max-width:1536px}.h-8{height:2rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-full{height:100%}.max-h-96{max-height:24rem}
+.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}
+.static{position:static}.relative{position:relative}.sticky{position:sticky}.top-0{top:0}.z-20{z-index:20}
+.font-mono{font-family:ui-monospace,monospace}.font-normal{font-weight:400}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}
+.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:.1em}.leading-relaxed{line-height:1.625}
+.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}.whitespace-pre-line{white-space:pre-line}
+.text-white{color:#fff}
+.text-slate-100{color:#f1f5f9}.text-slate-200{color:#e2e8f0}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-blue-300{color:#93c5fd}.text-blue-400{color:#60a5fa}.text-cyan-400{color:#22d3ee}
+.text-emerald-400{color:#4ade80}.text-amber-400{color:#fbbf24}.text-red-400{color:#f87171}
+.text-violet-400{color:#a78bfa}.text-orange-400{color:#fb923c}
+.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}.bg-slate-950{background-color:#020617}
+.bg-blue-950\/20{background-color:rgba(23,37,84,.2)}.bg-emerald-950\/20{background-color:rgba(2,44,34,.2)}
+.bg-slate-950\/95{background-color:rgba(2,6,23,.95)}
+.hover\:bg-slate-800\/20:hover{background-color:rgba(30,41,59,.2)}
+.border-slate-700{border-color:#334155}.border-slate-800{border-color:#1e293b}.border-blue-900{border-color:#1e3a5f}
+.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.backdrop-blur{backdrop-filter:blur(8px)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(96,165,250,0))}
+.to-cyan-400{--tw-gradient-to:#22d3ee}
+.bg-clip-text{-webkit-background-clip:text;background-clip:text}
+.transition-colors{transition-property:color,background-color;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+.cursor-pointer{cursor:pointer}.select-none{user-select:none}.pointer-events-none{pointer-events:none}
+.opacity-50{opacity:.5}
+@media(min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+</style>
+  <script src="/chart.umd.min.js"></script>
+  <style>
+    body { background: #080c14; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .nav-a { color:#94a3b8; text-decoration:none; padding:4px 11px; border-radius:8px; font-size:13px; transition:all .15s; white-space:nowrap; }
+    .nav-a:hover { background:rgba(148,163,184,.1); color:#e2e8f0; }
+    .nav-a.active { background:rgba(96,165,250,.15); color:#60a5fa; font-weight:600; }
+    .nav-dropdown { position:relative; display:inline-block; }
+    .nav-dropdown > button { background:none; border:none; cursor:pointer; font-family:inherit; }
+    .nav-drop { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:4px 0; min-width:220px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .nav-dropdown.open .nav-drop { display:block; }
+    .drop-a { display:block; padding:7px 16px; font-size:13px; color:#94a3b8; text-decoration:none; white-space:nowrap; }
+    .drop-a:hover { background:rgba(148,163,184,.08); color:#e2e8f0; }
+    .drop-a.active { color:#60a5fa; font-weight:600; }
+    .kv { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid rgba(30,41,59,.6); }
+    .kv:last-child { border-bottom:none; }
+    .kv .lbl { color:#64748b; font-size:12px; }
+    .kv .val { font-family:ui-monospace,monospace; font-size:12px; color:#e2e8f0; text-align:right; }
+    .section { background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:20px; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; }
+    .badge-ok   { background:rgba(34,197,94,.15);  color:#4ade80; }
+    .badge-warn { background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-err  { background:rgba(239,68,68,.15);  color:#f87171; }
+    .badge-run  { background:rgba(96,165,250,.15); color:#60a5fa; }
+    .btn-run { background:linear-gradient(135deg,#1d4ed8,#0e7490); color:#fff; border:none; padding:9px 22px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:opacity .15s; }
+    .btn-run:hover { opacity:.85; }
+    .btn-run:disabled { opacity:.4; cursor:default; }
+    .win { color:#4ade80; font-weight:700; }
+    .lose { color:#94a3b8; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased">
+
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <div class="nav-dropdown">
+      <button class="nav-a">Pénzügyi ▾</button>
+      <div class="nav-drop">
+        <a href="/" class="drop-a">Áttekintés</a>
+        <a href="/model.html" class="drop-a">Modell</a>
+        <a href="/signals.html" class="drop-a">Jelek</a>
+        <a href="/training.html" class="drop-a">Tréning</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a active">Benchmark ▾</button>
+      <div class="nav-drop">
+        <a href="/benchmark.html" class="drop-a active">Szintetikus teszt</a>
+        <a href="/ltsf_benchmark.html" class="drop-a">LSTM / Mamba összehasonlítás</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">KLA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <span id="statusBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
+      <span class="text-xs text-slate-600" id="navTime">—</span>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-screen-2xl mx-auto px-5 py-5 space-y-4">
+
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-200">⚗️ Szintetikus Benchmark</h1>
+      <p class="text-xs text-slate-500 mt-1">KLA-Mamba vs. Plain Mamba — rezsimváltó AR(1) látens állapot követési feladat</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="runStatus" class="badge badge-warn">⏸ Idle</span>
+      <button id="btnRun" class="btn-run" onclick="startRun()">▶ Futtatás</button>
+    </div>
+  </div>
+
+  <!-- Config strip -->
+  <div class="section">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 text-xs">
+      <div>
+        <div class="kv"><span class="lbl">Batch méret</span><span class="val" id="cfgBatch">16</span></div>
+        <div class="kv"><span class="lbl">Szekvencia hossz</span><span class="val" id="cfgSeqLen">256</span></div>
+        <div class="kv"><span class="lbl">Input dim</span><span class="val" id="cfgInputDim">64</span></div>
+      </div>
+      <div>
+        <div class="kv"><span class="lbl">Fejek száma</span><span class="val" id="cfgHeads">4</span></div>
+        <div class="kv"><span class="lbl">State dim / fej</span><span class="val" id="cfgStateDim">16</span></div>
+        <div class="kv"><span class="lbl">E = heads × state</span><span class="val" id="cfgE">64</span></div>
+      </div>
+      <div>
+        <div class="kv"><span class="lbl">Train lépések</span><span class="val" id="cfgSteps">30</span></div>
+        <div class="kv"><span class="lbl">Warmup lépések</span><span class="val" id="cfgWarmup">5</span></div>
+        <div class="kv"><span class="lbl">LR</span><span class="val" id="cfgLr">5e-4</span></div>
+      </div>
+      <div>
+        <div class="kv"><span class="lbl">Train batch-ek</span><span class="val" id="cfgTrainBatches">8</span></div>
+        <div class="kv"><span class="lbl">Test batch-ek</span><span class="val" id="cfgTestBatches">8</span></div>
+        <div class="kv"><span class="lbl">Eszköz</span><span class="val" id="cfgDevice">—</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics comparison -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Plain Mamba card -->
+    <div class="section border-slate-700" id="cardPlain">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">📊 Plain Mamba</h2>
+      <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="pParams">—</span></div>
+      <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="pTestLoss">—</span></div>
+      <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="pTrainRange">—</span></div>
+      <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="pVram">—</span></div>
+      <div class="kv"><span class="lbl">Throughput</span><span class="val" id="pThroughput">—</span></div>
+    </div>
+
+    <!-- KLA card -->
+    <div class="section bg-blue-950/20 border-blue-900" id="cardKla">
+      <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-3">🧠 KLA-Mamba</h2>
+      <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="kParams">—</span></div>
+      <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="kTestLoss">—</span></div>
+      <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="kTrainRange">—</span></div>
+      <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="kVram">—</span></div>
+      <div class="kv"><span class="lbl">Throughput</span><span class="val" id="kThroughput">—</span></div>
+      <div class="mt-3 pt-3 border-t border-slate-800">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Kálmán dinamika (test set)</h3>
+        <div class="grid grid-cols-1 gap-0">
+          <div class="kv"><span class="lbl">Átlag Kálmán Gain (K)  <span class="text-slate-700 text-[10px]">0.1–0.5 jó</span></span><span class="val" id="kKmean">—</span></div>
+          <div class="kv"><span class="lbl">K szórás  <span class="text-slate-700 text-[10px]">≠ 0 kell</span></span><span class="val" id="kKstd">—</span></div>
+          <div class="kv"><span class="lbl">Memória megőrzés (A)  <span class="text-slate-700 text-[10px]">> 0.8 ideális</span></span><span class="val" id="kAmean">—</span></div>
+          <div class="kv"><span class="lbl">Pred. zaj (R)  <span class="text-slate-700 text-[10px]">dinamikus kell</span></span><span class="val" id="kRmean">—</span></div>
+          <div class="kv"><span class="lbl">Bypass gate</span><span class="val" id="kGate">—</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Verdict banner -->
+  <div id="verdictBanner" class="hidden section text-center py-4">
+    <span id="verdictText" class="text-lg font-extrabold">—</span>
+    <p id="verdictSub" class="text-xs text-slate-500 mt-1">—</p>
+  </div>
+
+  <!-- Train loss curves -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Train loss görbe (mindkét modell)</h2>
+      <span class="text-xs text-slate-600">Alacsonyabb = jobb</span>
+    </div>
+    <div style="height:260px"><canvas id="cLoss"></canvas></div>
+    <div class="mt-2 flex gap-6 text-xs text-slate-500">
+      <span><span style="display:inline-block;width:10px;height:3px;background:#60a5fa;border-radius:2px;margin-right:5px;vertical-align:middle"></span>KLA-Mamba</span>
+      <span><span style="display:inline-block;width:10px;height:3px;background:#94a3b8;border-radius:2px;margin-right:5px;vertical-align:middle"></span>Plain Mamba</span>
+    </div>
+  </div>
+
+  <!-- Prediction plots: Train sample -->
+  <div>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Tréning minta</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="section">
+        <h3 class="text-xs text-slate-500 mb-2">Plain Mamba</h3>
+        <div style="height:220px"><canvas id="cPredTrainPlain"></canvas></div>
+      </div>
+      <div class="section bg-blue-950/20 border-blue-900">
+        <h3 class="text-xs text-blue-400 mb-2">KLA-Mamba</h3>
+        <div style="height:220px"><canvas id="cPredTrainKla"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prediction plots: Test sample -->
+  <div>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Test minta <span class="text-slate-600 font-normal">(nem látott adatok)</span></h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div class="section">
+        <h3 class="text-xs text-slate-500 mb-2">Plain Mamba</h3>
+        <div style="height:220px"><canvas id="cPredTestPlain"></canvas></div>
+      </div>
+      <div class="section bg-blue-950/20 border-blue-900">
+        <h3 class="text-xs text-blue-400 mb-2">KLA-Mamba</h3>
+        <div style="height:220px"><canvas id="cPredTestKla"></canvas></div>
+      </div>
+    </div>
+    <p class="mt-2 text-xs text-slate-600">
+      Kék = zajos megfigyelés (obs) · Narancssárga = valódi látens állapot · Zöld szaggatott = modell predikciója (t+1)
+    </p>
+  </div>
+
+</main>
+
+<script>
+Chart.defaults.color='#64748b';
+Chart.defaults.borderColor='#1e293b';
+Chart.defaults.font.family='ui-sans-serif,system-ui,sans-serif';
+Chart.defaults.font.size=11;
+
+const C={};
+const GRID={color:'rgba(30,41,59,.8)'};
+const NP={pointRadius:0,pointHoverRadius:3};
+const BASE={responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false}}};
+const yA=(o={})=>({display:true,grid:GRID,ticks:{maxTicksLimit:5,font:{size:10}},...o});
+const xA=()=>({display:true,grid:GRID,ticks:{maxTicksLimit:8,font:{size:10}}});
+function hx(h,a){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
+
+function initC(id,cfg){const el=document.getElementById(id);if(!el)return;if(C[id])C[id].destroy();C[id]=new Chart(el,cfg);}
+function upC(id,labels,datasets){const c=C[id];if(!c)return;c.data.labels=labels;c.data.datasets=datasets;c.update('none');}
+
+function makePredCfg(){
+  return {type:'line',data:{labels:[],datasets:[
+    {label:'Obs (zajos)',data:[],borderColor:'#60a5fa',backgroundColor:hx('#60a5fa',.06),fill:true,tension:.2,borderWidth:1,...NP},
+    {label:'True latent',data:[],borderColor:'#f97316',fill:false,tension:.3,borderWidth:2,...NP},
+    {label:'Predikció (t+1)',data:[],borderColor:'#22c55e',borderDash:[4,3],fill:false,tension:.3,borderWidth:2,...NP},
+  ]},options:{...BASE,plugins:{legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10},color:'#64748b'}},tooltip:{mode:'index',intersect:false}},scales:{x:xA(),y:yA()}}};
+}
+
+function initCharts(){
+  initC('cLoss',{type:'line',data:{labels:[],datasets:[
+    {label:'KLA-Mamba',data:[],borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
+    {label:'Plain Mamba',data:[],borderColor:'#94a3b8',fill:false,tension:.3,borderWidth:2,...NP},
+  ]},options:{...BASE,plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,font:{size:10},color:'#64748b'}},tooltip:{mode:'index',intersect:false}},scales:{x:xA(),y:yA()}}});
+  initC('cPredTrainPlain', makePredCfg());
+  initC('cPredTrainKla',   makePredCfg());
+  initC('cPredTestPlain',  makePredCfg());
+  initC('cPredTestKla',    makePredCfg());
+}
+
+function fmt(v,d=4){const n=Number(v);return isFinite(n)?n.toFixed(d):'—';}
+function fmtI(v){const n=Number(v);return isFinite(n)?n.toLocaleString():'—';}
+function set(id,txt,cls=''){const e=document.getElementById(id);if(!e)return;e.textContent=String(txt??'—');if(cls){e.className=cls;}}
+
+function fillModel(prefix, m){
+  if(!m)return;
+  set(prefix+'Params', fmtI(m.params));
+  const tl=m.train_losses||[];
+  set(prefix+'TestLoss', m.test_loss!=null?m.test_loss.toFixed(6):'—');
+  set(prefix+'TrainRange', tl.length>=2?(tl[0].toFixed(5)+' → '+tl[tl.length-1].toFixed(5)):'—');
+  set(prefix+'Vram', m.peak_vram_mb!=null?m.peak_vram_mb.toFixed(1)+' MB':'—');
+  set(prefix+'Throughput', m.throughput!=null?fmtI(m.throughput)+' tok/s':'—');
+}
+
+function fillKalman(ks){
+  if(!ks)return;
+  const kk=Number(ks.K_mean);
+  const kkCls=kk>=0.1&&kk<=0.5?'val text-emerald-400':kk<0.05||kk>0.8?'val text-red-400':'val text-amber-400';
+  set('kKmean', isFinite(kk)?kk.toFixed(4):'—', kkCls);
+  const kstd=Number(ks.K_std);
+  set('kKstd', isFinite(kstd)?kstd.toFixed(4):'—', kstd>0.01?'val text-emerald-400':'val text-amber-400');
+  const am=Number(ks.A_mean);
+  set('kAmean', isFinite(am)?am.toFixed(4):'—', am>0.8?'val text-emerald-400':'val text-amber-400');
+  const rm=Number(ks.R_mean);
+  set('kRmean', isFinite(rm)?rm.toFixed(4):'—');
+  const rg=Number(ks.res_gate_mean);
+  set('kGate', isFinite(rg)?rg.toFixed(4):'—');
+}
+
+function fillPredChart(id, sample){
+  if(!sample)return;
+  const n=Math.min((sample.obs||[]).length,(sample.latent||[]).length,(sample.pred||[]).length);
+  const lbl=Array.from({length:n},(_,i)=>i);
+  upC(id,lbl,[
+    {label:'Obs (zajos)', data:sample.obs.slice(0,n),  borderColor:'#60a5fa',backgroundColor:hx('#60a5fa',.06),fill:true,tension:.2,borderWidth:1,...NP},
+    {label:'True latent', data:sample.latent.slice(0,n),borderColor:'#f97316',fill:false,tension:.3,borderWidth:2,...NP},
+    {label:'Predikció',   data:sample.pred.slice(0,n),  borderColor:'#22c55e',borderDash:[4,3],fill:false,tension:.3,borderWidth:2,...NP},
+  ]);
+}
+
+async function sf(url){
+  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),6000);
+  try{const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(!r.ok)return{};return await r.json();}
+  catch{clearTimeout(t);return{};}
+}
+
+async function startRun(){
+  document.getElementById('btnRun').disabled=true;
+  set('runStatus','⏳ Indítás...','badge badge-run');
+  await fetch('/benchmark/run',{method:'POST'});
+  poll();
+}
+
+function poll(){setTimeout(refresh,1500);}
+
+let _prevStatus='';
+
+async function refresh(){
+  const d=await sf('/benchmark');
+  const status=d.status||'idle';
+  const sb=document.getElementById('statusBadge');
+
+  // Nav clock
+  set('navTime',new Date().toLocaleTimeString('hu-HU'));
+
+  // Status badge
+  const statusMap={idle:'⏸ Idle',running:'⏳ Fut…',done:'✅ Kész',failed:'❌ Hiba',unavailable:'⚠️ N/A'};
+  const statusCls={idle:'badge badge-warn',running:'badge badge-run',done:'badge badge-ok',failed:'badge badge-err',unavailable:'badge badge-warn'};
+  set('runStatus',statusMap[status]||status,statusCls[status]||'badge badge-warn');
+  if(sb){sb.textContent=status==='running'?'● Fut':'○ '+status;sb.className='px-2.5 py-0.5 rounded-full text-xs font-bold '+(status==='running'?'bg-blue-950 text-blue-400':'bg-slate-800 text-slate-500');}
+  document.getElementById('btnRun').disabled=(status==='running');
+
+  // Config
+  const c=d.config||{};
+  if(c.batch){
+    set('cfgBatch',c.batch); set('cfgSeqLen',c.seq_len); set('cfgInputDim',c.input_dim);
+    set('cfgHeads',c.heads); set('cfgStateDim',c.state_dim); set('cfgE',(c.heads||4)*(c.state_dim||16));
+    set('cfgSteps',c.train_steps); set('cfgWarmup',c.warmup);
+    set('cfgLr',c.lr!=null?Number(c.lr).toExponential(0):'—');
+    set('cfgTrainBatches',c.train_batches); set('cfgTestBatches',c.test_batches);
+  }
+  set('cfgDevice',d.device||'—');
+
+  const models=d.models||{};
+  const plain=models.plain, kla=models.kla;
+
+  fillModel('p', plain);
+  fillModel('k', kla);
+  if(kla&&kla.kalman_stats)fillKalman(kla.kalman_stats);
+
+  // Loss curves
+  const klaTrain   =(kla  &&kla.train_losses)  ?kla.train_losses:[];
+  const plainTrain =(plain&&plain.train_losses)?plain.train_losses:[];
+  const maxSteps   =Math.max(klaTrain.length,plainTrain.length);
+  if(maxSteps>0){
+    upC('cLoss',Array.from({length:maxSteps},(_,i)=>i+1),[
+      {label:'KLA-Mamba',  data:klaTrain,   borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
+      {label:'Plain Mamba',data:plainTrain, borderColor:'#94a3b8',fill:false,tension:.3,borderWidth:2,...NP},
+    ]);
+  }
+
+  // Prediction charts
+  if(plain){fillPredChart('cPredTrainPlain',plain.sample_train);fillPredChart('cPredTestPlain',plain.sample_test);}
+  if(kla)  {fillPredChart('cPredTrainKla',  kla.sample_train);  fillPredChart('cPredTestKla',  kla.sample_test);}
+
+  // Verdict
+  if(status==='done'&&plain&&kla&&plain.test_loss!=null&&kla.test_loss!=null){
+    const pL=Number(plain.test_loss), kL=Number(kla.test_loss);
+    const diff=pL-kL;  // positive = KLA wins
+    const pct=Math.abs(diff/pL*100).toFixed(1);
+    const banner=document.getElementById('verdictBanner');
+    if(banner){banner.classList.remove('hidden');}
+    if(diff>0){
+      set('verdictText','🏆 KLA-Mamba nyert! MSE: '+kL.toFixed(6)+' vs '+pL.toFixed(6),'text-lg font-extrabold text-emerald-400');
+      set('verdictSub','KLA-Mamba '+pct+'%-kal kisebb test MSE-t ér el ugyanazon az adaton.');
+    } else if(diff<0){
+      set('verdictText','📊 Plain Mamba nyert! MSE: '+pL.toFixed(6)+' vs '+kL.toFixed(6),'text-lg font-extrabold text-amber-400');
+      set('verdictSub','Plain Mamba '+pct+'%-kal kisebb test MSE-t ér el ezen a konfiguráción.');
+    } else {
+      set('verdictText','🤝 Döntetlen');
+      set('verdictSub','Mindkét modell azonos test MSE-t produkált.');
+    }
+  }
+
+  // Keep polling while running
+  if(status==='running')poll();
+  _prevStatus=status;
+}
+
+initCharts();
+refresh();
+document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
+</script>
+</body>
+</html>

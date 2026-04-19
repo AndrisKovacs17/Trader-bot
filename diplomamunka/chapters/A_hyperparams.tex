@@ -1,0 +1,122 @@
+% ============================================================
+%  Függelék A, Hiperparaméter táblázatok
+% ============================================================
+\chapter{Hiperparaméterek}
+\label{app:hyperparams}
+
+Ez a függelék az összes kísérletben alkalmazott hiperparaméter teljes listáját
+tartalmazza.
+
+\section{Közös tanítási beállítások}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Paraméter} & \textbf{Érték} & \textbf{Megjegyzés} \\
+        \hline\hline
+        Epoch                  & 5          & Gyors teszt; produkció: 20–50 \\
+        Optimalizáló           & Adam       & $\beta_1=0.9$, $\beta_2=0.999$ \\
+        Tanulási sebesség      & $3 \times 10^{-3}$ & Nincs scheduler \\
+        Kötegméret             & 32         & \\
+        Szekvenciahossz        & 96         & lookback ablak \\
+        Előrejelzési horizont  & 96         & \\
+        Loss függvény          & MSELoss    & PyTorch, reduction=mean \\
+        Eszköz                 & CUDA (GPU) & RTX 3060 12 GB \\
+        Adattípus              & float32    & \\
+        \hline
+    \end{tabular}
+    \caption{Közös tanítási hiperparaméterek az összes modellhez.}
+    \label{tab:app_train}
+\end{table}
+
+\section{LSTM hiperparaméterek}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Paraméter} & \textbf{Érték} \\
+        \hline\hline
+        Rejtett méret (\texttt{hidden\_size}) & 128 \\
+        Rétegek száma (\texttt{num\_layers})  & 1 \\
+        Dropout                               & 0 \\
+        Kétirányú (\texttt{bidirectional})    & Nem \\
+        Projekciós réteg (head)               & Linear($128 \to$ pred\_len $\times$ channels) \\
+        Paraméterek száma                     & 71\,730 \\
+        \hline
+    \end{tabular}
+    \caption{LSTM modell hiperparaméterek.}
+    \label{tab:app_lstm}
+\end{table}
+
+\section{Fair Mamba hiperparaméterek}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Paraméter} & \textbf{Érték} \\
+        \hline\hline
+        Modell dimenzió (\texttt{d\_model})    & 128 \\
+        Fejek (\texttt{heads}, $H$)            & 4 \\
+        Állapotméret (\texttt{d\_state}, $D$)  & 32 \\
+        Belső dimenzió ($E = H \times D$)      & 128 \\
+        Konvolúciós kernel (\texttt{d\_conv})  & 4 \\
+        Rétegek száma                          & 2 \\
+        dt inicializáció                       & \texttt{dt\_min}$=0.001$, \texttt{dt\_max}$=0.1$ \\
+        Paraméterek száma                      & 53\,248 \\
+        \hline
+    \end{tabular}
+    \caption{Fair Mamba modell hiperparaméterek.}
+    \label{tab:app_fair}
+\end{table}
+
+\section{KCMamba hiperparaméterek}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Paraméter} & \textbf{Érték} \\
+        \hline\hline
+        Modell dimenzió (\texttt{d\_model})    & 128 \\
+        Fejek (\texttt{heads}, $H$)            & 4 \\
+        Állapotméret (\texttt{d\_state}, $D$)  & 32 \\
+        Belső dim ($E = H \times D$)           & 128 \\
+        Konvolúciós kernel (\texttt{kernel\_size}) & 4 \\
+        Rétegek száma                          & 2 \\
+        $Q$ skálázó (\texttt{q\_scale})        & $-2.0$ \\
+        $R$ skálázó (\texttt{r\_scale})        & $+1.5$ \\
+        $K_\Delta$ amplitúdó                   & $0.3$ \\
+        Reziduál kapu (\texttt{b\_res})        & $-1.0$ \\
+        $K_\text{net}$ rejtett dim             & 64 \\
+        Lassú stride (\texttt{slow\_stride})   & 4 \\
+        Paraméterek száma                      & 46\,134 \\
+        \hline
+    \end{tabular}
+    \caption{KCMamba modell hiperparaméterek. A $q\_\text{scale}$ és
+             $r\_\text{scale}$ inicializáció $K_\text{base} \approx 0.07$-et
+             eredményez, ami erős alapértelmezett szűrést biztosít.}
+    \label{tab:app_kcmamba}
+\end{table}
+
+\section{Adat-előkészítési paraméterek}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Paraméter} & \textbf{Érték} & \textbf{Megjegyzés} \\
+        \hline\hline
+        Normálás                  & StandardScaler   & Jellemzőnkénti z-score \\
+        Train / val / test arány  & 70\% / 10\% / 20\% & Cronológiai split \\
+        Stride ($s=1$)            & 1               & Maximális fedettség \\
+        Stride ($s=16$)           & 16              & Ritka mintavétel \\
+        Zaj-modell                & $\mathcal{N}(0, \sigma^2)$ & Additív \\
+        Zaj alkalmazása           & Jellemzőkre      & Train + eval \\
+        \hline
+    \end{tabular}
+    \caption{Adat-előkészítési paraméterek a zajrobusztussági kísérletekhez.}
+    \label{tab:app_data}
+\end{table}

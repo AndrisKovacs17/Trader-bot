@@ -1,0 +1,164 @@
+@startuml
+skinparam style strictuml
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultFontSize 10
+skinparam classFontSize 10
+
+title Async Clean Hexagonal Trading Architecture (KLA-Mamba)
+
+' =====================================================
+' CORE
+' =====================================================
+package "CORE" {
+
+  package "domain" {
+    abstract class Event <<Entity>>
+    class MarketDataEvent
+    class OrderEvent
+    class SignalEvent
+    Event <|-- MarketDataEvent
+    Event <|-- OrderEvent
+    Event <|-- SignalEvent
+
+    interface IStrategy <<Strategy>>
+    interface IRiskRule <<CoR-Handler>>
+    class RiskPolicy <<Policy>> {
+      +evaluate(signal, ctx): RiskDecision
+    }
+    RiskPolicy --> IRiskRule
+  }
+
+  package "ml" {
+    interface IStateEstimator <<DomainService>> {
+      +update(md, ctx)
+      +reset(instr)
+    }
+    interface IPredictor <<DomainService>> {
+      +predict(state, ctx)
+      +current_version()
+    }
+    interface IModelUpdatePort <<Port>> {
+      +request_model_update(weights, version)
+    }
+    interface IModelLifecycle <<DomainService>> {
+      +apply_pending_update()
+      +has_pending_update(): bool
+    }
+    class MambaPredictor {
+      -active_model: KLAMambaStack
+      -staging_model
+      -update_pending: bool
+      --
+      +predict(state, ctx)
+      +request_model_update(weights, version)
+      +apply_pending_update()
+    }
+    MambaPredictor ..|> IPredictor
+    MambaPredictor ..|> IModelUpdatePort
+    MambaPredictor ..|> IModelLifecycle
+  }
+
+  package "application" {
+    interface IEventBusPort <<Port>> {
+      +publish(event)
+      +subscribe(type, handler)
+    }
+    interface IBrokerGatewayPort <<Port>> {
+      +connect()
+      +send_order(order)
+    }
+    interface IEventStorePort <<Port>> {
+      +append(event)
+      +replay(range)
+    }
+    interface ITimeSource <<Port>> {
+      +now()
+    }
+    interface IStateRepository <<Port>> {
+      +get(instrument)
+      +save(instrument, state)
+    }
+
+    class TradingEngine <<Facade>> {
+      -state_stage: IStateEstimationStage
+      -prediction_stage: IPredictionStage
+      -signal_stage: ISignalStage
+      -risk_stage: IRiskStage
+      -execution_stage: IExecutionStage
+      --
+      +handle(event)
+    }
+    TradingEngine --> IStateRepository
+    TradingEngine --> CORE.ml.IModelLifecycle
+    TradingEngine --> IEventBusPort
+    TradingEngine --> ITimeSource
+
+    class ExecutionUseCase <<ApplicationService>> {
+      +submit(order, ctx)
+      +handle(order_event, ctx)
+    }
+    ExecutionUseCase --> IBrokerGatewayPort
+    ExecutionUseCase --> IEventBusPort
+  }
+
+  package "analytics" {
+    class PerformanceTracker <<DomainService>>
+    class ModelDiagnosticsService <<DomainService>>
+    class MetricsAggregator <<ApplicationService>>
+  }
+}
+
+' =====================================================
+' ADAPTERS
+' =====================================================
+package "ADAPTERS" {
+
+  package "infrastructure" {
+    class AsyncInMemoryEventBus <<Adapter>>
+    AsyncInMemoryEventBus ..|> CORE.application.IEventBusPort
+
+    class BinanceBroker <<Adapter>>
+    BinanceBroker ..|> CORE.application.IBrokerGatewayPort
+
+    class BinanceFeed <<Adapter>>
+    class NewsFeed <<Adapter>>
+    class SystemTimeSource <<Adapter>>
+    SystemTimeSource ..|> CORE.application.ITimeSource
+  }
+
+  package "observability" {
+    class EventTapHandler <<Adapter>>
+    EventTapHandler --> CORE.analytics.PerformanceTracker
+    EventTapHandler --> CORE.analytics.ModelDiagnosticsService
+  }
+
+  package "web" {
+    class DashboardAPI <<Adapter>>
+    class HttpServer <<Adapter>>
+    HttpServer --> DashboardAPI
+    DashboardAPI --> CORE.analytics.PerformanceTracker
+    DashboardAPI --> CORE.analytics.MetricsAggregator
+  }
+
+  package "testing" {
+    class BacktestEngine <<Adapter>>
+    class MockBrokerGateway <<Adapter>>
+    class SimulatedTimeSource <<Adapter>>
+    MockBrokerGateway ..|> CORE.application.IBrokerGatewayPort
+    SimulatedTimeSource ..|> CORE.application.ITimeSource
+  }
+
+  package "offline_training" {
+    class TrainingEngine <<Adapter>> {
+      +train(dataset)
+      +export_weights(): bytes
+      +push_model(port: IModelUpdatePort)
+    }
+    TrainingEngine --> CORE.ml.IModelUpdatePort
+    TrainingEngine --> CORE.ml.IStateEstimator
+  }
+}
+@enduml

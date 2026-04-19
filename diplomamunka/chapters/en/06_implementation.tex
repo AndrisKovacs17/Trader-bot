@@ -1,0 +1,503 @@
+% ============================================================
+%  Chapter 6 — The Implemented System
+% ============================================================
+\chapter{The Implemented System}
+\label{ch:implementacio}
+
+This chapter describes the software built around the KCMamba model:
+the trading engine, dashboard, backtesting infrastructure, and Binance adapter.
+The system follows a hexagonal architecture (\emph{Ports \& Adapters}); the
+architectural principles were introduced in Sec.~\ref{sec:system_arch};
+here the focus is on the concrete implementation of each adapter.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Technology Stack}
+\label{sec:impl_tech}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The entire system is written in \textbf{Python 3.11}.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Layer} & \textbf{Technology} & \textbf{Purpose} \\
+    \hline\hline
+    Model          & PyTorch~2.x          & KCMamba forward pass, gradient computation \\
+    I/O            & asyncio / aiohttp    & Event-driven, non-blocking I/O \\
+    Exchange       & python-binance       & Live market data, order execution \\
+    Web server     & aiohttp (HTTP)       & Static HTML/JS serving, REST JSON endpoints \\
+    Frontend       & Vanilla JS + Chart.js & Interactive charts, no build step required \\
+    Testing        & pytest + unittest.mock & Unit and integration tests (backtester) \\
+    Configuration  & pydantic v2          & Strongly-typed settings validation \\
+    Logging        & Python logging       & Rotating file + console handler \\
+    \hline
+  \end{tabular}
+  \caption{Main technology components of the system and their roles.}
+  \label{tab:tech_stack}
+\end{table}
+
+The frontend deliberately avoids React or Vue: every page is a standalone
+static HTML file served directly by \texttt{aiohttp}. No \texttt{npm} build step
+is required, yet Chart.js provides fully interactive visualisations.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Component Design}
+\label{sec:component_plan}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The system runs in a single Python process. Component interactions:
+
+\begin{description}
+  \item[\textbf{Entry point} (\texttt{main.py})]
+        Starts the \texttt{asyncio} event loop and initialises
+        \texttt{TradingEngine}, \texttt{MLService}, and the adapter.
+
+  \item[\textbf{TradingEngine} (\texttt{core/application/engine.py})]
+        The centre of business logic. Receives \texttt{PriceEvent}s via
+        \texttt{InMemoryEventBus}, runs pipeline stages in order
+        (Prediction $\to$ Signal $\to$ Risk $\to$ Execution), and issues orders
+        through \texttt{IBrokerGatewayPort}.
+
+  \item[\textbf{aiohttp web server} (\texttt{adapters/web/dashboard.py})]
+        Runs in the same \texttt{asyncio} event loop as the trading loop.
+        Pushes a 1~Hz WebSocket stream to browsers via an \texttt{asyncio.Task};
+        also exposes REST endpoints (\texttt{/api/signals}, \texttt{/api/equity},
+        etc.) for state queries.
+
+  \item[\textbf{Binance WebSocket / REST} (external)]
+        \texttt{BinanceFeed} receives OHLCV data over an async WebSocket;
+        \texttt{BinanceBroker} sends orders via REST.
+        Automatic reconnection on network interruptions.
+
+  \item[\textbf{Filesystem}]
+        Model weights (\texttt{*.pt}), log files, CSV exports, and the
+        \texttt{.env} configuration file. No database is used;
+        all runtime state lives in in-memory data structures.
+\end{description}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|l|l|}
+    \hline
+    \textbf{Component} & \textbf{Protocol} & \textbf{Direction} & \textbf{Role} \\
+    \hline\hline
+    TradingEngine $\leftrightarrow$ EventBus   & in-process call & bidirectional & event pub/sub \\
+    TradingEngine $\to$ BinanceBroker          & REST HTTPS      & outgoing      & order dispatch \\
+    BinanceFeed $\leftarrow$ Binance           & WebSocket WSS   & incoming      & price stream \\
+    DashboardServer $\leftrightarrow$ browser  & HTTP + WS       & bidirectional & visualisation \\
+    MLService $\leftrightarrow$ filesystem     & file I/O        & bidirectional & weight load/save \\
+    \hline
+  \end{tabular}
+  \caption{Runtime component connectivity.}
+  \label{tab:component_plan}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{The Web Dashboard}
+\label{sec:dashboard}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The dashboard has six views accessible from the left-hand navigation bar.
+The backend pushes updates via a 1~Hz WebSocket stream.
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Home: Overview}
+\label{subsec:dash_overview}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The home page (\texttt{index.html}) consolidates the most important information:
+equity curve, open positions, recent trading signals, and the model's current
+Kalman gain value.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Home --- Overview]}\\[4pt]
+    \small Placeholder for \texttt{dashboard/index.html} screenshot\\
+    showing the equity curve, open positions, and Kalman gain.
+  \end{minipage}}
+  \caption{Dashboard home page. The top panel shows the equity curve; below it
+           are open positions and recent signals.}
+  \label{fig:dash_overview}
+\end{figure}
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Trading Signals}
+\label{subsec:dash_signals}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The signal log (\texttt{signals.html}) displays all generated
+\textsc{Buy}/\textsc{Sell}/\textsc{Hold} signals with timestamp, symbol,
+signal strength, and the model's current forecast value. The view is
+filterable by symbol and signal type.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Trading Signals --- \texttt{signals.html}]}\\[4pt]
+    \small Signal log table in chronological order, with filter and export.
+  \end{minipage}}
+  \caption{Trading signals view. Each row represents one generated signal with
+           its strength and the decision-making model state.}
+  \label{fig:dash_signals}
+\end{figure}
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Model Diagnostics}
+\label{subsec:dash_model}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The model diagnostics page (\texttt{model.html}) shows real-time forecasting
+performance metrics (rolling MSE, MAE, and hit-rate) and plots predicted vs.\
+actual values.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Model Diagnostics --- \texttt{model.html}]}\\[4pt]
+    \small Predicted vs.\ actual values, rolling MSE, confidence interval.
+  \end{minipage}}
+  \caption{Model diagnostics view. The Chart.js panel updates in real time
+           with forecasts and residuals.}
+  \label{fig:dash_model}
+\end{figure}
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Kalman Filter Diagnostics}
+\label{subsec:dash_kalman}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The Kalman diagnostics view (\texttt{kla\_kalman.html}) shows the model's
+internal state: the adaptive $K$-gain, forgetting factor $A$, and noise
+estimate $R$ over time. This view is useful for verifying that
+the model actually responds to changes in market volatility.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Kalman Filter Diagnostics --- \texttt{kla\_kalman.html}]}\\[4pt]
+    \small $K$-gain, $A$-factor, and $R$ noise estimate over time during
+    moderate and high-volatility market periods.
+  \end{minipage}}
+  \caption{Kalman filter diagnostics. Decreasing $K$-gain at high volatility
+           confirms that the adaptive filtering mechanism is working correctly.}
+  \label{fig:dash_kalman}
+\end{figure}
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Offline Training}
+\label{subsec:dash_training}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The training view (\texttt{training.html}) monitors offline training progress:
+epoch loss curve, validation MSE, estimated completion time, and the
+current configuration parameters.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Offline Training --- \texttt{training.html}]}\\[4pt]
+    \small Epoch loss curve, validation MSE with live updates, progress bar,
+    and configuration summary.
+  \end{minipage}}
+  \caption{Offline training dashboard. The full training run can be monitored,
+           including early-stopping status.}
+  \label{fig:dash_training}
+\end{figure}
+
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+\subsection{Benchmark Comparison}
+\label{subsec:dash_benchmark}
+% · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
+
+The benchmark view (\texttt{ltsf\_benchmark.html}) displays LSTM, Fair Mamba,
+and KCMamba results as interactive heat maps and line charts, broken down by
+noise level and stride configuration.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: LSTM/Mamba comparison --- \texttt{ltsf\_benchmark.html}]}\\[4pt]
+    \small Interactive heat map and line charts for MSE results across noise
+    levels and datasets.
+  \end{minipage}}
+  \caption{Benchmark comparison view. Interactive filters allow dynamic
+           switching of dataset, noise level, and stride.}
+  \label{fig:dash_benchmark}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Backtesting Framework}
+\label{sec:backtest}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The backtester (\texttt{adapters/testing/backtest.py}) runs all trading logic
+through the same \texttt{IBrokerGatewayPort} and \texttt{IMarketFeedPort}
+interfaces as the live system, using a simulated event bus
+(\texttt{InMemoryEventBus}) and a deterministic time source
+(\texttt{FixedTimeSource}) to ensure reproducibility.
+
+A run loads and normalises historical OHLCV data, trains the model offline,
+then steps through the validation period minute by minute,
+applying 0.1\% taker and 0.1\% maker fees. Results are logged as an equity curve, Sharpe
+ratio, maximum drawdown, and win rate.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][5.5cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Backtest results --- equity curve and metrics]}\\[4pt]
+    \small Equity curve, Sharpe ratio, maximum drawdown, and monthly
+    return heat map for the backtest period.
+  \end{minipage}}
+  \caption{Backtest results summary. The equity curve shows the strategy's
+           cumulative performance over the historical period.}
+  \label{fig:backtest_results}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Risk Management}
+\label{sec:risk_management}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The risk layer (\texttt{core/domain/risk.py}) enforces four rules.
+Position-size cap: no single entry may exceed 10\% of total equity.
+Asymmetric stop-loss: $-2\%$ from entry on long positions, $-1.5\%$ on short.
+If more than five symbols are open simultaneously, new signals are blocked;
+and if the daily realised loss exceeds 3\% of equity, the engine closes all
+open positions.
+
+Additionally, an order is only dispatched if the KCMamba $K$-gain exceeds
+the threshold $K_\text{min} = 0{.}15$, indicating sufficient model confidence
+given the current data quality.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Risk log and position-sizing panel]}\\[4pt]
+    \small Risk module log: attempted and rejected signals, stop-loss event
+    sequence, daily loss progress bar.
+  \end{minipage}}
+  \caption{Risk management overview. Red rows indicate rejected signals;
+           green rows indicate executed ones.}
+  \label{fig:risk_panel}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Live Trading with Binance}
+\label{sec:live_trading}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The live trading adapter (\texttt{adapters/infrastructure/binance\_broker.py})
+uses the Binance Futures REST and WebSocket endpoints. Price updates reach the
+\texttt{TradingEngine} via \texttt{IEventBusPort}; the business logic has no
+knowledge of the Binance-specific data format; the adapter is replaceable.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Live trading --- Binance positions and orders]}\\[4pt]
+    \small Open Binance Futures positions, pending orders, and equity updates
+    in real time.
+  \end{minipage}}
+  \caption{Live Binance trading view. The panel is synchronised with the
+           Binance account; balance and positions update every second.}
+  \label{fig:live_trading}
+\end{figure}
+
+The system can also run in \emph{paper trading} mode: the Binance adapter is
+replaced with \texttt{adapters/testing/broker.py}'s simulated executor,
+allowing the algorithm to be tested on live market data without risking real
+capital.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Running the System}
+\label{sec:running}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The entire system is started through a single entry point, \texttt{main.py}:
+
+\begin{verbatim}
+# Backtest mode (no network connection required)
+python main.py --mode backtest --symbol BTCUSDT --from 2024-01-01 --to 2024-12-31
+
+# Paper trading mode (Binance feed, simulated execution)
+python main.py --mode paper --symbol BTCUSDT ETHUSDT
+
+# Live trading mode (Binance API key required)
+python main.py --mode live --symbol BTCUSDT
+\end{verbatim}
+
+The dashboard starts automatically and is accessible at
+\texttt{http://localhost:8080}. API keys are loaded from a \texttt{.env} file
+and never appear in source code.
+
+\begin{figure}[H]
+  \centering
+  \fbox{\begin{minipage}[c][4.5cm][c]{0.92\textwidth}
+    \centering
+    \textit{[Screenshot: Terminal --- system startup and log lines]}\\[4pt]
+    \small Console output during startup: model loading, WebSocket connection
+    confirmation, event loop start.
+  \end{minipage}}
+  \caption{System startup log. Each adapter initialises in sequence; on error
+           the system prints a detailed message and stack trace.}
+  \label{fig:startup_log}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{User Documentation}
+\label{sec:user_docs}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Purpose and Audience}
+
+The system is designed for automated analysis of cryptocurrency time series
+and generation of trading signals, primarily on BTCUSDT and ETHUSDT pairs.
+Its target audience is developers and researchers who want to backtest or
+live-run ML-based trading strategies.
+
+\subsection{System Requirements}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|l|}
+    \hline
+    \textbf{Component} & \textbf{Minimum} & \textbf{Recommended} \\
+    \hline\hline
+    Operating system & Linux/macOS/Windows 10+ & Ubuntu 22.04 LTS \\
+    Python           & 3.10                   & 3.11 \\
+    RAM              & 4~GB                   & 8~GB \\
+    Disk             & 2~GB                   & 5~GB \\
+    GPU (optional)   & ---                    & NVIDIA $\ge$6~GB VRAM \\
+    Network          & --- (backtest mode)    & Stable internet (live) \\
+    \hline
+  \end{tabular}
+  \caption{Minimum and recommended hardware/software requirements.}
+  \label{tab:sysreq}
+\end{table}
+
+\subsection{Installation Guide}
+
+\begin{enumerate}
+  \item Clone and create a virtual environment:
+\begin{verbatim}
+git clone <repo_url> && cd diplomamunkakod
+python -m venv .venv && source .venv/bin/activate
+\end{verbatim}
+  \item Install dependencies (ML packages are optional):
+\begin{verbatim}
+pip install -r requirements.txt
+pip install -r requirements-ml.txt   # GPU: CUDA-compatible PyTorch
+\end{verbatim}
+  \item Configure API keys (only required for live/paper mode):
+\begin{verbatim}
+cp .env.example .env
+# Edit .env: BINANCE_API_KEY, BINANCE_SECRET
+\end{verbatim}
+\end{enumerate}
+
+\subsection{Usage Guide}
+
+The application is controlled via \texttt{main.py}
+(see Sec.~\ref{sec:running}). The dashboard is available at
+\texttt{http://localhost:8080}; backtest results can be exported as CSV and
+logs are stored in \texttt{run\_log.txt}.
+
+\subsection{Troubleshooting}
+
+\begin{description}
+  \item[\texttt{ModuleNotFoundError: mamba\_ssm}] Install the CUDA-compatible
+       packages from \texttt{requirements-ml.txt}, or run on CPU:
+       \texttt{python main.py --device cpu}.
+  \item[Binance API 403/401] Check the \texttt{.env} keys and IP whitelist
+       settings on the Binance trading interface.
+  \item[WebSocket connection error] A firewall may block Binance's
+       \texttt{wss://} endpoint (port $9443$); set up a proxy if necessary.
+\end{description}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Testing}
+\label{sec:testing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+\subsection{Testing Strategy}
+
+The test suite uses \textbf{pytest}. Core logic is covered by unit tests;
+the Binance and aiohttp adapters are replaced with \texttt{unittest.mock}, so
+all tests run deterministically without a network connection.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Test file} & \textbf{Type} & \textbf{Coverage} \\
+    \hline\hline
+    \texttt{test\_strategy.py}           & Unit        & ThresholdStrategy signal logic, threshold/config/scale checks \\
+    \texttt{test\_risk\_policy.py}        & Unit        & RiskPolicy blocking paths, MaxQty, MaxNotional, Confidence, SlippageGuard \\
+    \texttt{test\_execution.py}          & Integration & PaperBroker order execution, fill simulation, Stop/Limit orders \\
+    \texttt{test\_equity.py}             & Unit        & SimulationWallet equity calculation, PnL, mark-price updates \\
+    \texttt{test\_fee\_fix.py}           & Regression  & Commission calculation accuracy across a trading cycle \\
+    \texttt{test\_fill\_fix.py}          & Regression  & Fill-event time/price logic, partial fill handling \\
+    \texttt{test\_signal\_diagnostics.py} & Unit       & Signal diagnostic metrics (edge score, hit-rate calculation) \\
+    \texttt{test\_binance\_feed.py}      & Mock-based  & BinanceFeed WebSocket event processing, reconnect logic \\
+    \hline
+  \end{tabular}
+  \caption{Summary of test files.}
+  \label{tab:tests}
+\end{table}
+
+\subsection{Running the Tests}
+
+\begin{verbatim}
+# Run all tests
+pytest tests/ -v
+
+# Unit tests only, skipping slow integration tests
+pytest tests/ -v -m "not slow"
+
+# Coverage report
+pytest tests/ --cov=core --cov-report=term-missing
+\end{verbatim}
+
+\subsection{Selected Test Cases}
+
+\paragraph{Risk rules} \texttt{test\_risk\_policy.py} verifies that all
+blocking rules (MaxQtyRule, MaxNotionalRule, ConfidenceRule, SlippageGuardRule)
+correctly reject invalid orders, and that when multiple rules are applied
+together the strictest one prevails. Tests cover approximately 100 random input
+combinations.
+
+\paragraph{Strategy signal logic} \texttt{test\_strategy.py} verifies that
+\texttt{ThresholdStrategy} emits a \textsc{Buy}/\textsc{Sell} signal exactly
+when the predicted probability exceeds \texttt{threshold}, and that
+\texttt{min\_edge}, \texttt{min\_confidence}, and \texttt{max\_sigma} correctly
+filter weak signals.
+
+\paragraph{Equity and fill logic} All tests in \texttt{test\_equity.py} and
+\texttt{test\_fill\_fix.py} pass, confirming that PnL calculation and partial
+fill handling work correctly in multi-symbol portfolios.
+
+\paragraph{Regression tests} \texttt{test\_fee\_fix.py} ensures that a
+previous bug (double-counting commission in the itemised view) does not
+reappear.
+
+\subsection{Testing Limitations}
+
+There is no end-to-end integration test that checks the full pipeline
+(from data ingestion to order execution) in a single run. Backtest mode
+partially fills this gap, but a dedicated simulation integration test suite
+would improve coverage.

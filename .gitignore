@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Data / caches / artifacts
+adapters/offline_training/dataset_cache/
+benchmark_results/
+*.pt
+*.ckpt
+*.npz
+run_log.txt
+run_log_*.txt
+*.log
+
+# LaTeX intermediates
+diplomamunka/*.aux
+diplomamunka/*.bbl
+diplomamunka/*.bcf
+diplomamunka/*.blg
+diplomamunka/*.log
+diplomamunka/*.out
+diplomamunka/*.toc
+diplomamunka/*.lof
+diplomamunka/*.lot
+diplomamunka/*.run.xml
+diplomamunka/*.synctex.gz
+diplomamunka/_minted-*/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLA-Mamba · Kalman-szűrő diagnosztika</title>
+  <style id="tw">
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
+html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
+body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margin:0}a{color:inherit;text-decoration:inherit}pre{font-family:ui-monospace,monospace;margin:0}
+.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}
+.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}
+.flex-1{flex:1 1 0%}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}
+.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-3{padding-left:.75rem;padding-right:.75rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-auto{margin-left:auto}.mr-4{margin-right:1rem}
+.space-y-4>*+*{margin-top:1rem}.space-y-1>*+*{margin-top:.25rem}
+.w-full{width:100%}.min-h-screen{min-height:100vh}.max-w-screen-2xl{max-width:1536px}.h-12{height:3rem}
+.overflow-auto{overflow:auto}
+.sticky{position:sticky}.top-0{top:0}.z-20{z-index:20}
+.font-mono{font-family:ui-monospace,monospace}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}
+.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}
+.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:.1em}
+.text-center{text-align:center}.text-right{text-align:right}
+.text-white{color:#fff}
+.text-slate-100{color:#f1f5f9}.text-slate-200{color:#e2e8f0}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-blue-300{color:#93c5fd}.text-blue-400{color:#60a5fa}.text-cyan-300{color:#67e8f9}.text-cyan-400{color:#22d3ee}
+.text-emerald-400{color:#4ade80}.text-amber-400{color:#fbbf24}.text-red-400{color:#f87171}.text-violet-400{color:#a78bfa}
+.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}.bg-slate-950{background-color:#020617}
+.bg-slate-950\/95{background-color:rgba(2,6,23,.95)}
+.border-slate-700{border-color:#334155}.border-slate-800{border-color:#1e293b}
+.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.backdrop-blur{backdrop-filter:blur(8px)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(96,165,250,0))}
+.to-cyan-400{--tw-gradient-to:#22d3ee}
+.bg-clip-text{-webkit-background-clip:text;background-clip:text}
+.transition-colors{transition-property:color,background-color;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+.cursor-pointer{cursor:pointer}
+@media(min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.h-\[220px\]{height:220px}.h-\[280px\]{height:280px}.h-\[320px\]{height:320px}.h-\[360px\]{height:360px}
+.grid-autofill-240{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  </style>
+  <script src="/chart.umd.min.js"></script>
+  <style>
+    body { background: #080c14; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .nav-a { color:#94a3b8; text-decoration:none; padding:4px 11px; border-radius:8px; font-size:13px; transition:all .15s; white-space:nowrap; }
+    .nav-a:hover { background:rgba(148,163,184,.1); color:#e2e8f0; }
+    .nav-a.active { background:rgba(96,165,250,.15); color:#60a5fa; font-weight:600; }
+    .nav-dropdown { position:relative; display:inline-block; }
+    .nav-dropdown > button { background:none; border:none; cursor:pointer; font-family:inherit; }
+    .nav-drop { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:4px 0; min-width:220px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .nav-dropdown.open .nav-drop { display:block; }
+    .drop-a { display:block; padding:7px 16px; font-size:13px; color:#94a3b8; text-decoration:none; white-space:nowrap; }
+    .drop-a:hover { background:rgba(148,163,184,.08); color:#e2e8f0; }
+    .drop-a.active { color:#60a5fa; font-weight:600; }
+    .section { background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:20px; }
+    .kv { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid rgba(30,41,59,.6); }
+    .kv:last-child { border-bottom:none; }
+    .kv .lbl { color:#64748b; font-size:12px; }
+    .kv .val { font-family:ui-monospace,monospace; font-size:12px; color:#e2e8f0; text-align:right; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; }
+    .badge-ok  { background:rgba(34,197,94,.15);  color:#4ade80; }
+    .badge-warn{ background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-info{ background:rgba(96,165,250,.15); color:#60a5fa; }
+    .badge-err { background:rgba(239,68,68,.15);  color:#f87171; }
+    .no-data { color:#475569; font-size:13px; text-align:center; padding:40px 0; }
+    .leg-s { display:inline-block; height:3px; width:14px; margin-right:5px; vertical-align:middle; }
+    /* formula box */
+    .formula { background:#0c1116; border:1px solid #1e293b; border-radius:8px; padding:10px 14px; font-family:ui-monospace,monospace; font-size:12px; color:#67e8f9; margin-top:8px; }
+    /* KLA annotation card */
+    .annot { background:rgba(96,165,250,.07); border:1px solid rgba(96,165,250,.18); border-radius:10px; padding:12px 16px; font-size:12px; color:#93c5fd; line-height:1.6; }
+    /* gauge ring */
+    .gauge-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
+    .gauge-label { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.06em; }
+    .gauge-val   { font-size:1.5rem; font-weight:800; font-family:ui-monospace,monospace; }
+    .gauge-sub   { font-size:11px; color:#64748b; }
+    /* memory depth highlight */
+    .mem-bar { height:6px; border-radius:3px; background:linear-gradient(to right,#0ea5e9,#6366f1,#a78bfa); margin-top:4px; transition:width .5s; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <div class="nav-dropdown">
+      <button class="nav-a active">KLA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a active">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">Pénzügyi ▾</button>
+      <div class="nav-drop">
+        <a href="/" class="drop-a">Áttekintés</a>
+        <a href="/model.html" class="drop-a">Modell</a>
+        <a href="/signals.html" class="drop-a">Jelek</a>
+        <a href="/training.html" class="drop-a">Tréning</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">Benchmark ▾</button>
+      <div class="nav-drop">
+        <a href="/benchmark.html" class="drop-a">Szintetikus teszt</a>
+        <a href="/ltsf_benchmark.html" class="drop-a">LSTM / Mamba összehasonlítás</a>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <span id="statusBadge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
+      <span class="text-xs text-slate-600" id="navTime">—</span>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-screen-2xl mx-auto px-5 py-5 space-y-4">
+
+  <!-- Fejléc -->
+  <div class="flex items-start justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-200">Kalman-szűrő diagnosztika</h1>
+      <p class="text-xs text-slate-500 mt-1">A KLA-Mamba adaptív Kalman-erősítőjének (K gain) és memória-dinamikájának elemzése — az utolsó benchmark futás eredményei alapján.</p>
+    </div>
+    <div id="noDataBanner" class="badge badge-warn">Futtasd le az LSTM / Mamba összehasonlítást az adatokhoz</div>
+  </div>
+
+  <!-- Elmélet panel -->
+  <div class="section">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hogyan működik a KLA szűrő?</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div>
+        <p class="text-xs text-slate-400 font-semibold mb-1">Kalman-erősítés (K)</p>
+        <p class="text-xs text-slate-500">A K gain 0 és 1 között van. Magas K → a modell a friss megfigyelést követi (gyors adaptáció, pl. volatilis piac). Alacsony K → a modell saját előrejelzésébe vetett bizalma magas (mély memória, stabil trend).</p>
+        <div class="formula">K = Q / (Q + R + ε)</div>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-semibold mb-1">Memória mélység (A = 1−K)</p>
+        <p class="text-xs text-slate-500">Az A (feledési faktor) határozza meg, hány lépés "él" a szűrőben. Effektív visszatekintési ablak: 1/(1−A) időlépés. A KLA ezt mintánként adaptívan állítja.</p>
+        <div class="formula">memória ≈ 1 / (1 − A)</div>
+      </div>
+      <div>
+        <p class="text-xs text-slate-400 font-semibold mb-1">Reziduális bypass gate</p>
+        <p class="text-xs text-slate-500">Sigmoid-kapuzott reziduális összekötés: ha a gate → 0 a szűrt jel dominál, ha → 1 a nyers bemenet is erősen belép. Tanult kompromisszum a szimulációs és a megfigyelési tér között.</p>
+        <div class="formula">out = yp + gate · (x − yp)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fő KPI kártyák -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3" id="kpiRow">
+    <div class="section flex flex-col items-center gap-1">
+      <span class="gauge-label">Átlagos K gain</span>
+      <span class="gauge-val text-cyan-400" id="kpiKmean">—</span>
+      <span class="gauge-sub" id="kpiKinterp">—</span>
+    </div>
+    <div class="section flex flex-col items-center gap-1">
+      <span class="gauge-label">K szórás</span>
+      <span class="gauge-val text-violet-400" id="kpiKstd">—</span>
+      <span class="gauge-sub">adaptivitás mértéke</span>
+    </div>
+    <div class="section flex flex-col items-center gap-1">
+      <span class="gauge-label">Effektív memória</span>
+      <span class="gauge-val text-blue-400" id="kpiMemDepth">—</span>
+      <span class="gauge-sub">időlépés visszatekintés</span>
+    </div>
+    <div class="section flex flex-col items-center gap-1">
+      <span class="gauge-label">Bypass gate</span>
+      <span class="gauge-val text-amber-400" id="kpiGate">—</span>
+      <span class="gauge-sub" id="kpiGateInterp">—</span>
+    </div>
+  </div>
+
+  <!-- Részletes stats + értelmezés -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Numerikus stats táblázat -->
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Kalman paraméterek részletesen</h2>
+      <div class="space-y-1">
+        <div class="kv"><span class="lbl">K gain · átlag</span><span class="val" id="statKmean">—</span></div>
+        <div class="kv"><span class="lbl">K gain · szórás</span><span class="val" id="statKstd">—</span></div>
+        <div class="kv"><span class="lbl">K gain · min</span><span class="val" id="statKmin">—</span></div>
+        <div class="kv"><span class="lbl">K gain · max</span><span class="val" id="statKmax">—</span></div>
+        <div class="kv"><span class="lbl">A (feledési faktor) · átlag</span><span class="val" id="statAmean">—</span></div>
+        <div class="kv"><span class="lbl">R (mérési zaj) · átlag</span><span class="val" id="statRmean">—</span></div>
+        <div class="kv"><span class="lbl">Bypass gate (σ(bias))</span><span class="val" id="statGate">—</span></div>
+        <div class="kv"><span class="lbl">Effektív memória (1/(1−A))</span><span class="val text-blue-400 font-bold" id="statMemDepth">—</span></div>
+        <div class="kv"><span class="lbl">K tartomány szélesség (max−min)</span><span class="val" id="statKrange">—</span></div>
+      </div>
+    </div>
+
+    <!-- Értelmező panel -->
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Automatikus értékelés</h2>
+      <div class="space-y-3" id="interpretPanel">
+        <p class="text-xs text-slate-500">Adatok betöltése...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- K gain eloszlás histogram -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">K gain eloszlás (szimulált)</h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">A K értékek sűrűségeloszlása a teszt adatokon — széles eloszlás = magas adaptivitás</p>
+      </div>
+      <span class="badge badge-info" id="kDistBadge" style="display:none">—</span>
+    </div>
+    <div class="h-[220px]"><canvas id="cKDist"></canvas></div>
+    <div class="mt-3 flex flex-wrap gap-4 text-[11px] text-slate-500">
+      <span><span class="leg-s" style="background:#22d3ee"></span>K gain sűrűség</span>
+      <span id="kDistMeanLine"><span class="leg-s" style="border-top:2px dashed #fbbf24"></span>Átlag K</span>
+    </div>
+  </div>
+
+  <!-- Jel vs Zaj szeparáció -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jel vs. Zaj szeparáció</h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">KLA szűrt μ (tiszta jel) vs. zajos bemenet vs. Ground Truth — a Kalman-filter hatékonyságának közvetlen bizonyítéka</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-[11px] text-slate-500">SNR: <span class="font-mono text-emerald-400 font-bold" id="snrVal">—</span></span>
+        <span class="badge badge-ok hidden" id="snrBadge">Jó szűrés</span>
+      </div>
+    </div>
+    <div class="h-[320px]"><canvas id="cSignalNoise"></canvas></div>
+    <div class="flex flex-wrap gap-5 mt-3 text-[11px] text-slate-500">
+      <span><span class="leg-s" style="background:rgba(203,213,225,.9)"></span>Valós (Ground Truth)</span>
+      <span><span class="leg-s" style="background:rgba(251,146,60,.6)"></span>Zajos bemenet</span>
+      <span><span class="leg-s" style="background:#22d3ee"></span>KLA szűrt μ</span>
+    </div>
+  </div>
+
+  <!-- Q vs R arány (folyamat vs mérési zaj) -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <div class="section">
+      <div class="flex items-center justify-between mb-1">
+        <div>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Szűrési minőség — MSE összehasonlítás</h2>
+          <p class="text-[11px] text-slate-600 mt-0.5">KLA szűrt μ MSE vs. nyers bemenet MSE a Ground Truth-hoz képest</p>
+        </div>
+      </div>
+      <div class="h-[220px]"><canvas id="cMseComp"></canvas></div>
+    </div>
+
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">K gain interpretáció térkép</h2>
+      <div class="space-y-3">
+        <!-- K regime bar -->
+        <div>
+          <div class="flex justify-between text-[11px] text-slate-500 mb-1">
+            <span>Mély memória (K → 0)</span><span>Gyors adaptáció (K → 1)</span>
+          </div>
+          <div style="background:#1e293b;border-radius:6px;height:18px;position:relative;overflow:hidden">
+            <div id="kRegimeBar" style="height:100%;width:0%;background:linear-gradient(to right,#0ea5e9,#6366f1,#ec4899);border-radius:6px;transition:width .6s"></div>
+            <div id="kRegimeDot" style="position:absolute;top:0;height:100%;width:3px;background:#fbbf24;border-radius:2px;transition:left .6s;display:none"></div>
+          </div>
+          <div class="flex justify-between text-[11px] text-slate-600 mt-1">
+            <span>0.0</span><span id="kRegimeLabel" class="text-amber-400 font-mono font-bold">—</span><span>1.0</span>
+          </div>
+        </div>
+
+        <!-- Értelmező feliratok -->
+        <div class="annot" id="kAnnot">
+          Az adatok betöltése folyamatban...
+        </div>
+
+        <!-- K · A dualitás -->
+        <div class="grid grid-cols-2 gap-3 text-center">
+          <div style="background:#0c1829;border:1px solid #1e3a5f;border-radius:10px;padding:12px">
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest">Folyamat bizalom</div>
+            <div class="text-xl font-extrabold text-blue-400 font-mono mt-1" id="kaTrustProc">—</div>
+            <div class="text-[11px] text-slate-600">1 − K = A</div>
+          </div>
+          <div style="background:#0c1829;border:1px solid #1e3a5f;border-radius:10px;padding:12px">
+            <div class="text-[10px] text-slate-500 uppercase tracking-widest">Mérés bizalom</div>
+            <div class="text-xl font-extrabold text-cyan-400 font-mono mt-1" id="kaTrustMeas">—</div>
+            <div class="text-[11px] text-slate-600">K</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Memória mélység vizualizáció -->
+  <div class="section">
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Effektív memória mélység</h2>
+    <p class="text-xs text-slate-500 mb-4">Az 1/(1−A) képlet megmutatja, hogy a KLA átlagosan hány időlépés "emlékét" tartja fenn. Összehasonlítás rögzített memóriájú modellekkel (LSTM hidden window vs. fix lookback).</p>
+    <div class="h-[220px]"><canvas id="cMemDepth"></canvas></div>
+    <p class="text-[11px] text-slate-600 mt-2 text-center">Alacsonyabb = rövidebb memória (gyorsan felejt) · Magasabb = mélyebb memória (lassan felejt) · KLA értéke futásonként változik (adaptív)</p>
+  </div>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt4 = v => (v == null || !Number.isFinite(v)) ? '—' : v.toFixed(4);
+const fmt2 = v => (v == null || !Number.isFinite(v)) ? '—' : v.toFixed(2);
+const fmtInt = v => (v == null || !Number.isFinite(v)) ? '—' : Math.round(v).toLocaleString();
+
+const _def = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+  animation: { duration: 400 },
+  scales: {
+    x: { display: true, ticks: { color: '#475569', maxTicksLimit: 8 }, grid: { color: 'rgba(30,41,59,.5)' } },
+    y: { display: true, ticks: { color: '#475569' }, grid: { color: 'rgba(30,41,59,.5)' } },
+  }
+};
+
+// ── Chart instances ───────────────────────────────────────────────────────────
+let cKDist = null, cSignalNoise = null, cMseComp = null, cMemDepth = null;
+
+function initCharts() {
+  const ctx = id => { const el = $(id); return el ? el : null; };
+
+  // K distribution histogram
+  if (ctx('cKDist')) cKDist = new Chart(ctx('cKDist'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{
+      label: 'K gain sűrűség', data: [],
+      backgroundColor: 'rgba(34,211,238,.45)', borderColor: '#22d3ee', borderWidth: 1,
+    }, {
+      // Átlag vonal (pont dataset)
+      label: 'Átlag K', data: [], type: 'line',
+      borderColor: '#fbbf24', borderWidth: 2, borderDash: [5, 3],
+      pointRadius: 0, fill: false,
+    }]},
+    options: { ..._def, scales: { x: { ticks: { color: '#475569', maxTicksLimit: 12 } }, y: { beginAtZero: true, ticks: { color: '#475569' } } } }
+  });
+
+  // Signal vs Noise separation
+  if (ctx('cSignalNoise')) cSignalNoise = new Chart(ctx('cSignalNoise'), {
+    type: 'line',
+    data: { datasets: [
+      { label: 'Valós', data: [], borderColor: 'rgba(203,213,225,.9)', borderWidth: 2, pointRadius: 0, tension: 0 },
+      { label: 'Zajos bemenet', data: [], borderColor: 'rgba(251,146,60,.5)', borderWidth: 1, pointRadius: 0, tension: 0 },
+      { label: 'KLA szűrt μ', data: [], borderColor: '#22d3ee', borderWidth: 2, pointRadius: 0, tension: 0 },
+    ]},
+    options: { ..._def, scales: { x: { type: 'linear' }, y: { type: 'linear' } } }
+  });
+
+  // MSE comparison bar
+  if (ctx('cMseComp')) cMseComp = new Chart(ctx('cMseComp'), {
+    type: 'bar',
+    data: { labels: ['Zajos bemenet MSE', 'KLA szűrt μ MSE', 'KLA végső pred. MSE'], datasets: [{
+      data: [0, 0, 0],
+      backgroundColor: ['rgba(251,146,60,.45)', 'rgba(34,211,238,.45)', 'rgba(74,222,128,.45)'],
+      borderColor:      ['#fb923c',             '#22d3ee',              '#4ade80'],
+      borderWidth: 1.5,
+    }]},
+    options: {
+      ...{
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' MSE: ' + ctx.parsed.y.toFixed(6) } } },
+        animation: { duration: 400 },
+      },
+      scales: { x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#475569' } } }
+    }
+  });
+
+  // Memory depth comparison bar
+  if (ctx('cMemDepth')) cMemDepth = new Chart(ctx('cMemDepth'), {
+    type: 'bar',
+    data: {
+      labels: ['LSTM (seq_len)', 'Fixed ARIMA (p)', 'DLinear (kernel)', 'KLA-Mamba (adaptív 1/(1−A))'],
+      datasets: [{
+        data: [96, 5, 25, 10],
+        backgroundColor: ['rgba(96,165,250,.35)', 'rgba(245,158,11,.35)', 'rgba(167,139,250,.35)', 'rgba(34,211,238,.55)'],
+        borderColor:      ['#60a5fa',              '#f59e0b',              '#a78bfa',              '#22d3ee'],
+        borderWidth: 1.5,
+      }]
+    },
+    options: {
+      ...{ responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+           plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + Math.round(ctx.parsed.y) + ' időlépés' } } } },
+      scales: { x: { ticks: { color: '#94a3b8', font: { size: 11 } }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#475569' }, title: { display: true, text: 'Visszatekintési ablak (lépés)', color: '#475569', font: { size: 11 } } } }
+    }
+  });
+}
+initCharts();
+
+// ── K eloszlás szimulálása az összesített K_mean / K_std alapján ──────────────
+// A valódi eloszlást a backendből nem vesszük ki minta-szinten (nem tároljuk), de
+// Beta-eloszlással közelítjük: Beta(α,β) ahol α,β a K_mean / K_std alapján számolt.
+function buildKDistSim(K_mean, K_std, bins = 30) {
+  // Input guard: ha nincs érvényes adat, üres eloszlást adunk vissza
+  if (!K_mean || !K_std || !isFinite(K_mean) || !isFinite(K_std) || K_std <= 0 || K_mean <= 0 || K_mean >= 1) {
+    const labels = Array.from({ length: bins }, (_, i) => ((i + 0.5) / bins).toFixed(2));
+    return { labels, density: new Array(bins).fill(0) };
+  }
+  // Method of moments: α = K*(K*(1-K)/σ²-1), β = (1-K)*α/K
+  const sigma2 = K_std * K_std;
+  const common = K_mean * (1 - K_mean) / Math.max(sigma2, 1e-8) - 1;
+  const alpha = K_mean * common;
+  const beta  = (1 - K_mean) * common;
+  // Ha alpha/beta nem pozitív, nem lehet Beta-t mintázni
+  if (!isFinite(alpha) || !isFinite(beta) || alpha <= 0 || beta <= 0) {
+    const labels = Array.from({ length: bins }, (_, i) => ((i + 0.5) / bins).toFixed(2));
+    return { labels, density: new Array(bins).fill(0) };
+  }
+  // Sample from Beta(alpha,beta) using gamma approximation (Box-Muller-like)
+  function gammaRnd(a) {
+    // Marsaglia & Tsang fast gamma — max 2000 iteration guard against bad params
+    if (a < 1) return gammaRnd(a + 1) * Math.pow(Math.random(), 1 / a);
+    const d = a - 1/3, c = 1 / Math.sqrt(9 * d);
+    for (let _i = 0; _i < 2000; _i++) {
+      let x, v;
+      do { x = Math.random() * 2 - 1; v = 1 + c * x; } while (v <= 0);
+      v = v * v * v;
+      const u = Math.random();
+      if (u < 1 - 0.0331 * (x*x)*(x*x)) return d * v;
+      if (Math.log(u) < 0.5 * x*x + d * (1 - v + Math.log(v))) return d * v;
+    }
+    return d; // fallback
+  }
+  function betaSample(a, b) { const g1 = gammaRnd(a), g2 = gammaRnd(b); return g1 / (g1 + g2); }
+  const N = 2000;
+  const counts = new Array(bins).fill(0);
+  for (let i = 0; i < N; i++) {
+    const s = (alpha > 0.1 && beta > 0.1) ? betaSample(alpha, beta)
+              : Math.max(0, Math.min(1, K_mean + K_std * (Math.random() * 2 - 1)));
+    const bin = Math.min(bins - 1, Math.floor(s * bins));
+    counts[bin]++;
+  }
+  const labels = counts.map((_, i) => ((i + 0.5) / bins).toFixed(2));
+  const density = counts.map(c => c / N);
+  return { labels, density };
+}
+
+// ── Interpret Kalman stats ────────────────────────────────────────────────────
+function interpretKalman(ks) {
+  const K = ks.K_mean, Kstd = ks.K_std, A = ks.A_mean, R = ks.R_mean, gate = ks.res_gate_mean;
+
+  // K gain megítélése
+  let kBadge, kText;
+  if (K < 0.12) {
+    kBadge = 'Mély memória (konzervatív)';
+    kText  = `Az átlagos K gain <strong>${K.toFixed(4)}</strong> alacsony: a modell erősen saját korábbi állapotára támaszkodik, csak lassan fogadja be az új megfigyeléseket. Ez stabil, hosszú ciklusú trendek esetén optimális viselkedés.`;
+  } else if (K < 0.35) {
+    kBadge = 'Kiegyensúlyozott adaptáció';
+    kText  = `Az átlagos K gain <strong>${K.toFixed(4)}</strong> kiegyensúlyozott: a modell mérsékelt sebességgel frissíti állapotát. Ez az "arany középút" — nem reagál túl gyorsan a zajra, de követi a trendet.`;
+  } else if (K < 0.6) {
+    kBadge = 'Aktív adaptáció';
+    kText  = `Az átlagos K gain <strong>${K.toFixed(4)}</strong> magas: a modell meglehetősen gyorsan frissíti becslését az új adatok alapján. Volatilis, gyorsan változó piacokon ez elfogadható — de zajérzékenység nőhet.`;
+  } else {
+    kBadge = 'Nagyon gyors adaptáció';
+    kText  = `Az átlagos K gain <strong>${K.toFixed(4)}</strong> nagyon magas: a modell majdnem teljesen az aktuális adatot követi. Megfontolandó, hogy elég-e a szűrési hatás itt.`;
+  }
+
+  // Adaptivitás értékelése (K_std)
+  let adaptText;
+  if (Kstd < 0.03) adaptText = `A K szórása (<strong>${Kstd.toFixed(4)}</strong>) alacsony — a szűrő majdnem állandó sebességgel frissít, kevéssé alkalmazkodik a piaci rezsimhez.`;
+  else if (Kstd < 0.10) adaptText = `A K szórása (<strong>${Kstd.toFixed(4)}</strong>) mérsékelt — a szűrő dinamikusan változtatja frissítési sebességét, különböző piaci helyzetekhez alkalmazkodva.`;
+  else adaptText = `A K szórása (<strong>${Kstd.toFixed(4)}</strong>) magas — erősen adaptív viselkedés, nagy különbség van a csendes és volatilis periódusok kezelésében. Ez a KLA erőssége.`;
+
+  // Gate értelmezése
+  const gateText = gate < 0.25
+    ? `A bypass gate (<strong>${gate.toFixed(4)}</strong>) alacsony: a kimeneten szinte kizárólag a Kalman-szűrt jel (yp) jelenik meg.`
+    : gate < 0.5
+    ? `A bypass gate (<strong>${gate.toFixed(4)}</strong>) közepes: a szűrt és a nyers bemenet kb. egyenlő arányban járul hozzá a kimenethez.`
+    : `A bypass gate (<strong>${gate.toFixed(4)}</strong>) magas: a nyers bemeneti jel domináns, a szűrési hatás kisebb.`;
+
+  return { kBadge, kText, adaptText, gateText };
+}
+
+// ── Update UI ─────────────────────────────────────────────────────────────────
+function updateUI(ks, sample, seqLen, arimaP, dlinearK) {
+  if (!ks || Object.keys(ks).length === 0) {
+    $('noDataBanner').classList.remove('hidden');
+    return;
+  }
+  $('noDataBanner').classList.add('hidden');
+
+  const K = ks.K_mean ?? 0, Kstd = ks.K_std ?? 0;
+  const Kmin = ks.K_min ?? 0, Kmax = ks.K_max ?? 1;
+  const A = ks.A_mean ?? (1 - K);
+  const R = ks.R_mean ?? 0;
+  const gate = ks.res_gate_mean ?? 0;
+  const memDepth = 1 / Math.max(1 - A, 0.001);
+
+  // KPI cards
+  $('kpiKmean').textContent = K.toFixed(4);
+  $('kpiKstd').textContent  = Kstd.toFixed(4);
+  $('kpiMemDepth').textContent = Math.round(memDepth).toLocaleString();
+  $('kpiGate').textContent  = gate.toFixed(4);
+  $('kpiKinterp').textContent = K < 0.2 ? 'konzervatív szűrő' : K < 0.45 ? 'kiegyensúlyozott' : 'gyors adaptáció';
+  $('kpiGateInterp').textContent = gate < 0.3 ? 'szűrt jel dominál' : gate < 0.6 ? 'vegyes' : 'nyers domináns';
+
+  // Stats
+  $('statKmean').textContent  = K.toFixed(6);
+  $('statKstd').textContent   = Kstd.toFixed(6);
+  $('statKmin').textContent   = Kmin.toFixed(6);
+  $('statKmax').textContent   = Kmax.toFixed(6);
+  $('statAmean').textContent  = A.toFixed(6);
+  $('statRmean').textContent  = R.toFixed(6);
+  $('statGate').textContent   = gate.toFixed(6);
+  $('statMemDepth').textContent = Math.round(memDepth) + ' lépés';
+  $('statKrange').textContent = (Kmax - Kmin).toFixed(6);
+
+  // K/A dualitás
+  $('kaTrustProc').textContent = A.toFixed(4);
+  $('kaTrustMeas').textContent = K.toFixed(4);
+
+  // K regime bar
+  const pct = K * 100;
+  $('kRegimeBar').style.width = pct + '%';
+  $('kRegimeDot').style.left  = pct + '%';
+  $('kRegimeDot').style.display = 'block';
+  $('kRegimeLabel').textContent = 'K = ' + K.toFixed(4);
+
+  // Interpret
+  const { kBadge, kText, adaptText, gateText } = interpretKalman(ks);
+  $('kAnnot').innerHTML = kText;
+  $('interpretPanel').innerHTML = `
+    <div class="annot">${kText}</div>
+    <div class="annot" style="border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.06);color:#c4b5fd">${adaptText}</div>
+    <div class="annot" style="border-color:rgba(251,191,36,.2);background:rgba(251,191,36,.06);color:#fde68a">${gateText}</div>
+  `;
+  $('kDistBadge').textContent = kBadge;
+  $('kDistBadge').style.display = 'inline-block';
+
+  // Build K distribution
+  if (cKDist) {
+    const { labels, density } = buildKDistSim(K, Kstd);
+    cKDist.data.labels = labels;
+    cKDist.data.datasets[0].data = density;
+    // Mean vertical line: inject as full-height bar at mean K bucket
+    const meanBin = Math.min(labels.length - 1, Math.floor(K * labels.length));
+    const meanLineData = new Array(labels.length).fill(null);
+    if (density[meanBin] != null) meanLineData[meanBin] = density[meanBin] * 1.5;
+    cKDist.data.datasets[1].data = meanLineData;
+    cKDist.update('none');
+  }
+
+  // Signal vs Noise
+  if (cSignalNoise && sample) {
+    const trueData  = (sample.true  || []).map((v, i) => ({ x: i, y: v }));
+    const noisyData = (sample.noisy || []).map((v, i) => ({ x: i, y: v }));
+    const filtData  = (sample.kla_filtered || []).map((v, i) => ({ x: i, y: v }));
+    cSignalNoise.data.datasets[0].data = trueData;
+    cSignalNoise.data.datasets[1].data = noisyData;
+    cSignalNoise.data.datasets[2].data = filtData;
+    cSignalNoise.update('none');
+
+    // SNR calculation: var(filtered) / var(noise_residual)
+    if (trueData.length && filtData.length && noisyData.length) {
+      const filtArr = filtData.map(d => d.y);
+      const noisyArr = noisyData.map(d => d.y);
+      const mean = arr => arr.reduce((s, v) => s + v, 0) / arr.length;
+      const vari = arr => { const m = mean(arr); return arr.reduce((s, v) => s + (v-m)**2, 0) / arr.length; };
+      const filterVar = vari(filtArr);
+      const noiseResidual = noisyArr.map((v, i) => v - filtArr[i]);
+      const noiseVar = vari(noiseResidual);
+      const snr = noiseVar > 1e-10 ? filterVar / noiseVar : null;
+      if (snr != null) {
+        const snrDb = 10 * Math.log10(Math.max(snr, 1e-10));
+        $('snrVal').textContent = snrDb.toFixed(1) + ' dB';
+        if (snrDb > 3) $('snrBadge').classList.remove('hidden');
+      }
+    }
+  }
+
+  // MSE comparison
+  if (cMseComp && sample) {
+    const trueArr  = sample.true  || [];
+    const noisyArr = sample.noisy || [];
+    const filtArr  = sample.kla_filtered || [];
+    const predArr  = sample.pred  || [];
+    const n = Math.min(trueArr.length, noisyArr.length, filtArr.length, predArr.length);
+    if (n > 0) {
+      const mse = (a, b) => a.slice(0,n).reduce((s, v, i) => s + (v - b[i])**2, 0) / n;
+      const msNoisy = mse(noisyArr, trueArr);
+      const msFilt  = filtArr.length ? mse(filtArr, trueArr) : null;
+      const msPred  = predArr.length ? mse(predArr, trueArr) : null;
+      cMseComp.data.datasets[0].data = [msNoisy, msFilt ?? 0, msPred ?? 0];
+      cMseComp.update('none');
+    }
+  }
+
+  // Memory depth comparison
+  if (cMemDepth) {
+    const seqLenVal    = seqLen    || 96;
+    const arimaPVal    = arimaP    || 5;
+    const dlinearKVal  = dlinearK  || 25;
+    cMemDepth.data.datasets[0].data = [seqLenVal, arimaPVal, dlinearKVal, Math.round(memDepth)];
+    cMemDepth.update('none');
+  }
+}
+
+// ── Fetch data ────────────────────────────────────────────────────────────────
+async function loadData() {
+  let d;
+  try { d = await (await fetch('/ltsf_benchmark', { cache: 'no-store' })).json(); }
+  catch (e) { $('noDataBanner').classList.remove('hidden'); return; }
+
+  $('navTime').textContent = new Date().toLocaleTimeString('hu-HU');
+  const badge = $('statusBadge');
+
+  if (d.status === 'done' && d.models) {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400';
+    badge.textContent = '● Kész';
+    const ks     = d.models.kla_mamba?.kalman_stats;
+    const sample = d.models.kla_mamba?.sample;
+    const seqLen = d.config?.seq_len ?? d.input_dim ?? 96;
+    const arimaP = d.config?.arima_p ?? 5;
+    const dlinearK = d.config?.dlinear_kernel ?? 25;
+    updateUI(ks, sample, seqLen, arimaP, dlinearK);
+  } else if (d.status === 'running') {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
+    badge.textContent = '● Fut...';
+    $('noDataBanner').classList.remove('hidden');
+    $('noDataBanner').textContent = 'Benchmark fut: ' + (d.stage || '...');
+    setTimeout(loadData, 2500);
+  } else {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400';
+    badge.textContent = '● Inaktív';
+    $('noDataBanner').classList.remove('hidden');
+  }
+}
+
+loadData();
+document.addEventListener('click', function(e) {
+  var dd = e.target.closest('.nav-dropdown');
+  document.querySelectorAll('.nav-dropdown').forEach(function(d) { if (d !== dd) d.classList.remove('open'); });
+  if (dd) dd.classList.toggle('open');
+});
+</script>
+</body>
+</html>

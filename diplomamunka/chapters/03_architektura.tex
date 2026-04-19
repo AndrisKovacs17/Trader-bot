@@ -1,0 +1,351 @@
+% ============================================================
+%  3. fejezet, KCMamba architektúra
+% ============================================================
+\chapter{A KCMamba architektúra}
+\label{ch:architektura}
+
+\section{Áttekintés}
+
+A KCMamba (Kalman Core-Attention Mamba) egy hibrid neurális
+architektúra, amely a Mamba SSM~\cite{gu2023mamba} rekurráns dinamikájába
+egy differenciálható, tartalomfüggő Kalman-szűrő réteget integrál.
+A modell nem rögzített $A$ felejtési faktorral dolgozik, hanem egy, a
+bemenetből tanult $K$-gainből származtatott $A = 1-K$ együtthatót
+használ az állapotfrissítésben. Ez lehetővé teszi, hogy az előzmény-
+állapot és az aktuális megfigyelés közötti súlyozás a zajszintnek
+megfelelően, adaptívan álljon be.
+
+A modell két szintből épül fel: az alap feldolgozó egység a
+\texttt{KCMambaBlock} (tartalom-függő Kalman-szűrés és állapotfrissítés),
+fölötte a \texttt{KCMambaStack}: $N$ egymás utáni KC-blokk
+cross-attention réteggel a végén.
+A cross-attention réteg szerepe, hogy ellensúlyozza a Mamba SSM
+rekurráns dinamikájából adódó, az utolsó időlépések irányába mutató
+reprezentációs torzítást; így a végső predikcióba a lassabb időskálájú
+(hosszú távú) trendek is bevonhatók.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig08_architecture.png}
+  \caption{A KCMamba blokk teljes adatfolyam-diagramja. A sárga blokkok
+           ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) tanítják a Kalman-statisztikákat;
+           a lila blokkban történik a párhuzamos prefix-scan GPU-n $O(\log T)$
+           szinkronizációval; a zöld blokkok a bemeneti/kimeneti projekciókat jelölik.}
+  \label{fig:arch_overview}
+\end{figure}
+
+\section{KCMamba blokk}
+\label{sec:kc_block}
+
+Legyen a bemenő szekvencia $x \in \mathbb{R}^{B \times T \times d}$
+($B$: kötegméret, $T$: szekvenciahossz, $d$: jellemzők száma).
+
+\subsection{Bemeneti projekció és 1D-konvolúció}
+
+A bemenetet két részre vetítjük egy lineáris réteggel,
+majd SiLU aktivációs kapuzást alkalmazunk:
+\begin{align}
+    [x_\text{cw},\; x_\text{gate}] &= W_\text{in}\, x, \\
+    \text{gate} &= \mathrm{SiLU}(x_\text{gate}),
+\end{align}
+ahol $W_\text{in} \in \mathbb{R}^{2d_\text{inner} \times d}$ a bemeneti projekciós
+mátrix ($d_\text{inner}$ a belső csatornadimenzio), $x_\text{cw}$ a
+Kalman-szűrési ághoz, $x_\text{gate}$ a kapuzáshoz továbbított csatorna,
+és $\mathrm{SiLU}(z) = z \cdot \sigma(z)$ a Sigmoid Linear Unit aktiváció
+($\sigma(z) = 1/(1+e^{-z})$ a logisztikus szigmoid).
+Az $x_\text{cw}$ csatornán egy depthwise 1D-konvolúció ($k=4$ kernel) biztosítja
+a lokális kontextus-integrációt:
+\begin{equation}
+    x_\text{core} = \mathrm{SiLU}\bigl(\mathrm{Conv1D}(x_\text{cw})\bigr).
+\end{equation}
+
+\subsection{Kalman-paraméter hálózatok}
+
+Három kis MLP-alhálózat tanítja meg a Kalman-szűrő statisztikáit:
+\begin{align}
+    Q_t &= \mathrm{softplus}(Q_\text{net}(x_\text{core})) \cdot
+           \mathrm{softplus}(q_\text{scale}), \label{eq:Q_net}\\
+    R_t &= \mathrm{softplus}(R_\text{net}(x_\text{core})) \cdot
+           \mathrm{softplus}(r_\text{scale}). \label{eq:R_net}
+\end{align}
+ahol $Q_t > 0$ a \emph{folyamatzaj} becsült varianciája (az állapot-
+dinamikára vonatkozó bizonytalanság), $R_t > 0$ a \emph{mérési zaj}
+becsült varianciája (a bemeneti megfigyelés bizonytalansága),
+$q_\text{scale},\, r_\text{scale} \in \mathbb{R}$ tanítható skalár
+paraméterek, és $\mathrm{softplus}(z) = \ln(1+e^z) > 0$
+garantálja a pozitivitást.
+A $q_\text{scale} = -2{,}0$, $r_\text{scale} = 1{,}5$ inicializációk biztosítják,
+hogy kezdetben $R \gg Q$, vagyis $K_\text{base} \approx 0.07$
+(erős szűrés alap eset).
+
+\newpage
+\subsection{Kalman-gain számítás}
+\label{sec:kalman_gain}
+
+Az alap Kalman-gain a folyamat- és mérési zaj \emph{arányából} következik:
+\begin{equation}
+    K_{\text{base},t} = \frac{Q_t}{Q_t + R_t + \varepsilon},
+    \label{eq:K_base}
+\end{equation}
+ahol $\varepsilon = 10^{-8}$ egy kis numerikus stabilitási konstans,
+amelynek célja megakadályozni a nullával való osztást.
+Ehhez járul egy tartalom-függő korrekció, amelyet a $K_\text{net}$
+alhálózat biztosít:
+\begin{equation}
+    K_t = K_{\text{base},t} +
+          0.3\bigl(\sigma_\text{sig}(K_\text{net}(x_\text{core})) - 0.5\bigr),
+    \label{eq:K_final}
+\end{equation}
+ahol $\sigma_\text{sig}(\cdot) = 1/(1+e^{-(\cdot)})$ a logisztikus szigmoid
+függvény (értéke $(0,1)$-ben van), a $-0.5$ eltolás nullára centrálja
+a korrekciót, és a $0.3$ szorzó $(-0{,}15, +0{,}15)$-re korlátozza hatókörét.
+A végeredmény numerikusan stabil marad a fizikailag érvelmes tartományban,
+ezért szoftveresen (a felhasználói kódban) nem kell külön beavatkozni.
+
+\subsection{Állapotfrissítés párhuzamos scan-nel}
+
+Az $A_t = 1 - K_t$ felejtési faktorral
+a diszkrét Kalman-rekurzió:
+\begin{align}
+    h_t &= A_t \odot h_{t-1} + K_t \odot v_t, \label{eq:kc_recurrence}\\
+    v_t &= \mathrm{LayerNorm}(W_v \, x_\text{core,t}), \nonumber
+\end{align}
+ahol $A_t \in (0,1)^{d_\text{inner}}$ a felejtési faktor vektora
+($A_t \to 1$: erős memória, $A_t \to 0$: erős frissítés),
+$\odot$ az elem-szintű (Hadamard) szorzás, $h_{t-1} \in \mathbb{R}^{d_\text{inner}}$
+az előző lépés látens állapota, $v_t$ az aktuális értékvektor, és
+$W_v \in \mathbb{R}^{d_\text{inner} \times d_\text{inner}}$ tanítható projekció.
+A rekurzió hatékony kiértékelése a Blelloch-féle párhuzamos prefix-scan
+algoritmussal~\cite{blelloch1990prefix} valósul meg:
+\begin{align}
+    A_\text{new}[t] &\leftarrow A[t] \cdot A[t-\text{step}], \\
+    B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
+\end{align}
+ahol $A[t]$ és $B[t]$ a prefixek asszociatív páros eleme ($(a_t, b_t)$, ahol
+$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg;
+ezek \emph{nem} azonosak az SSM $A$, $B$ mátrixaival),
+és a lépésköz $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ duplázódik.
+A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig09_parallel_scan.png}
+  \caption{A Blelloch-féle párhuzamos prefix-scan vizualizációja 8 elemű
+           szekvencián. Minden lépésben a $step$-nyi távolságú két elem
+           kombinálódik;
+           $\log_2 T = 3$ lépés után minden $h_t$ tartalmazza az előzmény-összesítést.
+           Ez teszi lehetővé a szekvenciális állapotfrissítés hatékony GPU-s
+           párhuzamosítását.}
+  \label{fig:parallel_scan}
+\end{figure}
+
+\subsection{Összegzés és reziduál kapcsolat}
+
+A Kalman-állapot-sorozat és a kapuzás kombinálja a kimenetet:
+\begin{equation}
+    y_\text{KC} = W_\text{out}(\mu \odot \text{gate}),
+\end{equation}
+ahol $\mu = (h_1, \ldots, h_T) \in \mathbb{R}^{T \times d_\text{inner}}$
+az összes időlépés Kalman-állapota, $W_\text{out} \in \mathbb{R}^{d \times d_\text{inner}}$
+a kimeneti projekció, és $\odot$ az elem-szintű szorzás.
+Egy skalárkapuzással vezérelt reziduál kapcsolat biztosítja a gradiens
+átmenő útját:
+\begin{equation}
+    \text{out} = y_\text{KC} + \sigma(b_\text{res}) \cdot
+                 (W_\text{res}\,x - y_\text{KC}),
+\end{equation}
+ahol $b_\text{res} \in \mathbb{R}$ tanítható skalár
+($b_\text{res} = -1{,}0$ inicializációval $\sigma(b_\text{res}) \approx 0{,}27$),
+$W_\text{res}$ a reziduál projekció, és a kis $\sigma(b_\text{res})$
+alaphelyzetben az SSM-ágat részesíti előnyben.
+
+\section{KCMamba verem}
+\label{sec:kc_stack}
+
+A verem $N$ rétegből áll; köztük LayerNorm rétegek (pre-norm stílus)
+akadályozzák az aktivációs skála sodródását.
+
+A verem végére egy \emph{multi-scale cross-attention} réteget illesztünk.
+Ennek oka, hogy a Mamba rekurrens dinamikája a rejtett állapotba a közelmúlt
+lépéseit súlyozottán erősebben kódolja, mint a régmúltat; egy hosszú-horizontú
+előrejelzéshez azonban a lassú trendeket is hozzá kell férni.
+A cross-attention a jelenlegi állapotot (lekérdezést) összeveti a szekvencia
+$s$-edik alminta (key/value) halmazával, így rövid és hosszú időskálákat egyaránt
+számításba vesz:
+\begin{equation}
+    \text{out}[T] = h[T] + \mathrm{MHA}\bigl(h[T],\; h[{::s}],\; h[{::s}]\bigr),
+\end{equation}
+ahol $h[T] \in \mathbb{R}^{1 \times d}$ a legutolsó időlépés reprezentációja
+(lekérdezés), $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$ az
+$s$-adik minden pozícióból vett alámintavétel (kulcs és érték, lassú időskála),
+és $\mathrm{MHA}(\text{lekérdezés},\text{kulcs},\text{érték})$ a multi-head
+cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram.png}
+  \caption{A KCMamba verem (stack) felépítése. Bemenettől kimenetig:
+           input projekció, 2 KC-blokk LayerNorm rétegekkel, output
+           normalizáció, majd cross-attention réteg a lassú ($s=4$)
+           időskála integrálásához.}
+  \label{fig:stack_diagram}
+\end{figure}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig11_synth_mamba.png}
+  \caption{Szintetikus jel szűrése: \textbf{vanilla SSM} (standard Mamba, rögzített $A$)
+           vs.\ \textbf{KCMamba} (adaptív $K$-gain) közepes ($\sigma=2$) és erős
+           ($\sigma=5$) zajnál.
+           \textit{Felső sorok:} az előrejelzett jel a valódihoz képest;
+           a KCMamba szorosabban követ zajban is.
+           \textit{Alsó sorok:} a tanult $K$-értékek időbeli változása.
+           A vanilla SSM $A$-ja rögzített, a KCMamba $A$-ja adaptívan nő zajjal.}
+  \label{fig:synth_mamba}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig13_memory_retention.png}
+  \caption{\textbf{Bal:} Impulzus-válasz függvény: az állapot exponenciális csökkenése
+           $h_k = A^k$ a késő $k$ függvényében. A KCMamba $A$-értéke adaptívan
+           nő a zajszinttel ($0.294 \to 0.926$), ezzel a memória-horizont
+           is növekszik.
+           \textbf{Jobb:} Effektív memória-horizont (az a lépésszám, ameddig
+           $A^k > 5\%$) a zajszint függvényében. Az LSTM és vanilla SSM
+           rögzített horizonttal rendelkeznek, a KCMamba zajban automatikusan
+           hosszabb memóriát tart fenn.}
+  \label{fig:memory_retention}
+\end{figure}
+
+\section{Paraméterkomplexitás}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|r|r|r|}
+        \hline
+        \textbf{Modell} & \textbf{Paraméterek (k)} & \textbf{Rétegek} & \textbf{Állapotméret} \\
+        \hline\hline
+        LSTM            & 71{,}7 & 1 & 128 \\
+        Fair Mamba      & 53{,}2 & 2 & H=4, D=32 \\
+        KCMamba       & 46{,}1 & 2 & H=4, D=32 \\
+        \hline
+    \end{tabular}
+    \caption{A kísérletekben használt modellek paraméterkomplexitása
+             (medium méretkonfiguráció). A KCMamba kevesebb paraméterrel
+             rendelkezik, mint a Fair Mamba, mivel a $Q_\text{net}/R_\text{net}/K_\text{net}$
+             alhálózatok az SSM-blokkokból az erőforrásokat átirányítják.}
+    \label{tab:params}
+\end{table}
+
+\newpage
+\section{Összehasonlítás a standard Mamba-val}
+
+A legfontosabb architekturális különbség a standard (vanilla) SSM és
+a KCMamba között az $A$ felejtési faktor kezelésében keresendő.
+A standard Mamba~\cite{gu2023mamba} az $A$ mátrixot a $\Delta$ időléptékű
+paraméteren keresztül tanulja, de ez a reprezentáció nem különíti el a
+jel- és zajkomponenst: $\Delta$ egyszerre jelöli ki az adatstruktúra
+tanulási dinamikáját \emph{és} a zajszűrést.
+
+A KCMamba ezt a kettősséget bontja meg egy explicit $Q/R$
+zajtartomány-modell bevezetésével.
+A $K = Q/(Q+R)$ arány határozza meg, hogy az állapotfrissítés az
+aktuális mérésre vagy az előzmény-állapotra támaszkodik-e erősebben.
+Magas zaj mellett ($\sigma=5$) $K \to 0.073$, azaz $A = 0.927$: a modell
+erős memóriát tart fenn, és kiszűri a zajos méréseket
+(erős szűrési mód).
+Alacsony zaj mellett ($\sigma=0$) $K = 0.706$, és a modell az aktuális
+megfigyelést követi (\emph{innovációs mód}).
+
+Ezt a szintetikus teszten a \ref{fig:synth_mamba}.\ ábra demonstrálja:
+a standard SSM rögzített $A=0.88$ értékkel dolgozik mindkét zajszinten,
+míg a KCMamba $A$-ja a zajszinttel arányosan módosul (\ref{fig:memory_retention}.\ ábra).
+
+\newpage
+\section{Rendszerarchitektúra}
+\label{sec:system_arch}
+
+A KCMamba egy hexagonálisan strukturált kereskedési rendszerbe épül be.
+A \ref{fig:system_arch}.\ ábra a főbb komponenseket mutatja:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/system_arch.png}
+  \caption{A KCMamba alapú kereskedési rendszer hexagonális architektúrájának
+           áttekintése. A \textbf{Core} csomag tartalmazza a TradingEngine-t
+           (pipeline: állapotbecslés $\to$ predikció $\to$ szignál $\to$ kockázat
+           $\to$ végrehajtás), a domain modelleket és az alkalmazásportokat.
+           A külső adapterek (Infrastructure, Web, Testing, Offline Training,
+           Observability, Analytics) kizárólag az interfészeken ($\texttt{IEventBusPort}$,
+           $\texttt{IBrokerGatewayPort}$ stb.) keresztül kommunikálnak a Core-ral.}
+  \label{fig:system_arch}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Modul- és osztályszerkezet}
+\label{sec:module_structure}
+% ─────────────────────────────────────────────────────────────────────────────
+
+A forráskód négy fő csomagra oszlik. A \texttt{core/} nem hivatkozik
+egyetlen adapterre sem; az \texttt{adapters/} kód kizárólag a
+\texttt{ports.py} interfészeken keresztül éri el.
+
+\begin{table}[H]
+  \centering
+  \small
+  \renewcommand{\arraystretch}{1.25}
+  \begin{tabular}{|l|l|p{6.8cm}|}
+    \hline
+    \textbf{Csomag} & \textbf{Modul / osztály} & \textbf{Felelősség} \\
+    \hline\hline
+    \multirow{4}{*}{\texttt{core/domain/}}
+      & \texttt{models.py}      & Adattípusok: \texttt{Candle}, \texttt{Position}, \texttt{Order}, \texttt{Fill} \\
+      & \texttt{strategy.py}    & \texttt{ThresholdStrategy}: Buy/Sell jelzéslogika,
+                                  \texttt{min\_edge}, \texttt{max\_sigma} szűrők \\
+      & \texttt{risk.py}        & \texttt{RiskPolicy}: kockázati szabálykészlet
+                                  (MaxQty, Stop-loss, napi veszteség-limit) \\
+      & \texttt{events.py}      & Domain-események: \texttt{PriceEvent},
+                                  \texttt{SignalEvent}, \texttt{FillEvent} \\
+    \hline
+    \multirow{5}{*}{\texttt{core/application/}}
+      & \texttt{engine.py}      & \texttt{TradingEngine}: fő pipeline-orkesztrálő;
+                                  belső állapotgép a kereskedési ciklushoz \\
+      & \texttt{execution.py}   & Megbízás-összeállítás, méretszámítás és
+                                  \texttt{IBrokerGatewayPort}-ra küldés \\
+      & \texttt{ports.py}       & Absztrakt interfészek:
+                                  \texttt{IEventBusPort}, \texttt{IBrokerGatewayPort},
+                                  \texttt{IMarketFeedPort}, \texttt{ITimeSourcePort} \\
+      & \texttt{stages.py}      & Pipeline lépések: \texttt{PredictionStage},
+                                  \texttt{SignalStage}, \texttt{RiskStage},
+                                  \texttt{ExecutionStage} \\
+      & \texttt{stores.py}      & In-memory állapot: \texttt{PositionStore},
+                                  \texttt{SignalStore}, \texttt{EquityStore} \\
+    \hline
+    \multirow{4}{*}{\texttt{core/ml/}}
+      & \texttt{kc\_mamba.py}         & \texttt{KCMambaModel}: PyTorch modul,
+                                          \texttt{forward(x)} → előrejelzés \\
+      & \texttt{mamba\_kalman.py}      & \texttt{KCMambaBlock}: Kalman-szűrő réteg,
+                                          párhuzamos prefix-scan \\
+      & \texttt{services.py}           & \texttt{MLService}: modellbetöltés,
+                                          online frissítés, előrejelzés-gyorsítótár \\
+      & \texttt{feature\_engineering.py} & OHLCV → jellemzővektor transzformáció,
+                                            normalizáció, csúszóablak \\
+    \hline
+    \multirow{5}{*}{\texttt{adapters/}}
+      & \texttt{binance\_broker.py}    & \texttt{BinanceBroker}: élő megbízás-végrehajtás
+                                          REST API-n \\
+      & \texttt{binance\_feed.py}      & \texttt{BinanceFeed}: WebSocket árfolyam-stream,
+                                          reconnect logika \\
+      & \texttt{event\_bus.py}         & \texttt{InMemoryEventBus}: aszinkron,
+                                          \texttt{asyncio}-alapú eseménytovábbítás \\
+      & \texttt{broker.py} (testing)   & \texttt{PaperBroker}, \texttt{SimulationWallet}:
+                                          szimulált végrehajtás visszateszteléshez \\
+      & \texttt{dashboard.py} (web)    & \texttt{DashboardServer}: aiohttp HTTP/WS
+                                          szerver, REST JSON végpontok \\
+    \hline
+  \end{tabular}
+  \caption{A rendszer modul- és osztályszerkezete. Minden osztály kizárólag a
+           saját csomagjának adattípusaira és interfészeire támaszkodik;
+           a keresztirányú függőségeket a \texttt{ports.py} absztrakciói
+           közvetítik.}
+  \label{tab:module_structure}
+\end{table}

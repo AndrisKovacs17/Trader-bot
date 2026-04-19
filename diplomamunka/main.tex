@@ -1,0 +1,201 @@
+% ============================================================
+%  KCMamba: Kalman-vezérelt állapottér-modell idősor-előrejelzésre
+%  ELTE Informatikai Kar, BSc Szakdolgozat
+%  Sablon: mcserep/elteikthesis v2.4  (MIT Licence)
+%  Letöltés: bash setup.sh
+% ============================================================
+\documentclass[
+    % parspace,   % bekezdések közötti extra közök
+    % noindent,   % nincs behúzás
+    % nohyp,      % nincs szóelválasztás
+    % twoside,    % kétoldalas nyomtatás
+    % draft,      % vázlat (gyors fordítás, képek nélkül)
+    % final,      % végleges (TODO-k elrejtve)
+]{elteikthesis}[2024/04/26]
+
+% ------------------------------------------------------------
+% Dokumentum metaadatok
+% ------------------------------------------------------------
+\title{KCMamba: Kalman-vezérelt szelektív állapottér-modell\\
+       robusztus idősor-előrejelzésre}
+\date{2026}
+
+\author{Kovács András (K2WEMI)}
+\degree{programtervező informatikus BSc}
+
+\supervisor{Kristian Fenech Arian}
+\affiliation{oktató}
+% \extsupervisor{Külső Témavezető}
+% \extaffiliation{...}
+
+\university{Eötvös Loránd Tudományegyetem}
+\faculty{Informatikai Kar}
+\department{Mesterséges Intelligencia Tanszék}
+\city{Budapest}
+\logo{elte_cimer_szines}   % images/elte_cimer_szines.pdf
+
+% Cellaszínezéshez (04_kiserletek.tex táblázatokban)
+\PassOptionsToPackage{table}{xcolor}
+\usepackage{colortbl}
+
+% Irodalomjegyzék forrása
+\addbibresource{bib/references.bib}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+\documentlang{hungarian}
+
+% Teendők listája (csak draft módban hasznos), véglegesben töröljük
+%\listoftodos[\todolabel]
+
+% ---- Fedőlap (kötelező) ------------------------------------
+\maketitle
+
+% ---- Témabejelentő (kötelező), PDF becsatolva --------
+\includepdf[pages=-]{temabejelento.pdf}
+
+% ---- Önállósági nyilatkozat (kötelező) ---------------------
+\chapter*{Nyilatkozat}
+\addcontentsline{toc}{chapter}{Nyilatkozat}
+\thispagestyle{empty}
+
+Alulírott \textbf{Kovács András}, az Eötvös Loránd Tudományegyetem
+programtervező informatikus BSc szakos hallgatója kijelentem, hogy a
+szakdolgozatban foglalt feladatot önállóan oldottam meg, és csak a megadott
+irodalomban felsorolt forrásokat (könyveket, folyóiratokat, az internetet stb.)
+használtam fel. Minden olyan részt, amelyet szó szerint, vagy azonos tartalomban,
+de átfogalmazva más forrásból vettem át, egyértelműen jelöltem, és a forrást
+pontosan idéztem.
+
+\vspace{2.5cm}
+Budapest, 2026. április
+
+\vspace{1.5cm}
+\noindent
+\makebox[6cm]{\dotfill} \\[4pt]
+Kovács András \\
+hallgató
+
+\cleardoublepage
+
+% ---- Kivonat (kötelező) ------------------------------------
+\chapter*{Kivonat}
+\addcontentsline{toc}{chapter}{Kivonat}
+
+Ez a szakdolgozat a \textbf{KCMamba} (Kalman Core-Attention Mamba)
+architektúrát mutatja be, amely differenciálható Kalman-szűrési mechanizmust
+integrál a Mamba szelektív állapottér-modellbe (SSM) a zajrobusztus
+idősor-előrejelzés érdekében. A javasolt architektúra tanult $Q_\text{net}$-,
+$R_\text{net}$- és $K_\text{net}$-alhálózatokat alkalmaz, amelyek adaptívan
+szabályozzák a mérési és folyamatzaj arányát, ezáltal a modell zajmentes
+adatokon passzív előrejelzőként, zajosított bemeneten aktív szűrőként viselkedik.
+
+Empirikus értékelést végzünk három nyilvános LTSF-adatkészleten
+(Exchange-Rate, ETTh1, ETTh2), szintetikusan zajosított
+($\sigma \in \{0, 1, 3, 5\}$) és alacsony adatbőségű (stride $\in \{1, 16\}$)
+körülmények között. Kísérleteink szerint a KCMamba MSE-degradációja
+$\sigma\!=\!0$-ról $\sigma\!=\!5$-re átlagosan $+1\,528\%$, míg a Fair Mamba
+baseline esetén $+28\,234\%$, ez közel $18{,}5\times$-es robusztusság-előnyt
+jelent. Az EC-MSE (Efficiency-Corrected MSE) metrika szerint, amely a
+paraméterszámot, a VRAM-igényt és a futási időt is figyelembe veszi, a
+KCMamba 24 konfigurációból 18-ban bizonyult a legelőnyösebbnek.
+
+A szakdolgozat a teljes szoftverrendszer leírását is tartalmazza: egy aszinkron,
+eseményvezérelt kereskedési motort hexagonális architektúrában, webalapú
+irányítópultot, visszatesztelő keretrendszert és élő Binance-kereskedési
+adaptert.
+
+\cleardoublepage
+
+% ---- Abstract (angol kivonat, kötelező) --------------------
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This thesis presents \textbf{KCMamba} (Kalman Core-Attention Mamba),
+a hybrid neural architecture that integrates a differentiable Kalman filtering
+mechanism into the Mamba selective state-space model (SSM) for noise-robust
+time series forecasting. The proposed architecture employs learned
+$Q_\text{net}$, $R_\text{net}$, and $K_\text{net}$ subnetworks that adaptively
+regulate the ratio of process and measurement noise, enabling the model to
+behave as a passive predictor on clean data and as an active filter under noisy
+conditions.
+
+We conduct empirical evaluation on three public LTSF benchmarks
+(Exchange-Rate, ETTh1, ETTh2) under synthetically injected noise
+($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
+(stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
+MSE degradation of $+1\,528\%$ as noise increases from $\sigma\!=\!0$ to
+$\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba, a
+$18{.}5\times$ robustness advantage. Under the EC-MSE metric, which
+penalises parameter count, VRAM usage, and training speed, KCMamba
+wins in 18 out of 24 evaluated configurations.
+
+The thesis also describes the complete production software system: an
+asynchronous, event-driven trading engine built in a hexagonal architecture,
+a web-based dashboard, a backtesting framework, and a live Binance
+trading adapter.
+
+\cleardoublepage
+
+% ---- Tartalomjegyzék (kötelező) ----------------------------
+\tableofcontents
+\cleardoublepage
+
+% ============================================================
+%  FŐSZÖVEG
+% ============================================================
+
+\input{chapters/01_bevezetes}
+\cleardoublepage
+
+\input{chapters/02_irodalom}
+\cleardoublepage
+
+\input{chapters/03_architektura}
+\cleardoublepage
+
+\input{chapters/04_kiserletek}
+\cleardoublepage
+
+\input{chapters/06_implementacio}
+\cleardoublepage
+
+\input{chapters/05_osszegzes}
+\cleardoublepage
+
+% ---- Köszönetnyilvánítás, elhagyva ----------------------
+% \chapter*{\acklabel}
+% \addcontentsline{toc}{chapter}{\acklabel}
+
+% ============================================================
+%  FÜGGELÉKEK
+% ============================================================
+\appendix
+% A_hyperparams és B_teljes_tablazatok elhagyva a 60 oldalas korlát miatt
+% \input{chapters/A_hyperparams}
+% \cleardoublepage
+% \input{chapters/B_teljes_tablazatok}
+% \cleardoublepage
+
+% ---- Irodalomjegyzék (kötelező) ----------------------------
+\phantomsection
+\addcontentsline{toc}{chapter}{\biblabel}
+\printbibliography[title=\biblabel]
+\cleardoublepage
+
+% ---- Ábrajegyzék (opcionális) ------------------------------
+\phantomsection
+\addcontentsline{toc}{chapter}{\lstfigurelabel}
+\listoffigures
+\cleardoublepage
+
+% ---- Táblázatjegyzék, elhagyva --------------------------
+% \phantomsection
+% \addcontentsline{toc}{chapter}{\lsttablelabel}
+% \listoftables
+% \cleardoublepage
+
+% ============================================================
+\end{document}

@@ -1,0 +1,237 @@
+% ============================================================
+%  Függelék B, Teljes eredménytáblázatok
+% ============================================================
+\chapter{Teljes kísérleti eredmények}
+\label{app:full_results}
+
+Ez a függelék az összes 24 konfiguráció részletes MSE eredményeit tartalmazza,
+beleértve a tanítási időt és a KC-specifikus $K/A/R$ értékeket.
+
+\section{Exchange adatkészlet, stride=1}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.218776 & 1.8 & n.a. \\
+            & Fair      & 0.022154 & 6.1 & n.a. \\
+            & KCMamba & 0.021916 & 8.5 & 0.999 / 0.010 / 0.009 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.664242 & 1.9 & n.a. \\
+            & Fair      & 0.381262 & 5.8 & n.a. \\
+            & KCMamba & 0.496262 & 7.2 & 0.175 / 0.824 / 0.021 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 0.921943 & 1.4 & n.a. \\
+            & Fair      & 0.978586 & 5.9 & n.a. \\
+            & KCMamba & 0.859947 & 8.3 & 0.094 / 0.902 / 0.071 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 1.138875 & 1.9 & n.a. \\
+            & Fair      & 1.757482 & 5.9 & n.a. \\
+            & KCMamba & 1.228382 & 8.3 & 0.098 / 0.899 / 0.101 \\
+        \hline
+    \end{tabular}
+    \caption{Exchange adatkészlet, stride=1: teljes MSE eredmények.}
+    \label{tab:full_exchange_s1}
+\end{table}
+
+\section{Exchange adatkészlet, stride=16}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.852632 & 0.1 & n.a. \\
+            & Fair      & 0.003903 & 0.4 & n.a. \\
+            & KCMamba & 0.787992 & 0.5 & 0.706 / 0.294 / 0.129 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.966091 & 0.1 & n.a. \\
+            & Fair      & 1.331967 & 0.4 & n.a. \\
+            & KCMamba & 0.750111 & 0.5 & 0.387 / 0.613 / 0.331 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 1.124837 & 0.1 & n.a. \\
+            & Fair      & 3.248106 & 0.4 & n.a. \\
+            & KCMamba & 1.264269 & 0.5 & 0.164 / 0.836 / 0.464 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 1.372140 & 0.1 & n.a. \\
+            & Fair      & 5.950133 & 0.4 & n.a. \\
+            & KCMamba & 1.306888 & 0.5 & 0.073 / 0.926 / 0.548 \\
+        \hline
+    \end{tabular}
+    \caption{Exchange adatkészlet, stride=16: teljes MSE eredmények.
+             A Fair Mamba $\sigma=5$-nél $5.950$ MSE-t ér el (+152\,350\% degradáció).}
+    \label{tab:full_exchange_s16}
+\end{table}
+
+\section{ETTh1 adatkészlet, stride=1}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.174678 & 3.5 & n.a. \\
+            & Fair      & 0.288250 & 13.8 & n.a. \\
+            & KCMamba & 0.179808 & 19.4 & 0.671 / 0.332 / 0.106 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.454999 & 3.5 & n.a. \\
+            & Fair      & 0.533635 & 13.9 & n.a. \\
+            & KCMamba & 0.558625 & 19.4 & 0.311 / 0.688 / 0.140 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 0.858074 & 3.4 & n.a. \\
+            & Fair      & 0.928225 & 13.7 & n.a. \\
+            & KCMamba & 1.092434 & 19.4 & 0.108 / 0.888 / 0.168 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 1.263812 & 3.5 & n.a. \\
+            & Fair      & 1.265982 & 14.1 & n.a. \\
+            & KCMamba & 1.363318 & 19.3 & 0.087 / 0.908 / 0.182 \\
+        \hline
+    \end{tabular}
+    \caption{ETTh1 adatkészlet, stride=1: teljes MSE eredmények.}
+    \label{tab:full_etth1_s1}
+\end{table}
+
+\section{ETTh1 adatkészlet, stride=16}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.234299 & 0.2 & n.a. \\
+            & Fair      & 0.181018 & 0.7 & n.a. \\
+            & KCMamba & 0.189180 & 1.1 & 0.918 / 0.084 / 0.134 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.399315 & 0.2 & n.a. \\
+            & Fair      & 0.524590 & 0.8 & n.a. \\
+            & KCMamba & 0.452819 & 1.1 & 0.489 / 0.511 / 0.334 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 0.760479 & 0.2 & n.a. \\
+            & Fair      & 1.697535 & 0.8 & n.a. \\
+            & KCMamba & 0.856120 & 1.1 & 0.118 / 0.881 / 0.617 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 1.009729 & 0.2 & n.a. \\
+            & Fair      & 3.469893 & 0.8 & n.a. \\
+            & KCMamba & 1.119790 & 1.1 & 0.066 / 0.934 / 0.749 \\
+        \hline
+    \end{tabular}
+    \caption{ETTh1 adatkészlet, stride=16: teljes MSE eredmények.}
+    \label{tab:full_etth1_s16}
+\end{table}
+
+\section{ETTh2 adatkészlet, stride=1}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.056229 & 3.0 & n.a. \\
+            & Fair      & 0.079275 & 9.0 & n.a. \\
+            & KCMamba & 0.055749 & 18.4 & 0.999 / 0.010 / 0.040 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.182996 & 3.5 & n.a. \\
+            & Fair      & 0.174298 & 13.8 & n.a. \\
+            & KCMamba & 0.205602 & 19.3 & 0.225 / 0.772 / 0.066 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 0.431764 & 3.5 & n.a. \\
+            & Fair      & 0.475908 & 13.7 & n.a. \\
+            & KCMamba & 0.512048 & 19.1 & 0.077 / 0.918 / 0.106 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 0.673502 & 3.5 & n.a. \\
+            & Fair      & 0.807593 & 13.8 & n.a. \\
+            & KCMamba & 0.871165 & 13.8 & 0.054 / 0.940 / 0.137 \\
+        \hline
+    \end{tabular}
+    \caption{ETTh2 adatkészlet, stride=1: teljes MSE eredmények.}
+    \label{tab:full_etth2_s1}
+\end{table}
+
+\section{ETTh2 adatkészlet, stride=16}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|r|r|r|}
+        \hline
+        \textbf{Zaj ($\sigma$)} & \textbf{Modell} & \textbf{MSE} & \textbf{Idő (s)} & \textbf{K / A / R} \\
+        \hline\hline
+        \multirow{3}{*}{0.0}
+            & LSTM      & 0.145848 & 0.2 & n.a. \\
+            & Fair      & 0.049769 & 0.8 & n.a. \\
+            & KCMamba & 0.054675 & 1.2 & 0.998 / 0.010 / 0.046 \\
+        \hline
+        \multirow{3}{*}{1.0}
+            & LSTM      & 0.225112 & 0.2 & n.a. \\
+            & Fair      & 0.350659 & 0.8 & n.a. \\
+            & KCMamba & 0.231545 & 1.2 & 0.415 / 0.585 / 0.185 \\
+        \hline
+        \multirow{3}{*}{3.0}
+            & LSTM      & 0.391637 & 0.2 & n.a. \\
+            & Fair      & 1.237534 & 0.8 & n.a. \\
+            & KCMamba & 0.456027 & 1.1 & 0.078 / 0.922 / 0.414 \\
+        \hline
+        \multirow{3}{*}{5.0}
+            & LSTM      & 0.545204 & 0.2 & n.a. \\
+            & Fair      & 3.108295 & 0.8 & n.a. \\
+            & KCMamba & 0.591713 & 1.2 & 0.059 / 0.939 / 0.540 \\
+        \hline
+    \end{tabular}
+    \caption{ETTh2 adatkészlet, stride=16: teljes MSE eredmények.}
+    \label{tab:full_etth2_s16}
+\end{table}
+
+\section{Degradációs összefoglaló (mind a 6 konfiguráció)}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|r|r|r|}
+        \hline
+        \textbf{Dataset} & \textbf{Stride} & \textbf{LSTM Degr.} & \textbf{Fair Degr.} & \textbf{KC Degr.} \\
+        \hline\hline
+        Exchange & $s=1$  & +421\%  & +7\,833\%   & +5\,505\% \\
+        Exchange & $s=16$ & +61\%   & +152\,350\% & +66\% \\
+        ETTh1    & $s=1$  & +624\%  & +339\%      & +658\% \\
+        ETTh1    & $s=16$ & +331\%  & +1\,817\%   & +492\% \\
+        ETTh2    & $s=1$  & +1\,098\% & +919\%    & +1\,463\% \\
+        ETTh2    & $s=16$ & +274\%  & +6\,145\%   & +982\% \\
+        \hline
+        \textbf{Átlag}   &        & +468\%  & +28\,234\%  & +1\,528\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE degradáció $\sigma=0 \to \sigma=5$ esetén az összes konfigurációban.
+             A KCMamba átlagos degradációja 18.5$\times$ kisebb, mint a Fair Mamba-é.
+             A futási idő összesen: 6.3 perc (CUDA, 5 epoch/konfiguráció).}
+    \label{tab:full_degradation}
+\end{table}

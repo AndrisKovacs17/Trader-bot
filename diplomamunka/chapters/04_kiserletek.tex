@@ -1,0 +1,278 @@
+% ============================================================
+%  4. fejezet, Kísérletek és értékelés
+% ============================================================
+\chapter{Kísérletek és értékelés}
+\label{ch:kiserletek}
+
+\section{Kísérleti beállítások}
+\label{sec:exp_setup}
+
+\subsection{Hardver és szoftver}
+
+A futtatási környezet: NVIDIA GeForce RTX 3060 (12~GB VRAM), PyTorch~2.x,
+CUDA~12, float32 pontosság.
+
+\subsection{Adatkészletek}
+\label{sec:datasets}
+
+A fő kérdezés három adatkészlet körnékeződött (részletes leírás a
+\ref{sec:datasets}.~alfejezetben):
+
+\begin{itemize}
+    \item \textbf{Exchange-Rate}, 8 valutaárfolyam, 1990--2016
+          (7\,588 nap, 8 változó)~\cite{lai2018modeling}.
+    \item \textbf{ETTh1}, kínai transzformátorállomás, óránkénti terhelés
+          és hőmérséklet (17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
+    \item \textbf{ETTh2}, ugyanaz az állomás, másik csatorna-sorozat
+          (17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
+\end{itemize}
+
+A \textbf{Weather} (21 meteorológiai változó, 52\,696 lépés) és az \textbf{ECL}
+(321 csatorna, 26\,304 lépés) benchmarkok a nagyobb dimenzióság és a hosszú
+periodicitás vizsgálatára következő mérési lépésben skálázandók; a jelen
+dolgozat keretein belül csak a három fenti adatkészleten futó eredmények
+szerepelnek, mert a tanulási futamok száma ($4$ zajszint $\times$ $2$ stride
+$\times$ $4$ modell $\times$ $3$ adat = $96$ futam) már így is nagyobb, mint
+amit egyetlen RTX 3060 hardverrel éssszerű időn belül elvégeztem.
+
+\subsection{Zajmodell}
+
+A zajosítás analítikusan:
+\begin{equation}
+    \hat{x} = x + \varepsilon,\qquad
+    \varepsilon \sim \mathcal{N}(0, \sigma^2 I),\qquad
+    \sigma \in \{0, 1, 3, 5\}.
+\end{equation}
+A tanító- és teszthalmazt azonos $\sigma$-val zajosítottam, így a vizsgált
+probléma nem domain-shift, hanem egységes adatminőség-romlás.
+
+\subsection{Modellkonfiguráció és tanítási hiperparaméterek}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Hiperparaméter} & \textbf{LSTM} & \textbf{Fair Mamba} & \textbf{KCMamba} \\
+        \hline\hline
+        Epoch                & 5      & 5      & 5 \\
+        Optimalizáló         & Adam   & Adam   & Adam \\
+        Tanulási sebesség    & 3e-3   & 3e-3   & 3e-3 \\
+        Kötegméret           & 32     & 32     & 32 \\
+        Szekvenciahossz      & 96     & 96     & 96 \\
+        Előrejelzési horizont & 96    & 96     & 96 \\
+        Rejtett dim ($d$)    & 128    & 128    & 128 \\
+        Fejek ($H$)          & n.a.      & 4      & 4 \\
+        Állapotméret ($D$)   & n.a.      & 32     & 32 \\
+        Rétegek              & 1      & 2      & 2 \\
+        Kernel               & n.a.      & 4      & 4 \\
+        \hline
+        Paraméterek          & 71{,}0k & 53{,}2k & 46{,}1k \\
+        \hline
+    \end{tabular}
+    \caption{Modell-konfigurációk és tanítási hiperparaméterek a zajrobusztussági
+             kísérletekhez. A KCMamba kevesebb paraméterrel rendelkezik, mint a
+             Fair Mamba, köszönhetően a kompaktabb Kalman-hálózatoknak.}
+    \label{tab:hyperparams}
+\end{table}
+
+A stride ($s$) az ablak-eltolás lépése: $s=1$ esetén minden pozíció
+tréningpéldává válik, $s=16$-nál nagyjából tizenhatszor kevesebb ablak keletkezik.
+
+A fix $3\times 10^{-3}$ tanulási sebesség választását egy Smith-féle
+\emph{learning rate range test}~\cite{smith2017cyclical} előzte meg: a
+loss érzékeny tartománya mindhárom modellnél a $[10^{-3}, 10^{-2}]$
+intervallumra esett, így ennek alsó felét választottam konzervatív
+alapértéknek. Mivel a három modell loss-görbéje hasonló minőségű volt,
+a továbbiakban azonos LR-rel tanítottam mindet a fér modellek
+összehasonlíthatósága kedvéért.
+
+\section{Eredmények}
+\label{sec:results}
+
+A bemutatást azzal a konfigurációval kezdem, ahol a KCMamba előnye a legnagyobb:
+Exchange-Rate, $s=16$ stride mellett. Ez a beállítás két strukturlis tényezőt
+kombinál: (i) a dataset kis méretű (7\,588 napi megfigyelés, mindegyik változónál
+erős trend és gyenge periódus) és (ii) a $s=16$ stride további tizenhatszoros
+ablakritkítást tesz, vagyis a zajmodell feltanításához eleve kevés példa áll
+rendelkezésre. Így az az architektúrális döntés, hogy a zaj/jel szétválasztást
+explicit $Q/R$ paraméterezéssel végezzük a Mamba szelektív gate-jei helyett,
+komoly induktive többletet jelent.
+
+\subsection{Exchange-Rate adatkészlet}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Modell} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM      & 0.219 & 0.664 & 0.922 & 1.139 & +421\% \\
+            & Fair      & 0.022 & 0.381 & 0.979 & 1.757 & +7\,833\% \\
+            & KCMamba       & 0.022 & 0.496 & \textbf{0.860} & \textbf{1.228} & +5\,505\% \\
+            & ARIMA     & \textbf{0.004} & \textbf{0.176} & 1.716 & 5.430 & \cellcolor{red!20}+146\,461\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM      & 0.853 & 0.966 & 1.125 & 1.372 & +61\% \\
+            & Fair      & 0.004 & 1.332 & 3.248 & 5.950 & \cellcolor{red!20}+152\,350\% \\
+            & KCMamba       & 0.788 & \textbf{0.750} & \textbf{1.264} & \textbf{1.307} & \cellcolor{green!20}+66\% \\
+            & ARIMA     & \textbf{0.003} & 0.782 & 6.721 & 20.774 & \cellcolor{red!20}+631\,340\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE értékek az Exchange adatkészleten különböző zajszinteken.
+             Félkövérrel a legjobb (legkisebb MSE) érték zajszintenként.
+             A ``Degr.'' oszlop a $\sigma=0 \to \sigma=5$ degradáció relatív mértéke.}
+    \label{tab:exchange}
+\end{table}
+
+A $s=16$ konfiguráció mutatja a legmarkánsabb különbséget: az ARIMA
+$\sigma=0$-nál a legjobb MSE-t éri el ($0.003$), ám $\sigma=5$ esetén
+$+631\,340\%$-os degradációt ($6\,314\times$) szenved el. A neurális modellek
+közül a Fair Mamba a legjobb zajmentes értéket adja ($\sigma=0$: MSE $= 0.004$),
+de a $\sigma=5$ szinten az MSE-je $1\,487$-szeresére nő
+($+152\,350\%$). A KCMamba degradációja $+66\%$, ami több nagyságrenddel
+alacsonyabb érték.
+
+A viselkedés a tanult $K$-gain dinamikájából következik: $\sigma=0$-nál
+$K=0.706$, $\sigma=5$-nél $K=0.073$ ($A=0.926$). Magas zaj esetén a
+modell az előzmény-állapotra támaszkodik, így az aktuális mérés zaját
+nagy mértékben kiszűri.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Modell} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM      & \textbf{0.175} & \textbf{0.455} & \textbf{0.858} & \textbf{1.264} & +624\% \\
+            & Fair      & 0.288 & 0.534 & 0.928 & 1.266 & \textbf{+339\%} \\
+            & KCMamba       & 0.180 & 0.559 & 1.092 & 1.363 & +658\% \\
+            & ARIMA     & 0.178 & 0.539 & 2.072 & 4.739 & +2\,566\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM      & 0.234 & \textbf{0.399} & \textbf{0.760} & \textbf{1.010} & +331\% \\
+            & Fair      & \textbf{0.181} & 0.525 & 1.698 & 3.470 & +1\,817\% \\
+            & KCMamba       & 0.189 & 0.453 & 0.856 & 1.120 & \textbf{+492\%} \\
+            & ARIMA     & 0.191 & 0.623 & 6.010 & 18.638 & \cellcolor{red!20}+9\,653\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE értékek az ETTh1 adatkészleten. Az LSTM erős baseline-nak
+             bizonyul nagy adatmennyiség és magas zaj esetén is.}
+    \label{tab:etth1}
+\end{table}
+
+Az ETTh1 az LSTM erősebb adata: $s=1$-nél, ahol sok tréningpéldát lát,
+mindkét zajszinten vezet. A KCMamba és a Fair Mamba alacsony zajnál hasonló
+szinten van. $s=16$-nál a Fair Mamba $\sigma \ge 3$ esetén összeomlik
+($+1\,817\%$), a KCMamba $+492\%$-on marad.
+
+\subsection{ETTh2 adatkészlet}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Modell} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM      & 0.056 & 0.183 & 0.432 & 0.674 & +1\,098\% \\
+            & Fair      & 0.079 & \textbf{0.174} & \textbf{0.476} & \textbf{0.808} & \textbf{+919\%} \\
+            & KCMamba       & 0.056 & 0.206 & 0.512 & 0.871 & +1\,463\% \\
+            & ARIMA     & \textbf{0.047} & 0.237 & 1.515 & 4.182 & \cellcolor{red!20}+8\,895\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM      & 0.146 & \textbf{0.225} & \textbf{0.392} & \textbf{0.545} & +274\% \\
+            & Fair      & 0.050 & 0.351 & 1.238 & 3.108 & +6\,145\% \\
+            & KCMamba       & 0.055 & 0.232 & 0.456 & 0.592 & \textbf{+982\%} \\
+            & ARIMA     & \textbf{0.048} & 0.333 & 6.180 & 15.891 & \cellcolor{red!20}+33\,284\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE értékek az ETTh2 adatkészleten. Az ARIMA $\sigma=0$-nál mindkét
+             stride esetén legjobb ($s=1$: 0.047, $s=16$: 0.048), de nagy zajnál
+             összeömlik. A KCMamba nyeri a $s=16$ versenyt $\sigma=5$-nél (0.592 vs Fair 3.108).}
+    \label{tab:etth2}
+\end{table}
+
+\subsection{Összefoglaló degradációs statisztika}
+
+A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5$
+átmenet relatív MSE-romlása adja a zajrobusztussági mérőszámot
+(\ref{tab:degradation}.~táblázat).
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|r|r|r|}
+        \hline
+        \textbf{Modell} & \textbf{Átl.\ degradáció} & \textbf{Min} & \textbf{Max} \\
+        \hline\hline
+        LSTM             & $+468\%$             & $+61\%$      & $+1\,098\%$ \\
+        \textbf{KCMamba} & $\mathbf{+1\,528\%}$ & $+66\%$      & $+5\,505\%$ \\
+        Fair Mamba       & $+28\,234\%$         & $+339\%$     & $+152\,350\%$ \\
+        ARIMA            & $+138\,700\%$        & $+2\,566\%$  & $+631\,340\%$ \\
+        \hline
+    \end{tabular}
+    \caption{Átlagos MSE-degradáció $\sigma=0 \to \sigma=5$ zajszint-növelésnél.
+             A KCMamba zajállósága $18{,}5\times$ jobb, mint a Fair Mambáé.}
+    \label{tab:degradation}
+\end{table}
+
+\section{A Kalman-gain dinamikája}
+\label{sec:k_dynamics}
+
+A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamikája
+(\ref{tab:k_dynamics}.~táblázat):
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        $\sigma$ & $K_\text{avg}$ & $A = 1-K$ & $R_\text{avg}$ \\
+        \hline\hline
+        0{,}0 & 0{,}706 & 0{,}294 & 0{,}129 \\
+        1{,}0 & 0{,}387 & 0{,}613 & 0{,}331 \\
+        3{,}0 & 0{,}164 & 0{,}836 & 0{,}464 \\
+        5{,}0 & 0{,}073 & 0{,}927 & 0{,}548 \\
+        \hline
+    \end{tabular}
+    \caption{A KCMamba adaptív Kalman-gain értékei az Exchange/$s=16$
+             konfigurációban. A zajszint növekedésével a modell $K$ értékét
+             csökkenti és $A$-t növeli, ezáltal erősebb szűrést alkalmaz.}
+    \label{tab:k_dynamics}
+\end{table}
+
+Amennyiben $R \gg Q$, a Kalman-szűrő az aktuális mérés helyett az
+előzmény-állapotra támaszkodik. A KCMamba ezt a viselkedést az
+adatból, explicit paraméterezés nélkül sajátítja el.
+
+\section{Diszkusszió}
+
+A Fair Mamba nagy zajnál azért omlik össze, mert a $K$-mechanizmus hiányában
+a $\Delta, B, C$ paramétereknek egyidejűleg kell modellezniük az
+adatstruktúrát és a zajt. Alacsony zajszinten ez a kettős feladat
+működik, mert az adatból kiszűrhető elegendő hasznos jel. Magas zajnál
+viszont a gradiens a $\Delta$ gate-et arra irányítja, hogy elhanyagolja
+a bemenetet ($A \to 0$), ami zajmentes esetben katasztrofálisan rontja
+az előrejelzést: a modell elveszti a bemeneti jel követésének képességét,
+és kvázi konstans kimenetet produkál.
+
+A KCMamba előnye ritka adat mellett lesz valóban szembetűnő. Az Exchange/$s=16$
+konfiguráció egyszerre ötvözi a kis adatkészletet (7\,588 nap) és a nagy
+stride-ból adódó tizenhatszoros ablakritkítást, így a tanítás során rendkívül
+kevés példa áll rendelkezésre a zajszerkezet implicit megtanulásához.
+Az explicit $Q/R$ dekompozíció ilyen körülmények között erős priorként
+viselkedik: a modellnek nem kell a zajmodellt tisztán az adatból
+előállítania, mert az architekturális szinten be van építve. Ez magyarázza
+a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
+
+Az LSTM sok adaton és magas zajszinten egyaránt jól teljesít, mert a
+forget/input gate együttese tanult súlyokkal (explicit Kalman-struktúra
+nélkül) hasonló adaptív szűrési hatást valósít meg. A 96 lépéses
+előrejelzési horizonton az LSTM memória-korlátai még nem dominánsak;
+ezek hatása hosszabb szekvenciáknál várható.

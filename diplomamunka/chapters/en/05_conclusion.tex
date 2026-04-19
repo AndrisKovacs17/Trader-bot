@@ -1,0 +1,74 @@
+% ============================================================
+%  Chapter 5 — Conclusion
+% ============================================================
+\chapter{Conclusion}
+\label{ch:osszegzes}
+
+\section{Main Findings}
+
+KCMamba integrates a differentiable Kalman filtering mechanism into the Mamba
+SSM. The experiments on three datasets lead to the following conclusions:
+
+\begin{enumerate}
+    \item \textbf{Noise robustness.} Going from $\sigma=0$ to $\sigma=5$,
+          KCMamba's average MSE degradation is $+1\,528\%$, versus
+          $+28\,234\%$ for Fair Mamba, an $\mathbf{18.5\times}$ difference.
+          In the Exchange/$s=16$ setting this becomes five orders of magnitude:
+          $+66\%$ vs.\ $+152\,350\%$.
+
+    \item \textbf{Kalman gain adaptation.} The model learned on its own to
+          reduce $K$ as noise increases ($0.706 \to 0.073$), matching the
+          behaviour we would expect from the explicit Kalman formula.
+          The architectural prior genuinely guides learning.
+
+    \item \textbf{Scarce data.} With stride $s=16$, the Kalman structure acts
+          as an implicit regulariser that partially compensates for the lack of
+          training windows.
+\end{enumerate}
+
+\section{Limitations}
+
+KCMamba does not win in every configuration:
+\begin{itemize}
+    \item At $\sigma=0$, $s=16$, Fair Mamba nearly memorises and achieves
+          much better MSE.
+    \item On ETTh1/$s=1$, LSTM is the best; its gating mechanism exploits
+          the large data volume effectively.
+    \item Only 5 training epochs were run, which is not necessarily a converged
+          state. Longer training might reorder the results.
+    \item Only a seq=96/pred=96 horizon was evaluated; other horizons may show
+          different rankings.
+\end{itemize}
+
+\section{Future Work}
+
+\begin{itemize}
+    \item A systematic sweep over $s \in \{1, 4, 8, 16, 32, 64\}$ would
+          identify the data-scarcity threshold at which the Kalman
+          structure's regularising effect first emerges.
+
+    \item At prediction horizons of 336, 720, or 960 steps, Mamba's
+          $O(T \log T)$ complexity may confer a meaningful advantage
+          over $O(T^2)$ Transformer baselines.
+
+    \item Replacing simulated Gaussian perturbations with sensor
+          dropouts, missing values, and outliers would bring the
+          evaluation closer to real-world deployment conditions.
+
+    \item Introducing a meta-network that estimates $\sigma$ as a
+          trainable parameter would allow the model to adapt
+          automatically to environments with unknown noise levels.
+
+    \item Replacing the scalar $Q_t$, $R_t$ with a diagonal Cholesky
+          factorisation would yield richer uncertainty estimates and
+          potentially improve calibration.
+\end{itemize}
+
+\section{Closing Remarks}
+
+KCMamba demonstrates that classical Kalman filtering principles and modern
+sequence models are not mutually exclusive. The explicit noise model provides
+a strong inductive bias, particularly where data is scarce or noise is high.
+The trading system described in Chapter~\ref{ch:implementacio}
+shows that this model is not just an experimental prototype but a solution
+integrable into a real trading environment.

@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLA-Mamba · Áttekintés</title>
+  <style id="tw">
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
+html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
+body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margin:0}a{color:inherit;text-decoration:inherit}pre{font-family:ui-monospace,monospace;margin:0}details summary{list-style:none}details summary::-webkit-details-marker{display:none}img,canvas,video{display:block}table{border-collapse:collapse}
+.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.block{display:block}.inline-block{display:inline-block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.contents{display:contents}
+.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.items-stretch{align-items:stretch}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.justify-start{justify-content:flex-start}.justify-end{justify-content:flex-end}
+.flex-1{flex:1 1 0%}.flex-none{flex:none}.flex-auto{flex:1 1 auto}.flex-shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}
+.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.gap-8{gap:2rem}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.p-0{padding:0}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}
+.px-1{padding-left:.25rem;padding-right:.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.py-8{padding-top:2rem;padding-bottom:2rem}
+.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pb-2{padding-bottom:.5rem}.pb-4{padding-bottom:1rem}.pr-3{padding-right:.75rem}.pr-4{padding-right:1rem}.pl-2{padding-left:.5rem}
+.m-0{margin:0}.mx-auto{margin-left:auto;margin-right:auto}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-auto{margin-left:auto}.ml-2{margin-left:.5rem}.ml-4{margin-left:1rem}.mr-2{margin-right:.5rem}.mr-4{margin-right:1rem}
+.space-y-1>*+*{margin-top:.25rem}.space-y-2>*+*{margin-top:.5rem}.space-y-3>*+*{margin-top:.75rem}.space-y-4>*+*{margin-top:1rem}
+.w-full{width:100%}.w-auto{width:auto}.w-px{width:1px}.min-w-0{min-width:0}.min-h-screen{min-height:100vh}.max-w-screen-2xl{max-width:1536px}.h-8{height:2rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-16{height:4rem}.h-full{height:100%}.max-h-80{max-height:20rem}.max-h-96{max-height:24rem}
+.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}
+.static{position:static}.relative{position:relative}.absolute{position:absolute}.fixed{position:fixed}.sticky{position:sticky}.top-0{top:0}.bottom-0{bottom:0}.left-0{left:0}.right-0{right:0}.inset-0{inset:0}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}
+.font-mono{font-family:ui-monospace,monospace}.font-normal{font-weight:400}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}
+.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}
+.uppercase{text-transform:uppercase}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}
+.leading-relaxed{line-height:1.625}.leading-tight{line-height:1.25}.leading-none{line-height:1}
+.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.whitespace-nowrap{white-space:nowrap}.whitespace-pre{white-space:pre}.whitespace-pre-line{white-space:pre-line}.break-all{word-break:break-all}.select-none{user-select:none}
+.text-white{color:#fff}.text-transparent{color:transparent}
+.text-slate-100{color:#f1f5f9}.text-slate-200{color:#e2e8f0}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}.text-slate-700{color:#334155}
+.text-blue-300{color:#93c5fd}.text-blue-400{color:#60a5fa}.text-cyan-400{color:#22d3ee}
+.text-emerald-400{color:#4ade80}.text-emerald-500{color:#22c55e}
+.text-amber-400{color:#fbbf24}.text-red-400{color:#f87171}
+.text-violet-400{color:#a78bfa}.text-orange-400{color:#fb923c}
+.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}.bg-slate-950{background-color:#020617}
+.bg-blue-950{background-color:#172554}.bg-emerald-950{background-color:#022c22}.bg-amber-950{background-color:#451a03}.bg-red-950{background-color:#450a0a}
+.bg-slate-950\/95{background-color:rgba(2,6,23,.95)}.bg-blue-950\/20{background-color:rgba(23,37,84,.2)}.bg-emerald-950\/25{background-color:rgba(2,44,34,.25)}.bg-amber-950\/10{background-color:rgba(69,26,3,.1)}.bg-red-950\/20{background-color:rgba(69,10,10,.2)}
+.hover\:bg-slate-800\/20:hover{background-color:rgba(30,41,59,.2)}.hover\:bg-blue-950\/50:hover{background-color:rgba(23,37,84,.5)}.hover\:text-blue-300:hover{color:#93c5fd}.hover\:text-slate-200:hover{color:#e2e8f0}
+.border-slate-700{border-color:#334155}.border-slate-800{border-color:#1e293b}.border-slate-900{border-color:#0f172a}.border-blue-900{border-color:#1e3a5f}
+.border{border-width:1px}.border-0{border-width:0}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-r{border-right-width:1px}
+.rounded{border-radius:.25rem}.rounded-sm{border-radius:.125rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.backdrop-blur{backdrop-filter:blur(8px)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(96,165,250,0))}
+.to-cyan-400{--tw-gradient-to:#22d3ee}
+.from-emerald-400{--tw-gradient-from:#4ade80;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(74,222,128,0))}
+.bg-clip-text{-webkit-background-clip:text;background-clip:text}
+.transition-colors{transition-property:color,background-color,border-color;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+.rotate-180{transform:rotate(180deg)}.cursor-pointer{cursor:pointer}
+.opacity-0{opacity:0}.opacity-50{opacity:.5}.opacity-100{opacity:1}
+@media(min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:grid-cols-6{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(min-width:768px){.md\:block{display:block}.md\:hidden{display:none}.md\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:640px){.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.group:not([open]) .group-open\:rotate-180{transform:none}.group[open] .group-open\:rotate-180{transform:rotate(180deg)}
+</style>
+  <script src="/chart.umd.min.js"></script>
+  <style>
+    body { background: #080c14; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .nav-a { color:#94a3b8; text-decoration:none; padding:4px 11px; border-radius:8px; font-size:13px; transition:all .15s; white-space:nowrap; }
+    .nav-a:hover { background:rgba(148,163,184,.1); color:#e2e8f0; }
+    .nav-a.active { background:rgba(96,165,250,.15); color:#60a5fa; font-weight:600; }
+    .nav-dropdown { position:relative; display:inline-block; }
+    .nav-dropdown > button { background:none; border:none; cursor:pointer; font-family:inherit; }
+    .nav-drop { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:4px 0; min-width:220px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .nav-dropdown.open .nav-drop { display:block; }
+    .drop-a { display:block; padding:7px 16px; font-size:13px; color:#94a3b8; text-decoration:none; white-space:nowrap; }
+    .drop-a:hover { background:rgba(148,163,184,.08); color:#e2e8f0; }
+    .drop-a.active { color:#60a5fa; font-weight:600; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <div class="nav-dropdown">
+      <button class="nav-a active">Pénzügyi ▾</button>
+      <div class="nav-drop">
+        <a href="/" class="drop-a active">Áttekintés</a>
+        <a href="/model.html" class="drop-a">Modell</a>
+        <a href="/signals.html" class="drop-a">Jelek</a>
+        <a href="/training.html" class="drop-a">Tréning</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">Benchmark ▾</button>
+      <div class="nav-drop">
+        <a href="/benchmark.html" class="drop-a">Szintetikus teszt</a>
+        <a href="/ltsf_benchmark.html" class="drop-a">LSTM / Mamba összehasonlítás</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">KLA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-5 text-right">
+      <div><div class="text-[10px] text-slate-600 uppercase tracking-widest">Egyenleg</div><div class="font-mono font-bold text-sm" id="navEq">—</div></div>
+      <div><div class="text-[10px] text-slate-600 uppercase tracking-widest">P&amp;L</div><div class="font-mono font-bold text-sm" id="navPnl">—</div></div>
+      <span id="statusBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
+      <div class="hidden md:block text-xs text-slate-600" id="navTime">—</div>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-screen-2xl mx-auto px-5 py-5 space-y-4">
+
+  <!-- KPI strip -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Egyenleg</span><span class="text-2xl font-extrabold" id="kpiEq">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">P&amp;L</span><span class="text-2xl font-extrabold" id="kpiPnl">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Sharpe</span><span class="text-2xl font-extrabold" id="kpiSharpe">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Max DD</span><span class="text-2xl font-extrabold" id="kpiDd">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Win Rate</span><span class="text-2xl font-extrabold" id="kpiWr">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">AR Pontosság</span><span class="text-2xl font-extrabold" id="kpiAcc">—</span></div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Equity görbe</h2><span class="text-xs text-slate-600" id="eqMeta">—</span></div>
+      <div style="height:220px"><canvas id="cEq"></canvas></div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up · jelfolyam</h2><span class="text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 font-mono text-[11px]">küszöb 0.51</span></div>
+      <div style="height:220px"><canvas id="cProb"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Signal strip -->
+  <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelcsík — utolsó 120 Prob Up</h2>
+      <div class="flex gap-3 text-[11px] text-slate-500">
+        <span><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500 mr-1"></span>≥0.55</span>
+        <span><span class="inline-block w-2 h-2 rounded-sm bg-emerald-800 mr-1"></span>0.51–0.55</span>
+        <span><span class="inline-block w-2 h-2 rounded-sm bg-slate-600 mr-1"></span>Semleges</span>
+        <span><span class="inline-block w-2 h-2 rounded-sm bg-red-800 mr-1"></span>0.45–0.49</span>
+        <span><span class="inline-block w-2 h-2 rounded-sm bg-red-500 mr-1"></span>≤0.45</span>
+      </div>
+    </div>
+    <div id="signalStrip" class="flex gap-px h-10 rounded-lg overflow-hidden"></div>
+  </div>
+
+  <!-- Info row -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    <!-- Positions -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Nyitott pozíciók</h2>
+      <div id="posInfo" class="text-sm text-slate-400">—</div>
+      <div class="mt-4 pt-4 border-t border-slate-800">
+        <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Döntések</h3>
+        <div id="decInfo" class="space-y-1.5 text-sm"></div>
+      </div>
+    </div>
+
+    <!-- Block reasons -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Blokkolási okok</h2><span class="text-xs text-slate-600" id="blockTotal">—</span></div>
+      <div style="height:190px"><canvas id="cBlock"></canvas></div>
+    </div>
+
+    <!-- Quick model + training -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Gyors áttekintés</h2>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between"><span class="text-slate-500">Verzió</span><span class="font-mono text-xs truncate max-w-[160px] text-right" id="qVersion">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Átlag Prob↑</span><span class="font-mono font-bold" id="qAvgProb">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Átlag Sigma</span><span class="font-mono font-bold" id="qAvgSigma">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">AR pontosság</span><span class="font-mono font-bold" id="qArAcc">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Brier score</span><span class="font-mono font-bold" id="qBrier">—</span></div>
+        <div class="pt-2 border-t border-slate-800 flex justify-between"><span class="text-slate-500">Tréning</span><span class="font-bold" id="qTrainStatus">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Telepíthető</span><span class="font-bold" id="qDeploy">—</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Val Acc</span><span class="font-mono font-bold" id="qValAcc">—</span></div>
+      </div>
+      <div class="mt-4 pt-3 border-t border-slate-800 flex gap-2 flex-wrap">
+        <a href="/model.html" class="text-xs text-blue-400 hover:text-blue-300">🧠 Modell diagnosztika →</a>
+        <a href="/training.html" class="text-xs text-blue-400 hover:text-blue-300">🎓 Tréning részletek →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mu vs Realized + Sigma row -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu vs. Realizált hozam</h2>
+        <div class="flex gap-3 text-[11px] text-slate-500">
+          <span><span class="inline-block w-6 h-0.5 bg-indigo-400 mr-1 align-middle"></span>Mu</span>
+          <span><span class="inline-block w-6 h-0.5 bg-orange-400 mr-1 align-middle"></span>Realizált</span>
+        </div>
+      </div>
+      <div style="height:160px"><canvas id="cMu"></canvas></div>
+    </div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma (bizonytalanság)</h2><span class="text-xs text-slate-600" id="sigAvgLbl">—</span></div>
+      <div style="height:160px"><canvas id="cSigma"></canvas></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+Chart.defaults.color='#64748b'; Chart.defaults.borderColor='#1e293b';
+Chart.defaults.font.family='ui-sans-serif,system-ui,sans-serif'; Chart.defaults.font.size=11;
+const C={};
+function initC(id,cfg){const el=document.getElementById(id);if(!el)return;if(C[id])C[id].destroy();C[id]=new Chart(el,cfg);}
+function upC(id,labels,datasets){const c=C[id];if(!c)return;c.data.labels=labels;c.data.datasets=datasets;c.update('none');}
+const GRID={color:'rgba(30,41,59,.8)'};const NP={pointRadius:0,pointHoverRadius:4};
+const yA=(o={})=>({display:true,grid:GRID,ticks:{maxTicksLimit:5,font:{size:10}},...o});
+const xA=(s=false)=>({display:s,grid:GRID,ticks:{maxTicksLimit:8,font:{size:10}}});
+const TT={mode:'index',intersect:false};
+const BASE={responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:TT}};
+function hx(h,a){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgba(${r},${g},${b},${a})`;}
+
+function initCharts(){
+  initC('cEq',{type:'line',data:{labels:[],datasets:[{label:'Equity',data:[],borderColor:'#3b82f6',backgroundColor:hx('#3b82f6',.1),fill:true,tension:.3,borderWidth:2,...NP}]},options:{...BASE,scales:{x:xA(),y:yA()}}});
+  initC('cProb',{type:'line',data:{labels:[],datasets:[{label:'Prob Up',data:[],borderColor:'#a78bfa',backgroundColor:hx('#a78bfa',.08),fill:true,tension:.3,borderWidth:2,...NP},{label:'0.51',data:[],borderColor:'#f59e0b',borderDash:[5,4],borderWidth:1.5,fill:false,...NP}]},options:{...BASE,plugins:{legend:{display:false},tooltip:TT},scales:{x:xA(),y:yA({min:.3,max:.75})}}});
+  initC('cBlock',{type:'bar',data:{labels:[],datasets:[{label:'db',data:[],backgroundColor:['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a78bfa','#ec4899'],borderRadius:4,borderSkipped:false}]},options:{...BASE,indexAxis:'y',scales:{x:{...xA(true),grid:GRID,ticks:{maxTicksLimit:5,font:{size:10}}},y:{display:true,grid:{display:false},ticks:{font:{size:9}}}}}});
+  initC('cMu',{type:'line',data:{labels:[],datasets:[{label:'Mu',data:[],borderColor:'#818cf8',borderWidth:1.5,fill:false,tension:.2,...NP},{label:'Realizált',data:[],borderColor:'#fb923c',borderWidth:1.5,fill:false,tension:.2,...NP}]},options:{...BASE,scales:{x:xA(),y:yA()}}});
+  initC('cSigma',{type:'line',data:{labels:[],datasets:[{label:'Sigma',data:[],borderColor:'#22d3ee',backgroundColor:hx('#22d3ee',.08),fill:true,tension:.3,borderWidth:2,...NP}]},options:{...BASE,scales:{x:xA(),y:yA({min:0})}}});
+}
+
+function fmt(v,d=2){const n=Number(v);return isFinite(n)?n.toLocaleString('hu-HU',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';}
+function pct(v,d=2){const n=Number(v);return isFinite(n)?(n*100).toFixed(d)+'%':'—';}
+function cl(v,inv=false){const n=Number(v);if(!isFinite(n))return'text-slate-400';return inv?(n<=0?'text-emerald-400':'text-red-400'):(n>=0?'text-emerald-400':'text-red-400');}
+function set(id,txt,cls=''){const e=document.getElementById(id);if(!e)return;e.textContent=String(txt);if(cls)e.className=cls;}
+
+function buildStrip(arr){
+  const el=document.getElementById('signalStrip');if(!el)return;
+  const vals=(Array.isArray(arr)?arr:[]).slice(-120);
+  if(!vals.length){el.innerHTML='<div class="text-xs text-slate-700 pl-2 py-1">Nincs adat</div>';return;}
+  el.innerHTML=vals.map(p=>{const v=Number(p);let bg='bg-slate-700';if(v>=.55)bg='bg-emerald-500';else if(v>=.51)bg='bg-emerald-800';else if(v<=.45)bg='bg-red-500';else if(v<=.49)bg='bg-red-900';return`<div class="${bg} flex-1 min-w-[3px] rounded-sm" title="${isFinite(v)?v.toFixed(4):'?'}"></div>`;}).join('');
+}
+
+async function sf(url){
+  const ctrl=new AbortController();const t=setTimeout(()=>ctrl.abort(),4000);
+  try{const r=await fetch(url,{cache:'no-store',signal:ctrl.signal});clearTimeout(t);if(!r.ok)return{};return await r.json();}catch{clearTimeout(t);return{};}
+}
+
+async function refresh(){
+  const [sim,ts,model,risk,training]=await Promise.all([sf('/simulation'),sf('/timeseries?limit=300'),sf('/model'),sf('/risk'),sf('/training')]);
+  const w=sim.wallet||{},pf=sim.performance||{},ar=model.ar_metrics||ts.ar_metrics||{};
+  const sd=model.strategy_diagnostics||{},us=model.uncertainty_stats||{};
+  const eq=Number(w.equity??10000),init=Number(w.initial_cash??10000),pnl=Number(w.pnl??0);
+  const sh=Number(pf.sharpe??0),dd=Number(pf.drawdown??0),wr=Number(pf.win_rate??0),acc=Number(ar.directional_accuracy??0);
+
+  set('navEq',fmt(eq)+' $');
+  const pe=document.getElementById('navPnl');if(pe){pe.textContent=(pnl>=0?'+':'')+fmt(pnl,2)+' $';pe.className='font-mono font-bold text-sm '+(pnl>=0?'text-emerald-400':'text-red-400');}
+  set('navTime',new Date().toLocaleTimeString('hu-HU'));
+  const active=(model.recent_prob_up||[]).length>0;
+  const sb=document.getElementById('statusBadge');if(sb){sb.textContent=active?'● Aktív':'○ Várakozás';sb.className='px-2.5 py-0.5 rounded-full text-xs font-bold '+(active?'bg-emerald-950 text-emerald-400':'bg-slate-800 text-slate-500');}
+
+  const eqC=eq>=init;
+  set('kpiEq',fmt(eq)+' $','text-2xl font-extrabold '+(eqC?'text-emerald-400':'text-red-400'));
+  set('kpiPnl',(pnl>=0?'+':'')+fmt(pnl,2)+' $','text-2xl font-extrabold '+(pnl>=0?'text-emerald-400':'text-red-400'));
+  set('kpiSharpe',fmt(sh,3),'text-2xl font-extrabold '+(sh>=0?'text-emerald-400':'text-red-400'));
+  set('kpiDd',fmt(dd,2)+'%','text-2xl font-extrabold '+(dd<=15?'text-slate-100':'text-red-400'));
+  set('kpiWr',fmt(wr,2)+'%','text-2xl font-extrabold '+(wr>=50?'text-emerald-400':'text-slate-300'));
+  set('kpiAcc',acc>0?pct(acc):'—','text-2xl font-extrabold '+(acc>=.5?'text-emerald-400':'text-slate-300'));
+
+  const wh=Array.isArray(ts.wallet_history)?ts.wallet_history:[];
+  const eqD=wh.map(x=>Number(x.equity??0));
+  const ec=C['cEq'];
+  upC('cEq',eqD.map((_,i)=>i),[{label:'Equity',data:eqD,borderColor:eqC?'#22c55e':'#ef4444',backgroundColor:hx(eqC?'#22c55e':'#ef4444',.1),fill:true,tension:.3,borderWidth:2,...NP}]);
+  if(ec&&eqD.length){const mn=Math.min(...eqD),mx=Math.max(...eqD),pad=Math.max((mx-mn)*.15,.5);ec.options.scales.y.min=mn-pad;ec.options.scales.y.max=mx+pad;ec.update('none');}
+  set('eqMeta',eqD.length?eqD.length+' pont':'');
+
+  const prob=(model.recent_prob_up||ts.recent_prob_up||[]).map(Number);
+  upC('cProb',prob.map((_,i)=>i),[{label:'Prob Up',data:prob,borderColor:'#a78bfa',backgroundColor:hx('#a78bfa',.08),fill:true,tension:.3,borderWidth:2,...NP},{label:'0.51',data:prob.map(()=>.51),borderColor:'#f59e0b',borderDash:[5,4],borderWidth:1.5,fill:false,...NP}]);
+
+  const blk=sd.block_reason_hits||{};
+  const bk=Object.keys(blk),bv=bk.map(k=>blk[k]),bt=bv.reduce((a,b)=>a+b,0);
+  set('blockTotal',bt>0?bt+' blokkolás':'');
+  const BC=['#ef4444','#f97316','#eab308','#22c55e','#3b82f6','#a78bfa','#ec4899'];
+  upC('cBlock',bk,[{label:'db',data:bv,backgroundColor:bk.map((_,i)=>BC[i%BC.length]),borderRadius:4,borderSkipped:false}]);
+
+  const mu=(model.recent_mu||ts.recent_mu||[]).map(Number);
+  const rl=(model.recent_realized_return||ts.recent_realized_return||[]).map(Number);
+  const nm=Math.min(mu.length,rl.length);
+  upC('cMu',Array.from({length:nm},(_,i)=>i),[{label:'Mu',data:mu.slice(-nm),borderColor:'#818cf8',borderWidth:1.5,fill:false,tension:.2,...NP},{label:'Realizált',data:rl.slice(-nm),borderColor:'#fb923c',borderWidth:1.5,fill:false,tension:.2,...NP}]);
+
+  const sig=(model.recent_sigma||ts.recent_sigma||[]).map(Number);
+  upC('cSigma',sig.map((_,i)=>i),[{label:'Sigma',data:sig,borderColor:'#22d3ee',backgroundColor:hx('#22d3ee',.08),fill:true,tension:.3,borderWidth:2,...NP}]);
+  const avgS=sig.length?sig.reduce((a,b)=>a+b,0)/sig.length:null;
+  set('sigAvgLbl',avgS!=null?'avg '+avgS.toExponential(2):'');
+
+  buildStrip(model.recent_prob_up||ts.recent_prob_up||[]);
+
+  const pos=sim.positions||{};
+  const posEl=document.getElementById('posInfo');
+  if(posEl){
+    const pe2=Object.entries(pos).filter(([,v])=>Number(v?.qty));
+    if(!pe2.length){posEl.textContent='Nincs nyitott pozíció';posEl.className='text-sm text-slate-600';}
+    else{posEl.className='text-sm space-y-1';posEl.innerHTML=pe2.map(([s,v])=>{const q=Number(v?.qty??0),up=Number(v?.unrealized_pnl??0),dir=q>0?'LONG':'SHORT',dc=q>0?'text-blue-400':'text-orange-400';return`<div class="flex justify-between"><span>${s} <span class="${dc} font-bold">${dir}</span> ${Math.abs(q).toFixed(4)}</span><span class="${up>=0?'text-emerald-400':'text-red-400'}">${up>=0?'+':''}${fmt(up,2)} $</span></div>`;}).join('');}
+  }
+  const dec=sd.decision_hits||{};
+  const decEl=document.getElementById('decInfo');
+  if(decEl){const rows=Object.entries(dec).map(([k,v])=>`<div class="flex justify-between"><span class="text-slate-500 capitalize">${k.replaceAll('_',' ')}</span><span class="font-mono text-emerald-400">${v}</span></div>`);decEl.innerHTML=rows.length?rows.join(''):'<span class="text-slate-600 text-xs">—</span>';}
+
+  set('qVersion',model.new_version||model.current_version||'—');
+  set('qAvgProb',isFinite(us.avg_prob_up)?Number(us.avg_prob_up).toFixed(4):'—');
+  set('qAvgSigma',isFinite(us.avg_sigma)?Number(us.avg_sigma).toExponential(3):'—');
+  set('qArAcc',acc>0?pct(acc):'—','font-mono font-bold '+(acc>=.5?'text-emerald-400':'text-slate-300'));
+  set('qBrier',isFinite(ar.brier_up)?Number(ar.brier_up).toFixed(4):'—');
+  const tr=training.last_result||{};
+  const sc={completed:'text-emerald-400',failed:'text-red-400',running:'text-yellow-400',idle:'text-slate-500'};
+  set('qTrainStatus',training.status||'—','font-bold '+(sc[training.status]||'text-slate-400'));
+  set('qDeploy',tr.deployable!=null?(tr.deployable?'Igen ✓':'Nem ✗'):'—',tr.deployable?'font-bold text-emerald-400':'font-bold text-red-400');
+  set('qValAcc',tr.val_directional_accuracy!=null?pct(tr.val_directional_accuracy):'—','font-mono font-bold '+(Number(tr.val_directional_accuracy)>=.50?'text-emerald-400':'text-slate-300'));
+}
+
+// Active nav
+document.querySelectorAll('.nav-a').forEach(a=>{if(a.getAttribute('href')===location.pathname||(location.pathname==='/'&&a.getAttribute('href')==='/')){a.classList.add('active');}});
+initCharts();
+refresh();
+setInterval(refresh,2500);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
+document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
+</script>
+</body>
+</html>

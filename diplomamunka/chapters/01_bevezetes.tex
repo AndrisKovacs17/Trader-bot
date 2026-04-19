@@ -1,0 +1,76 @@
+% ============================================================
+%  1. fejezet, Bevezetés
+% ============================================================
+\chapter{Bevezetés}
+\label{ch:intro}
+
+Az idősor-előrejelzés a gépi tanulás egyik kiterjedten kutatott
+részterülete, amelynek gyakorlati jelentőségét a valós adatok szinte
+kivétel nélkül jelen lévő zajossága adja. Szenzorkiesések, aggregációs
+torzítások és piaci mikrostruktúra-zaj egyaránt rontják a jel/zaj arányt,
+amelyre a kurrens modellek érzékenynek bizonyulnak.
+A hosszú távú idősor-előrejelzés (LTSF) feladata ennél is nehezebb:
+adott $L$ hosszúságú előzmény alapján kell becsülni a következő $H$ lépést,
+ahol $H$ nagyságrendileg elérheti vagy meghaladhatja $L$-et.
+
+\section{Motiváció}
+
+A modern szekvencia-model-családok, a Mamba-alapú szelektív állapottér-modellek
+~\cite{gu2021s4,gu2023mamba} és a klasszikus rekurrens hálózatok~\cite{hochreiter1997lstm}
+az adatminőségi problémát implicit általánosítás révén kezelik: a zaj- és
+jelkomponens szétválasztását kizárólag az adatvezérelt reprezentációtanulásra
+bízzák.
+Zajmentes adatokon ez az eljárás kielégítően teljesít, ám a megnövelt
+zajszintre való általánosítóképesség empirikusan nem garantált.
+
+A Kalman-szűrő~\cite{kalman1960new} ezzel szemben \emph{explicit}
+statisztikai modellt állít fel a folyamatzajra ($Q$) és a mérési zajra ($R$),
+és ezek arányából származtat egy $K$ gain együtthatót, amely az
+előzmény-állapot és az aktuális megfigyelés közötti optimális súlyozást
+határozza meg. Ennek az induktív torzításnak egy differenciálható
+neurális hálózatba történő beépítése elméleti szempontból ígéretes
+megközelítés a zajrobusztusság növelésére.
+
+Ezen megfontolásra épül a jelen szakdolgozatban bemutatott \textbf{KCMamba}
+architektúra.
+
+\section{Célkitűzések}
+
+Három konkrét kérdést vizsgálunk:
+
+\begin{enumerate}
+    \item Versenyképes-e a KCMamba tiszta adatokon a standard LTSF
+          modellekkel szemben?
+    \item Mekkora MSE-degradációt szenvednek el a modellek szintetikusan
+          zajosított adatokon ($\sigma \in \{0, 1, 3, 5\}$)?
+    \item Kevés tréning-ablak (stride $\in \{1, 16\}$) esetén melyik
+          architektúra generalizál jobban?
+\end{enumerate}
+
+\section{Hozzájárulások}
+
+\begin{itemize}
+    \item A \textbf{KCMamba} architektúra leírása: tanult $Q_\text{net}$,
+          $R_\text{net}$, $K_\text{net}$ alhálózatok differenciálható
+          Kalman-szűrőn belül, párhuzamos prefix-scan GPU-implementációval.
+    \item Mérések arról, hogy a tanult $K$ valóban adaptívan változik a
+          zajszinttel: $\sigma=0$-nál $K \approx 0{,}71$ (passzív átengedés),
+          $\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
+    \item Összehasonlítás három adatkészleten (Exchange-Rate, ETTh1, ETTh2):
+          a Fair Mamba átlag $+28\,234\%$ MSE-degradációt mutat zajjal,
+          a KCMamba $+1\,528\%$-ot.
+    \item Nyílt forráskódú implementáció (Python/PyTorch/CUDA) és egy
+          aszinkron kereskedési rendszer a modell deployálásához.
+\end{itemize}
+
+\section{Dolgozat felépítése}
+
+A~\ref{ch:irodalom}. fejezet összefoglalja a Kalman-szűrő, az SSM-ek és
+az LTSF-kutatás releváns irodalmát.
+A~\ref{ch:architektura}. fejezet ismerteti a KCMamba architektúrát
+és matematikai hátterét.
+A~\ref{ch:kiserletek}. fejezetben a kísérleti beállítás és az eredmények
+szerepelnek.
+A~\ref{ch:implementacio}. fejezet a megvalósított szoftverrendszert
+tárgyalja.
+Az~\ref{ch:osszegzes}. fejezet levonja a következtetéseket.

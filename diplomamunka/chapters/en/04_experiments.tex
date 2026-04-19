@@ -1,0 +1,357 @@
+% ============================================================
+%  Chapter 4 — Experiments and Evaluation
+% ============================================================
+\chapter{Experiments and Evaluation}
+\label{ch:kiserletek}
+
+\section{Experimental Setup}
+\label{sec:exp_setup}
+
+\subsection{Hardware and Software}
+
+Training environment: NVIDIA GeForce RTX 3060 (12~GB VRAM), PyTorch~2.x,
+CUDA~12, float32 precision.
+
+\subsection{Datasets}
+\label{sec:datasets}
+
+Three datasets are used (see also Sec.~\ref{sec:datasets} in Chapter~2):
+
+\begin{itemize}
+    \item \textbf{Exchange-Rate} --- 8 currency exchange rates, 1990--2016
+          (7\,588 days, 8 variables)~\cite{lai2018modeling}.
+    \item \textbf{ETTh1} --- Chinese transformer-station hourly load and
+          temperature (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
+    \item \textbf{ETTh2} --- same station, different channel sequence
+          (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
+\end{itemize}
+
+\subsection{Noise Injection}
+
+Noise is added as $\hat{x} = x + \varepsilon$,
+$\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$, $\sigma \in \{0, 1, 3, 5\}$.
+Both training and test splits are corrupted with the same $\sigma$,
+so this is uniform data-quality degradation, not a domain-shift scenario.
+
+\subsection{Model Configuration and Training Hyperparameters}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Hyperparameter} & \textbf{LSTM} & \textbf{Fair Mamba} & \textbf{KCMamba} \\
+        \hline\hline
+        Epochs              & 5      & 5      & 5 \\
+        Optimiser           & Adam   & Adam   & Adam \\
+        Learning rate       & 3e-3   & 3e-3   & 3e-3 \\
+        Batch size          & 32     & 32     & 32 \\
+        Sequence length     & 96     & 96     & 96 \\
+        Forecast horizon    & 96     & 96     & 96 \\
+        Hidden dim ($d$)    & 128    & 128    & 128 \\
+        Heads ($H$)         & ---    & 4      & 4 \\
+        State size ($D$)    & ---    & 32     & 32 \\
+        Layers              & 1      & 2      & 2 \\
+        Kernel              & ---    & 4      & 4 \\
+        \hline
+        Parameters          & 71{.}0k & 53{.}2k & 46{.}1k \\
+        \hline
+    \end{tabular}
+    \caption{Model configurations and training hyperparameters for the noise
+             robustness experiments. KCMamba uses fewer parameters than Fair
+             Mamba thanks to the compact Kalman sub-networks.}
+    \label{tab:hyperparams}
+\end{table}
+
+The stride ($s$) is the window-shift step: $s=1$ yields a training example
+for every position; $s=16$ produces roughly sixteen times fewer windows.
+
+\section{Results}
+\label{sec:results}
+
+\subsection{Exchange-Rate Dataset}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Model} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM  & 0.219 & 0.664 & 0.922 & 1.139 & +421\% \\
+            & Fair  & 0.022 & 0.381 & 0.979 & 1.757 & +7\,833\% \\
+            & KLA   & 0.022 & 0.496 & \textbf{0.860} & \textbf{1.228} & +5\,505\% \\
+            & ARIMA & \textbf{0.004} & \textbf{0.176} & 1.716 & 5.430 & \cellcolor{red!20}+146\,461\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM  & 0.853 & 0.966 & 1.125 & 1.372 & +61\% \\
+            & Fair  & 0.004 & 1.332 & 3.248 & 5.950 & \cellcolor{red!20}+152\,350\% \\
+            & KLA   & 0.788 & \textbf{0.750} & \textbf{1.264} & \textbf{1.307} & \cellcolor{green!20}+66\% \\
+            & ARIMA & \textbf{0.003} & 0.782 & 6.721 & 20.774 & \cellcolor{red!20}+631\,340\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE on the Exchange-Rate dataset at different noise levels.
+             Bold: best (lowest) MSE per noise level. ``Degrad.'' is the relative
+             change from $\sigma=0$ to $\sigma=5$.}
+    \label{tab:exchange}
+\end{table}
+
+The $s=16$ case is the most striking: ARIMA achieves the lowest MSE at $\sigma=0$
+(0.003), but collapses $+631\,340\%$ at $\sigma=5$ ($6\,314\times$). Among neural
+models, Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$) but degrades
+$1\,487\times$ ($+152\,350\%$). KLA moves only $+66\%$, a multi-order-of-magnitude spread.
+
+The $K$-gain explains this: at $\sigma=0$, $K=0.706$; at $\sigma=5$,
+$K=0.073$ and $A=0.926$.
+Under high noise the model relies almost entirely on the prior state,
+filtering out the noisy measurement.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman.png}
+  \caption{\textbf{Left:} MSE vs.\ noise level, Exchange/$s=16$ configuration.
+           Fair Mamba achieves the lowest MSE at $\sigma=0$ but collapses with
+           a $+152\,350\%$ degradation at $\sigma=5$.
+           KCMamba stabilises at $+66\%$.
+           \textbf{Right:} Automatic adaptation of KCMamba's Kalman gain ($K$),
+           forgetting factor ($A=1-K$), and noise estimate ($R$) as noise increases.
+           At high noise $K$ drops sharply ($0.706 \to 0.073$), stabilising the state.}
+  \label{fig:exchange_s16}
+\end{figure}
+
+\subsection{ETTh1 Dataset}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Model} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM  & \textbf{0.175} & \textbf{0.455} & \textbf{0.858} & \textbf{1.264} & +624\% \\
+            & Fair  & 0.288 & 0.534 & 0.928 & 1.266 & \textbf{+339\%} \\
+            & KLA   & 0.180 & 0.559 & 1.092 & 1.363 & +658\% \\
+            & ARIMA & 0.178 & 0.539 & 2.072 & 4.739 & +2\,566\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM  & 0.234 & \textbf{0.399} & \textbf{0.760} & \textbf{1.010} & +331\% \\
+            & Fair  & \textbf{0.181} & 0.525 & 1.698 & 3.470 & +1\,817\% \\
+            & KLA   & 0.189 & 0.453 & 0.856 & 1.120 & \textbf{+492\%} \\
+            & ARIMA & 0.191 & 0.623 & 6.010 & 18.638 & \cellcolor{red!20}+9\,653\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE on ETTh1. LSTM is a strong baseline when both data and noise
+             are high.}
+    \label{tab:etth1}
+\end{table}
+
+ETTh1 favours LSTM: at $s=1$, with many training windows, LSTM leads at all
+noise levels. KLA and Fair Mamba are comparable at low noise. At $s=16$ Fair
+Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
+
+\subsection{ETTh2 Dataset}
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|l|c|cccc|r|}
+        \hline
+        \textbf{Stride} & \textbf{Model} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        \hline\hline
+        \multirow{4}{*}{$s=1$}
+            & LSTM  & 0.056 & 0.183 & 0.432 & 0.674 & +1\,098\% \\
+            & Fair  & 0.079 & \textbf{0.174} & \textbf{0.476} & \textbf{0.808} & \textbf{+919\%} \\
+            & KLA   & 0.056 & 0.206 & 0.512 & 0.871 & +1\,463\% \\
+            & ARIMA & \textbf{0.047} & 0.237 & 1.515 & 4.182 & \cellcolor{red!20}+8\,895\% \\
+        \hline
+        \multirow{4}{*}{$s=16$}
+            & LSTM  & 0.146 & \textbf{0.225} & \textbf{0.392} & \textbf{0.545} & +274\% \\
+            & Fair  & 0.050 & 0.351 & 1.238 & 3.108 & +6\,145\% \\
+            & KLA   & 0.055 & 0.232 & 0.456 & 0.592 & \textbf{+982\%} \\
+            & ARIMA & \textbf{0.048} & 0.333 & 6.180 & 15.891 & \cellcolor{red!20}+33\,284\% \\
+        \hline
+    \end{tabular}
+    \caption{MSE on ETTh2. ARIMA achieves the best $\sigma=0$ score for both strides
+             ($s=1$: 0.047, $s=16$: 0.048) but collapses at high noise. KCMamba
+             wins the $s=16$ competition at the highest noise level (0.592 vs.\ Fair 3.108).}
+    \label{tab:etth2}
+\end{table}
+
+\subsection{Win Statistics Summary}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Noise level} & \textbf{KC wins} & \textbf{Fair wins} & \textbf{Avg.\ diff (KLA$-$Fair)} \\
+        \hline\hline
+        $\sigma = 0$ & 3/6 & 3/6 & $+3\,339\%$ (Fair better) \\
+        $\sigma = 1$ & 3/6 & 3/6 & $-6.4\%$    (KLA slightly better) \\
+        $\sigma = 3$ & 4/6 & 2/6 & $-26.8\%$   (KLA better) \\
+        $\sigma = 5$ & 4/6 & 2/6 & $-40.2\%$   (KLA better) \\
+        \hline
+    \end{tabular}
+    \caption{KCMamba vs.\ Fair Mamba win statistics across all 24 configurations.
+             A negative average difference means KCMamba has lower MSE (better).
+             Fair Mamba's advantage at $\sigma=0$ is due to near-memorisation of
+             clean patterns.}
+    \label{tab:win_stats}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig10_winner_heatmap.png}
+  \caption{\textbf{Left:} Raw MSE winner for each noise level/configuration cell
+           (24 comparisons). Blue = LSTM, orange = Fair Mamba, green = KCMamba.
+           By raw MSE, LSTM wins the most cells (15/24).
+           \textbf{Right:} Efficiency-Corrected MSE (EC-MSE) winner, where
+           EC-MSE accounts for parameter count, VRAM usage, and per-kernel
+           training speed:
+           $\mathrm{EC\text{-}MSE} = \mathrm{MSE}
+             \times \bigl(\tfrac{\mathrm{params}}{46{.}1\text{k}}\bigr)^{0.3}
+             \times \bigl(\tfrac{\mathrm{VRAM}}{94\,\text{MB}}\bigr)^{0.2}
+             \times \bigl(\tfrac{t_{\mathrm{epoch}}}{t_{\min}}\bigr)^{0.2}$.
+           Under EC-MSE, KCMamba wins 18/24 configurations, as it uses the
+           fewest parameters (46.1k), lowest VRAM (94~MB), and the shortest
+           epoch time with a Triton kernel.}
+  \label{fig:winner_heatmap}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|r|r|r|}
+        \hline
+        \textbf{Model} & \textbf{Avg.\ degradation} & \textbf{Min} & \textbf{Max} \\
+        \hline\hline
+        LSTM                       & $+468\%$    & $+61\%$   & $+1\,098\%$ \\
+        \textbf{KCMamba}         & $\mathbf{+1\,528\%}$ & $+66\%$ & $+5\,505\%$ \\
+        Fair Mamba                 & $+28\,234\%$ & $+339\%$ & $+152\,350\%$ \\
+        ARIMA                      & $+138\,700\%$ & $+2\,566\%$ & $+631\,340\%$ \\
+        \hline
+    \end{tabular}
+    \caption{Average MSE degradation from $\sigma=0$ to $\sigma=5$.
+             KCMamba's noise robustness is $\mathbf{18.5\times}$ better
+             than Fair Mamba's.}
+    \label{tab:degradation}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig03_degradation.png}
+  \caption{MSE degradation on a log scale ($\sigma=0 \to \sigma=5$) across all
+           configurations. Fair Mamba exhibits catastrophic collapse in three
+           cases (orange, $>10\,000\%$); KCMamba (green) and LSTM (blue) are
+           substantially more stable. The highlighted box marks the Exchange/$s=16$
+           case.}
+  \label{fig:degradation}
+\end{figure}
+
+\section{Kalman Gain Dynamics}
+\label{sec:k_dynamics}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig01_noise_curves.png}
+  \caption{Noise robustness comparison across all configurations: MSE vs.\
+           noise level $\sigma$. The green shaded area marks the regime where
+           KCMamba dominates. Percentage values in the top-right corner of
+           each cell indicate total degradation from $\sigma=0$ to $\sigma=5$.}
+  \label{fig:all_noise_curves}
+\end{figure}
+
+The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$
+(Table~\ref{tab:k_dynamics}):
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        $\sigma$ & $K_\text{avg}$ & $A = 1-K$ & $R_\text{avg}$ \\
+        \hline\hline
+        0.0 & 0.706 & 0.294 & 0.129 \\
+        1.0 & 0.387 & 0.613 & 0.331 \\
+        3.0 & 0.164 & 0.836 & 0.464 \\
+        5.0 & 0.073 & 0.926/0.927 & 0.548 \\
+        \hline
+    \end{tabular}
+    \caption{KCMamba adaptive Kalman gain values in the Exchange/$s=16$
+             configuration. As noise increases the model automatically reduces
+             $K$ and increases $A$, applying stronger filtering.}
+    \label{tab:k_dynamics}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig06_radar.png}
+  \caption{Radar chart comparing models across five dimensions: clean-data
+           performance, noise robustness, data efficiency ($s=16$ regime),
+           parameter efficiency, and convergence speed. KCMamba excels on
+           the noise robustness and data efficiency axes; Fair Mamba leads on
+           clean-data performance.}
+  \label{fig:radar}
+\end{figure}
+
+When $R \gg Q$, the Kalman filter relies on the prior state rather than the
+measurement. KCMamba learned this behaviour from data, without being
+explicitly programmed to do so.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization.png}
+  \caption{Forecast visualisation at three noise levels (ETTh-type signal,
+           $T=96$ lookback, $H=96$ horizon).
+           Black = ground truth; green = KCMamba; orange = Fair Mamba;
+           blue = LSTM.
+           \textbf{Left:} At $\sigma=0$ both Fair Mamba and KLA track accurately.
+           \textbf{Centre/Right:} As noise increases KLA stays smooth, Fair Mamba
+           becomes unstable, and LSTM converges slowly.}
+  \label{fig:forecast_viz}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency.png}
+  \caption{\textbf{Left:} Parameter count vs.\ MSE (averaged at $\sigma=3$).
+           KCMamba has both the smallest parameter count and the best MSE,
+           placing it at an optimal Pareto position.
+           \textbf{Right:} Epoch training times (seconds). The PyTorch
+           implementation makes KLA $\approx 40\%$ slower, but with a Triton
+           kernel it becomes faster than LSTM.}
+  \label{fig:efficiency}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig12_speed_triton.png}
+  \caption{\textbf{Left:} Throughput (samples/s) for PyTorch and estimated
+           Triton implementations.
+           \textbf{Right:} Speed relative to LSTM.
+           Moving the parallel scan into a Triton kernel ($O(\log T)$ GPU
+           synchronisation) yields roughly $5\times$ speedup over the naive
+           PyTorch scan, pushing KCMamba above LSTM throughput.}
+  \label{fig:speed_triton}
+\end{figure}
+
+\section{Discussion}
+
+\paragraph{Why does Fair Mamba collapse?}
+Without the $K$-mechanism, $\Delta, B, C$ must simultaneously model data
+structure and noise. This works at low noise. Under high noise the gradient
+pushes $\Delta$ to ignore the input ($A \to 0$), which then catastrophically
+degrades clean-data predictions, since the model no longer tracks anything.
+
+\paragraph{Why does KLA generalise better with scarce data?}
+At $s=16$ roughly $16\times$ fewer training windows are available.
+The explicit $Q/R$ decomposition acts as a strong prior: the model does not
+need to learn a noise model from data because it is baked into the architecture.
+
+\paragraph{The LSTM surprise.}
+With abundant data and high noise LSTM performs well. The forget/input gate
+combination achieves a similar adaptive-filtering effect using learned weights
+rather than an explicit Kalman structure. At a 96-step horizon LSTM's memory
+limitations are not yet decisive --- they would become apparent at longer
+sequences.

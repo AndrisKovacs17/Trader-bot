@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KLA-Mamba · Modell komplexitás térkép</title>
+  <style id="tw">
+*,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
+html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
+body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margin:0}a{color:inherit;text-decoration:inherit}pre{font-family:ui-monospace,monospace;margin:0}
+.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.flex{display:flex}.grid{display:grid}.hidden{display:none}
+.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.items-start{align-items:flex-start}.justify-between{justify-content:space-between}
+.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}
+.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}
+.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-3{padding-left:.75rem;padding-right:.75rem}
+.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}
+.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.ml-auto{margin-left:auto}.mr-4{margin-right:1rem}
+.space-y-4>*+*{margin-top:1rem}.space-y-1>*+*{margin-top:.25rem}
+.w-full{width:100%}.min-h-screen{min-height:100vh}.max-w-screen-2xl{max-width:1536px}.h-12{height:3rem}
+.overflow-auto{overflow:auto}
+.sticky{position:sticky}.top-0{top:0}.z-20{z-index:20}
+.font-mono{font-family:ui-monospace,monospace}.font-semibold{font-weight:600}.font-bold{font-weight:700}.font-extrabold{font-weight:800}
+.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-2xl{font-size:1.5rem;line-height:2rem}
+.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}
+.uppercase{text-transform:uppercase}.tracking-widest{letter-spacing:.1em}
+.text-center{text-align:center}.text-right{text-align:right}
+.text-white{color:#fff}
+.text-slate-100{color:#f1f5f9}.text-slate-200{color:#e2e8f0}.text-slate-300{color:#cbd5e1}.text-slate-400{color:#94a3b8}.text-slate-500{color:#64748b}.text-slate-600{color:#475569}
+.text-blue-400{color:#60a5fa}.text-cyan-300{color:#67e8f9}.text-cyan-400{color:#22d3ee}
+.text-emerald-400{color:#4ade80}.text-amber-400{color:#fbbf24}.text-red-400{color:#f87171}.text-violet-400{color:#a78bfa}
+.bg-slate-800{background-color:#1e293b}.bg-slate-900{background-color:#0f172a}.bg-slate-950{background-color:#020617}
+.bg-slate-950\/95{background-color:rgba(2,6,23,.95)}
+.border-slate-700{border-color:#334155}.border-slate-800{border-color:#1e293b}
+.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}
+.rounded{border-radius:.25rem}.rounded-md{border-radius:.375rem}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}
+.backdrop-blur{backdrop-filter:blur(8px)}
+.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}
+.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to,rgba(96,165,250,0))}
+.to-cyan-400{--tw-gradient-to:#22d3ee}
+.bg-clip-text{-webkit-background-clip:text;background-clip:text}
+.transition-colors{transition-property:color,background-color;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}
+@media(min-width:1024px){.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.h-\[220px\]{height:220px}.h-\[280px\]{height:280px}.h-\[340px\]{height:340px}.h-\[440px\]{height:440px}
+  </style>
+  <script src="/chart.umd.min.js"></script>
+  <style>
+    body { background: #080c14; }
+    ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    .nav-a { color:#94a3b8; text-decoration:none; padding:4px 11px; border-radius:8px; font-size:13px; transition:all .15s; white-space:nowrap; }
+    .nav-a:hover { background:rgba(148,163,184,.1); color:#e2e8f0; }
+    .nav-a.active { background:rgba(96,165,250,.15); color:#60a5fa; font-weight:600; }
+    .nav-dropdown { position:relative; display:inline-block; }
+    .nav-dropdown > button { background:none; border:none; cursor:pointer; font-family:inherit; }
+    .nav-drop { display:none; position:absolute; top:calc(100% + 6px); left:0; background:#0f172a; border:1px solid #1e293b; border-radius:10px; padding:4px 0; min-width:220px; z-index:100; box-shadow:0 8px 32px rgba(0,0,0,.5); }
+    .nav-dropdown.open .nav-drop { display:block; }
+    .drop-a { display:block; padding:7px 16px; font-size:13px; color:#94a3b8; text-decoration:none; white-space:nowrap; }
+    .drop-a:hover { background:rgba(148,163,184,.08); color:#e2e8f0; }
+    .drop-a.active { color:#60a5fa; font-weight:600; }
+    .section { background:#0f172a; border:1px solid #1e293b; border-radius:16px; padding:20px; }
+    .kv { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid rgba(30,41,59,.6); }
+    .kv:last-child { border-bottom:none; }
+    .kv .lbl { color:#64748b; font-size:12px; }
+    .kv .val { font-family:ui-monospace,monospace; font-size:12px; color:#e2e8f0; text-align:right; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:99px; font-size:11px; font-weight:600; }
+    .badge-ok  { background:rgba(34,197,94,.15);  color:#4ade80; }
+    .badge-warn{ background:rgba(245,158,11,.15); color:#fbbf24; }
+    .badge-info{ background:rgba(96,165,250,.15); color:#60a5fa; }
+    .badge-err { background:rgba(239,68,68,.15);  color:#f87171; }
+    .tbl { width:100%; border-collapse:collapse; font-size:12px; }
+    .tbl th { color:#64748b; text-align:left; padding:5px 10px; border-bottom:1px solid #1e293b; }
+    .tbl td { padding:5px 10px; border-bottom:1px solid rgba(30,41,59,.4); font-family:ui-monospace,monospace; color:#e2e8f0; }
+    .tbl tr:last-child td { border-bottom:none; }
+    .tbl .best { color:#4ade80; font-weight:700; }
+    .tbl .kla-row { background:rgba(96,165,250,.05); }
+    .annot { background:rgba(96,165,250,.07); border:1px solid rgba(96,165,250,.18); border-radius:10px; padding:12px 16px; font-size:12px; color:#93c5fd; line-height:1.6; }
+    .pareto-badge { background:linear-gradient(135deg,rgba(74,222,128,.2),rgba(34,211,238,.2)); border:1px solid rgba(74,222,128,.35); color:#4ade80; border-radius:8px; padding:3px 10px; font-size:11px; font-weight:700; }
+    /* score bar */
+    .score-bar { height:8px; border-radius:4px; background:#1e293b; overflow:hidden; margin-top:3px; }
+    .score-fill { height:100%; border-radius:4px; transition:width .6s; }
+    /* efficiency rating stars */
+    .star-rating { font-size:16px; letter-spacing:2px; }
+    .star-on  { color:#fbbf24; }
+    .star-off { color:#334155; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen antialiased">
+
+<!-- NAV -->
+<nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
+  <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <div class="nav-dropdown">
+      <button class="nav-a active">KLA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a active">Modell komplexitás térkép</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">Pénzügyi ▾</button>
+      <div class="nav-drop">
+        <a href="/" class="drop-a">Áttekintés</a>
+        <a href="/model.html" class="drop-a">Modell</a>
+        <a href="/signals.html" class="drop-a">Jelek</a>
+        <a href="/training.html" class="drop-a">Tréning</a>
+      </div>
+    </div>
+    <div class="nav-dropdown">
+      <button class="nav-a">Benchmark ▾</button>
+      <div class="nav-drop">
+        <a href="/benchmark.html" class="drop-a">Szintetikus teszt</a>
+        <a href="/ltsf_benchmark.html" class="drop-a">LSTM / Mamba összehasonlítás</a>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-4">
+      <span id="statusBadge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
+      <span class="text-xs text-slate-600" id="navTime">—</span>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-screen-2xl mx-auto px-5 py-5 space-y-4">
+
+  <!-- Fejléc -->
+  <div class="flex items-start justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-xl font-extrabold text-slate-200">Modell komplexitás térkép</h1>
+      <p class="text-xs text-slate-500 mt-1">Paraméterszám vs. pontosság (MSE) vs. tanítási idő — Pareto-hatékonyság elemzése az 5 modell között</p>
+    </div>
+    <div id="noDataBanner" class="badge badge-warn">Futtasd le az LSTM / Mamba összehasonlítást az adatokhoz</div>
+  </div>
+
+  <!-- Pareto winner banner -->
+  <div id="paretoBanner" class="hidden section" style="border-color:rgba(74,222,128,.2);background:rgba(74,222,128,.04)">
+    <p class="text-center text-sm font-bold text-emerald-400" id="paretoText"></p>
+  </div>
+
+  <!-- Fő scatter + radial összehasonlítás -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Scatter: paraméterszám vs MSE -->
+    <div class="section">
+      <div class="flex items-center justify-between mb-1">
+        <div>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméterszám vs. Test MSE</h2>
+          <p class="text-[11px] text-slate-600 mt-0.5">Bal-lent = kevés paraméter + alacsony hiba = legjobb hatékonyság</p>
+        </div>
+        <span class="pareto-badge hidden" id="paretoScatterLabel">Pareto-domináns</span>
+      </div>
+      <div class="h-[340px]"><canvas id="cScatterParams"></canvas></div>
+      <p class="text-[11px] text-slate-600 mt-2 text-center">Körméret = tanítási idő (másodperc). KLA jelölve kiemelve.</p>
+    </div>
+
+    <!-- Scatter: tanítási idő vs MSE -->
+    <div class="section">
+      <div class="flex items-center justify-between mb-1">
+        <div>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tanítási idő vs. Test MSE</h2>
+          <p class="text-[11px] text-slate-600 mt-0.5">Bal-lent = gyors tanítás + alacsony hiba = legjobb időhatékonyság</p>
+        </div>
+      </div>
+      <div class="h-[340px]"><canvas id="cScatterTime"></canvas></div>
+      <p class="text-[11px] text-slate-600 mt-2 text-center">Körméret = paraméterszám (normált). Tengelyek logaritmikus skálán.</p>
+    </div>
+  </div>
+
+  <!-- Normált összehasonlítás bar chart -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Normált összehasonlítás (alacsonyabb = jobb)</h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">Minden dimenzió 0–1 skálán normálva (legrosszabb = 1.0), majd csoportonként megjelenítve</p>
+      </div>
+    </div>
+    <div class="h-[280px]"><canvas id="cNormBar"></canvas></div>
+    <div class="flex flex-wrap gap-4 mt-3 text-[11px] text-slate-500">
+      <span><span style="display:inline-block;width:12px;height:3px;background:#60a5fa;margin-right:5px;vertical-align:middle"></span>LSTM</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#94a3b8;margin-right:5px;vertical-align:middle"></span>Fair Mamba</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#4ade80;margin-right:5px;vertical-align:middle"></span>KLA-Mamba</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#f59e0b;margin-right:5px;vertical-align:middle"></span>ARIMA</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#a78bfa;margin-right:5px;vertical-align:middle"></span>DLinear</span>
+    </div>
+  </div>
+
+  <!-- Hatékonysági tábla + részletes rangsor -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Részletes eredménytábla</h2>
+      <div class="overflow-auto">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Modell</th>
+              <th>Test MSE</th>
+              <th>Paraméter</th>
+              <th>Idő (s)</th>
+              <th>VRAM (MB)</th>
+              <th>Eff. score</th>
+            </tr>
+          </thead>
+          <tbody id="compTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hatékonysági rangsor</h2>
+      <p class="text-xs text-slate-500 mb-3">Score = MSE_norm + Params_norm + Time_norm, alacsonyabb jobb. A KLA célja: kisebb score mint LSTM ugyanolyan vagy jobb MSE mellett.</p>
+      <div id="efficiencyRankList" class="space-y-1"></div>
+    </div>
+  </div>
+
+  <!-- MSE összehasonlítás részletesen -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Test MSE összehasonlítás</h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">Abszolút MSE értékek — alacsonyabb jobb</p>
+      </div>
+    </div>
+    <div class="h-[220px]"><canvas id="cMseBar"></canvas></div>
+  </div>
+
+  <!-- Params összehasonlítás -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Paraméterszám összehasonlítás</h2>
+      <p class="text-[11px] text-slate-600 mb-3">Logaritmikus skéla — KLA-nál a kis méretnél is jó predikció a cél</p>
+      <div class="h-[220px]"><canvas id="cParamsBar"></canvas></div>
+    </div>
+
+    <div class="section">
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tanítási idő összehasonlítás</h2>
+      <p class="text-[11px] text-slate-600 mb-3">Másodpercben — egy epoch×batch iteráció teljes tréning ciklusa</p>
+      <div class="h-[220px]"><canvas id="cTimeBar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- MSE / Params aránya (paraméter-hatékonyság) -->
+  <div class="section">
+    <div class="flex items-center justify-between mb-1">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméter-hatékonyság (alacsonyabb = hatékonyabb)</h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">MSE × 10⁶ / paraméterszám — egy paraméter mennyi MSE-t "ér". A legalacsonyabb a leghatékonyabb modell.</p>
+      </div>
+      <span class="badge badge-ok hidden" id="paramEffBadge">KLA a leghatékonyabb</span>
+    </div>
+    <div class="h-[220px]"><canvas id="cParamEff"></canvas></div>
+  </div>
+
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+
+// ── Modellek metaadatai ───────────────────────────────────────────────────────
+const MODEL_COLORS = {
+  lstm:       { border: '#60a5fa', bg: 'rgba(96,165,250,.35)',  label: 'LSTM'        },
+  fair_mamba: { border: '#94a3b8', bg: 'rgba(148,163,184,.35)', label: 'Fair Mamba'  },
+  kla_mamba:  { border: '#4ade80', bg: 'rgba(74,222,128,.35)',  label: 'KLA-Mamba'   },
+  ar_model:   { border: '#f59e0b', bg: 'rgba(245,158,11,.35)',  label: 'ARIMA'       },
+  dlinear:    { border: '#a78bfa', bg: 'rgba(167,139,250,.35)', label: 'DLinear'     },
+};
+const MODEL_KEYS = ['lstm', 'fair_mamba', 'kla_mamba', 'ar_model', 'dlinear'];
+
+// ── Chart helpers ─────────────────────────────────────────────────────────────
+const baseOpts = (log = false) => ({
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+  animation: { duration: 400 },
+  scales: {
+    x: { display: true, ticks: { color: '#475569', maxTicksLimit: 8 }, grid: { color: 'rgba(30,41,59,.5)' } },
+    y: { display: true, type: log ? 'logarithmic' : 'linear', ticks: { color: '#475569' }, grid: { color: 'rgba(30,41,59,.5)' } },
+  }
+});
+
+let cScatterParams = null, cScatterTime = null, cNormBar = null;
+let cMseBar = null, cParamsBar = null, cTimeBar = null, cParamEff = null;
+
+function initCharts() {
+  const ctx = id => $(id);
+
+  // Scatter: params vs MSE (bubble)
+  cScatterParams = new Chart(ctx('cScatterParams'), {
+    type: 'bubble',
+    data: { datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const d = context.raw;
+              return ` ${d.label}: params=${d.x.toLocaleString()}, MSE=${d.y.toFixed(6)}, t=${d.r_orig?.toFixed(1)}s`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { type: 'logarithmic', title: { display: true, text: 'Paraméterszám (log)', color: '#64748b', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(30,41,59,.4)' } },
+        y: { title: { display: true, text: 'Test MSE', color: '#64748b', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(30,41,59,.4)' } },
+      }
+    }
+  });
+
+  // Scatter: time vs MSE
+  cScatterTime = new Chart(ctx('cScatterTime'), {
+    type: 'bubble',
+    data: { datasets: [] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const d = context.raw;
+              return ` ${d.label}: t=${d.x.toFixed(1)}s, MSE=${d.y.toFixed(6)}, params=${d.r_orig?.toLocaleString()}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { type: 'logarithmic', title: { display: true, text: 'Tanítási idő ms (log)', color: '#64748b', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(30,41,59,.4)' } },
+        y: { title: { display: true, text: 'Test MSE', color: '#64748b', font: { size: 11 } }, ticks: { color: '#64748b' }, grid: { color: 'rgba(30,41,59,.4)' } },
+      }
+    }
+  });
+
+  // Normált grouped bar
+  cNormBar = new Chart(ctx('cNormBar'), {
+    type: 'bar',
+    data: { labels: ['Test MSE', 'Paraméterszám', 'Tanítási idő'], datasets: [] },
+    options: {
+      ...baseOpts(),
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        y: { beginAtZero: true, max: 1.0, ticks: { color: '#64748b' }, title: { display: true, text: 'Normált érték (0=legjobb, 1=legrosszabb)', color: '#64748b', font: { size: 10 } } }
+      }
+    }
+  });
+
+  // MSE bar
+  cMseBar = new Chart(ctx('cMseBar'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1.5 }] },
+    options: { ...baseOpts(), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' MSE: ' + c.parsed.y.toFixed(6) } } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#64748b' } } } }
+  });
+
+  // Params bar (log)
+  cParamsBar = new Chart(ctx('cParamsBar'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1.5 }] },
+    options: { ...baseOpts(true), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + Math.round(c.parsed.y).toLocaleString() + ' param' } } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { type: 'logarithmic', ticks: { color: '#64748b' }, title: { display: true, text: 'Paraméterszám (log)', color: '#64748b', font: { size: 10 } } } } }
+  });
+
+  // Time bar
+  cTimeBar = new Chart(ctx('cTimeBar'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1.5 }] },
+    options: { ...baseOpts(), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + c.parsed.y.toFixed(1) + 's' } } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#64748b' }, title: { display: true, text: 'Tanítási idő (s)', color: '#64748b', font: { size: 10 } } } } }
+  });
+
+  // Param efficiency bar
+  cParamEff = new Chart(ctx('cParamEff'), {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderColor: [], borderWidth: 1.5 }] },
+    options: { ...baseOpts(), plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' Eff: ' + c.parsed.y.toFixed(4) + ' (MSE×10⁶/param)' } } }, scales: { x: { ticks: { color: '#94a3b8' }, grid: { display: false } }, y: { beginAtZero: true, ticks: { color: '#64748b' } } } }
+  });
+}
+initCharts();
+
+// ── Normalize array 0..1 (lower=better) ──────────────────────────────────────
+function normalize(arr) {
+  const valid = arr.filter(v => v != null && isFinite(v));
+  if (!valid.length) return arr.map(() => null);
+  const mn = Math.min(...valid), mx = Math.max(...valid);
+  if (mx === mn) return arr.map(v => v == null ? null : 0);
+  return arr.map(v => v == null ? null : (v - mn) / (mx - mn));
+}
+
+// ── Pareto dominance check ────────────────────────────────────────────────────
+// Model A dominates B if A ≤ B in all dims and < in at least one
+function isParetoFrontier(models) {
+  return models.map((a, i) => {
+    if (!a || a.test_mse == null) return false;
+    return !models.some((b, j) => {
+      if (i === j || !b || b.test_mse == null) return false;
+      const betterOrEq = ['test_mse', 'params', 'train_time_s'].every(k =>
+        (b[k] ?? Infinity) <= (a[k] ?? Infinity));
+      const strictlyBetter = ['test_mse', 'params', 'train_time_s'].some(k =>
+        (b[k] ?? Infinity) < (a[k] ?? Infinity));
+      return betterOrEq && strictlyBetter;
+    });
+  });
+}
+
+// ── Stars helper ──────────────────────────────────────────────────────────────
+function stars(score, maxScore) {
+  const n = Math.round((1 - score / maxScore) * 5);
+  const clamped = Math.max(0, Math.min(5, n));
+  return '<span class="star-rating">' +
+    '<span class="star-on">' + '★'.repeat(clamped) + '</span>' +
+    '<span class="star-off">' + '★'.repeat(5 - clamped) + '</span>' +
+    '</span>';
+}
+
+// ── Update all charts + UI ────────────────────────────────────────────────────
+function updateUI(models) {
+  const entries = MODEL_KEYS.map(k => {
+    const m = models[k];
+    if (!m) return null;
+    return { key: k, ...m, ...MODEL_COLORS[k] };
+  }).filter(Boolean);
+
+  if (!entries.length) return;
+  $('noDataBanner').classList.add('hidden');
+
+  // ── Pareto analysis ───────────────────────────────────────────────────────
+  const paretoFlags = isParetoFrontier(entries);
+  const paretoModels = entries.filter((_, i) => paretoFlags[i]);
+  if (paretoModels.length) {
+    $('paretoBanner').classList.remove('hidden');
+    const names = paretoModels.map(m => m.label).join(', ');
+    const klaIn = paretoModels.some(m => m.key === 'kla_mamba');
+    $('paretoText').innerHTML = klaIn
+      ? `KLA-Mamba Pareto-hatékony: ${names} modell(ek) alkotják a Pareto-határt — egyik sem javítható egyik dimenzióban sem a többi rovására.`
+      : `Pareto-határ: ${names} — ezek a modellek dominálnak egymás kompromisszuma nélkül.`;
+    if (klaIn) {
+      $('paretoScatterLabel').classList.remove('hidden');
+      $('paramEffBadge').classList.remove('hidden');
+    }
+  }
+
+  // ── Extraction ────────────────────────────────────────────────────────────
+  const labels    = entries.map(e => e.label);
+  const mses      = entries.map(e => e.test_mse ?? null);
+  const params    = entries.map(e => e.params   ?? null);
+  const times     = entries.map(e => e.train_time_s ?? null);
+  const vrams     = entries.map(e => e.peak_vram_mb ?? 0);
+  const borders   = entries.map(e => e.border);
+  const bgs       = entries.map(e => e.bg);
+
+  // ── Scatter: params vs MSE ────────────────────────────────────────────────
+  const maxTime = Math.max(...times.filter(Boolean));
+  cScatterParams.data.datasets = entries.map((e, i) => {
+    const radiusVal = times[i] != null ? 6 + (times[i] / maxTime) * 18 : 8;
+    const isKla = e.key === 'kla_mamba';
+    return {
+      label: e.label,
+      data: [{ x: params[i], y: mses[i], r: radiusVal, label: e.label, r_orig: times[i] }],
+      backgroundColor: isKla ? 'rgba(74,222,128,.55)' : e.bg,
+      borderColor: e.border,
+      borderWidth: isKla ? 3 : 1.5,
+    };
+  });
+  cScatterParams.update('none');
+
+  // ── Scatter: time vs MSE ──────────────────────────────────────────────────
+  const maxParams = Math.max(...params.filter(Boolean));
+  cScatterTime.data.datasets = entries.map((e, i) => {
+    const radiusVal = params[i] != null ? 6 + (params[i] / maxParams) * 18 : 8;
+    const isKla = e.key === 'kla_mamba';
+    return {
+      label: e.label,
+      data: [{ x: times[i], y: mses[i], r: radiusVal, label: e.label, r_orig: params[i] }],
+      backgroundColor: isKla ? 'rgba(74,222,128,.55)' : e.bg,
+      borderColor: e.border,
+      borderWidth: isKla ? 3 : 1.5,
+    };
+  });
+  cScatterTime.update('none');
+
+  // ── Normált bar ───────────────────────────────────────────────────────────
+  const normMse    = normalize(mses);
+  const normParams = normalize(params);
+  const normTimes  = normalize(times);
+  cNormBar.data.datasets = entries.map((e, i) => ({
+    label: e.label,
+    data: [normMse[i], normParams[i], normTimes[i]],
+    backgroundColor: bgs[i],
+    borderColor: borders[i],
+    borderWidth: 1.5,
+  }));
+  cNormBar.update('none');
+
+  // ── Simple bars ───────────────────────────────────────────────────────────
+  function updateSimpleBar(chart, data, colBorders, colBgs, hightlightKey) {
+    const minIdx = data.reduce((bi, v, i) => (v != null && (data[bi] == null || v < data[bi])) ? i : bi, 0);
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.data.datasets[0].borderColor = colBorders;
+    chart.data.datasets[0].backgroundColor = data.map((_, i) => i === minIdx ? colBorders[i] : colBgs[i]);
+    chart.update('none');
+  }
+  updateSimpleBar(cMseBar, mses, borders, bgs);
+  updateSimpleBar(cParamsBar, params, borders, bgs);
+  updateSimpleBar(cTimeBar, times, borders, bgs);
+
+  // ── Param efficiency: MSE*1e6 / params ───────────────────────────────────
+  const effValues = entries.map((e, i) =>
+    (mses[i] != null && params[i] != null && params[i] > 0)
+      ? (mses[i] * 1e6) / params[i] : null
+  );
+  updateSimpleBar(cParamEff, effValues, borders, bgs);
+
+  // ── Efficiency score + ranking ────────────────────────────────────────────
+  const effScores = entries.map((e, i) =>
+    (normMse[i] != null && normParams[i] != null && normTimes[i] != null)
+      ? normMse[i] + normParams[i] + normTimes[i] : Infinity
+  );
+  const maxScore = Math.max(...effScores.filter(isFinite));
+  const ranked   = entries.map((e, i) => ({ ...e, effScore: effScores[i], normMse: normMse[i], normParams: normParams[i], normTime: normTimes[i], paretoFront: paretoFlags[i] }))
+    .sort((a, b) => a.effScore - b.effScore);
+
+  $('efficiencyRankList').innerHTML = ranked.map((e, rank) => `
+    <div class="kv" style="${e.key === 'kla_mamba' ? 'background:rgba(74,222,128,.05);border-radius:6px;padding:6px 4px' : ''}">
+      <span class="lbl" style="color:${e.border};font-weight:${e.key==='kla_mamba'?'700':'400'}">
+        ${rank + 1}. ${e.label}${e.paretoFront ? ' <span class="pareto-badge" style="font-size:10px;padding:1px 7px">Pareto</span>' : ''}
+      </span>
+      <span>${stars(e.effScore, maxScore)}</span>
+    </div>
+  `).join('');
+
+  // ── Comparison table ──────────────────────────────────────────────────────
+  const minMse = Math.min(...mses.filter(Boolean));
+  $('compTbody').innerHTML = entries.map((e, i) => {
+    const isBest = mses[i] === minMse;
+    const isKla  = e.key === 'kla_mamba';
+    const effPct = effScores[i] < Infinity
+      ? (((maxScore - effScores[i]) / maxScore) * 100).toFixed(0) + '%' : '—';
+    return `<tr class="${isKla ? 'kla-row' : ''}">
+      <td style="color:${e.border};font-weight:${isKla?'700':'400'}">${e.label}${e.paretoFront ? ' ✦' : ''}</td>
+      <td class="${isBest ? 'best' : ''}">${mses[i]?.toFixed(6) ?? '—'}</td>
+      <td>${params[i]?.toLocaleString() ?? '—'}</td>
+      <td>${times[i]?.toFixed(1) ?? '—'}</td>
+      <td>${vrams[i]?.toFixed(1) ?? '—'}</td>
+      <td style="color:${e.border}">${effPct}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+async function loadData() {
+  let d;
+  try { d = await (await fetch('/ltsf_benchmark', { cache: 'no-store' })).json(); }
+  catch (e) { $('noDataBanner').classList.remove('hidden'); return; }
+
+  $('navTime').textContent = new Date().toLocaleTimeString('hu-HU');
+  const badge = $('statusBadge');
+
+  if (d.status === 'done' && d.models) {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400';
+    badge.textContent = '● Kész';
+    updateUI(d.models);
+  } else if (d.status === 'running') {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
+    badge.textContent = '● Fut...';
+    $('noDataBanner').classList.remove('hidden');
+    $('noDataBanner').textContent = 'Benchmark fut: ' + (d.stage || '...');
+    setTimeout(loadData, 2500);
+  } else {
+    badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400';
+    badge.textContent = '● Inaktív';
+  }
+}
+
+loadData();
+document.addEventListener('click', function(e) {
+  var dd = e.target.closest('.nav-dropdown');
+  document.querySelectorAll('.nav-dropdown').forEach(function(d) { if (d !== dd) d.classList.remove('open'); });
+  if (dd) dd.classList.toggle('open');
+});
+</script>
+</body>
+</html>
