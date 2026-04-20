@@ -29,40 +29,47 @@ IMAGES_DIR = Path(__file__).resolve().parent.parent / "images"
 IMAGES_DIR.mkdir(parents=True, exist_ok=True)
 
 # Paul Tol "bright" (colorblind-safe, print-friendly)
-C_LSTM = "#4477AA"    # blue
-C_FAIR = "#EE6677"    # red
-C_KLA  = "#228833"    # green
-C_TRI  = "#CCBB44"    # yellow
-C_ALT1 = "#AA3377"    # purple
-C_ALT2 = "#66CCEE"    # cyan
-C_MUTE = "#BBBBBB"    # grey
+C_LSTM  = "#4477AA"    # blue
+C_FAIR  = "#EE6677"    # red
+C_KLA   = "#228833"    # green
+C_ARIMA = "#EE7733"    # orange
+C_TRI   = "#CCBB44"    # yellow
+C_ALT1  = "#AA3377"    # purple
+C_ALT2  = "#66CCEE"    # cyan
+C_MUTE  = "#BBBBBB"    # grey
 
 SIGMAS = [0, 1, 3, 5]
 CFG_ORDER = [("Exchange", 1), ("Exchange", 16),
              ("ETTh1", 1), ("ETTh1", 16),
              ("ETTh2", 1), ("ETTh2", 16)]
-MODELS = ["LSTM", "Fair", "KLA"]
-COLORS = {"LSTM": C_LSTM, "Fair": C_FAIR, "KLA": C_KLA, "Triton": C_TRI}
+MODELS = ["ARIMA", "LSTM", "Fair", "KLA"]
+COLORS = {"ARIMA": C_ARIMA, "LSTM": C_LSTM, "Fair": C_FAIR, "KLA": C_KLA, "Triton": C_TRI}
 
 MSE = {
-    ("Exchange", 1):  {"LSTM": [0.219, 0.664, 0.922, 1.139],
-                       "Fair": [0.022, 0.381, 0.979, 1.757],
-                       "KLA":  [0.022, 0.496, 0.860, 1.228]},
-    ("Exchange", 16): {"LSTM": [0.853, 0.966, 1.125, 1.372],
-                       "Fair": [0.004, 1.332, 3.248, 5.950],
-                       "KLA":  [0.788, 0.750, 1.264, 1.307]},
-    ("ETTh1", 1):     {"LSTM": [0.175, 0.455, 0.858, 1.264],
-                       "Fair": [0.288, 0.534, 0.928, 1.266],
-                       "KLA":  [0.180, 0.559, 1.092, 1.363]},
-    ("ETTh1", 16):    {"LSTM": [0.234, 0.399, 0.760, 1.010],
-                       "Fair": [0.181, 0.525, 1.698, 3.470],
-                       "KLA":  [0.189, 0.453, 0.856, 1.120]},
-    ("ETTh2", 1):     {"LSTM": [0.056, 0.183, 0.432, 0.674],
-                       "Fair": [0.079, 0.174, 0.476, 0.808],
-                       "KLA":  [0.056, 0.206, 0.512, 0.871]},
-    ("ETTh2", 16):    {"LSTM": [0.146, 0.225, 0.392, 0.545],
-                       "Fair": [0.050, 0.351, 1.238, 3.108],
-                       "KLA":  [0.055, 0.232, 0.456, 0.592]},
+    ("Exchange", 1):  {"ARIMA": [0.00,  0.18,  1.72,  5.43],
+                       "LSTM":  [0.219, 0.664, 0.922, 1.139],
+                       "Fair":  [0.022, 0.381, 0.979, 1.757],
+                       "KLA":   [0.022, 0.496, 0.860, 1.228]},
+    ("Exchange", 16): {"ARIMA": [0.00,  0.78,  6.72,  20.77],
+                       "LSTM":  [0.853, 0.966, 1.125, 1.372],
+                       "Fair":  [0.004, 1.332, 3.248, 5.950],
+                       "KLA":   [0.788, 0.750, 1.264, 1.307]},
+    ("ETTh1", 1):     {"ARIMA": [0.18,  0.54,  2.07,  4.74],
+                       "LSTM":  [0.175, 0.455, 0.858, 1.264],
+                       "Fair":  [0.288, 0.534, 0.928, 1.266],
+                       "KLA":   [0.180, 0.559, 1.092, 1.363]},
+    ("ETTh1", 16):    {"ARIMA": [0.19,  0.62,  6.01,  18.64],
+                       "LSTM":  [0.234, 0.399, 0.760, 1.010],
+                       "Fair":  [0.181, 0.525, 1.698, 3.470],
+                       "KLA":   [0.189, 0.453, 0.856, 1.120]},
+    ("ETTh2", 1):     {"ARIMA": [0.05,  0.24,  1.52,  4.18],
+                       "LSTM":  [0.056, 0.183, 0.432, 0.674],
+                       "Fair":  [0.079, 0.174, 0.476, 0.808],
+                       "KLA":   [0.056, 0.206, 0.512, 0.871]},
+    ("ETTh2", 16):    {"ARIMA": [0.05,  0.33,  6.18,  15.89],
+                       "LSTM":  [0.146, 0.225, 0.392, 0.545],
+                       "Fair":  [0.050, 0.351, 1.238, 3.108],
+                       "KLA":   [0.055, 0.232, 0.456, 0.592]},
 }
 
 RAW_WIN = [
@@ -392,13 +399,21 @@ def fig01(lang):
     L = LBL[lang]
     fig, axes = plt.subplots(2, 3, figsize=(9.5, 5.6),
                              constrained_layout=True, sharex=True)
+    model_styles = [("ARIMA", "D", "--"), ("LSTM", "o", "-"),
+                    ("Fair", "s", "-"), ("KLA", "^", "-")]
     for ax, (ds, stride) in zip(axes.flat, CFG_ORDER):
         data = MSE[(ds, stride)]
-        for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KLA", "^")):
-            ax.plot(SIGMAS, data[m], marker=mk, color=COLORS[m],
-                    label=m if (ds, stride) == CFG_ORDER[0] else None)
+        for m, mk, ls in model_styles:
+            lbl = m if (ds, stride) == CFG_ORDER[0] else None
+            ax.plot(SIGMAS, data[m], marker=mk, linestyle=ls,
+                    color=COLORS[m], label=lbl)
         ax.set_title(f"{ds}, s$=${stride}")
         ax.set_xticks(SIGMAS)
+        # log scale keeps all 4 models readable (ARIMA can reach 20+)
+        ax.set_yscale("log")
+        ax.yaxis.set_major_formatter(
+            plt.matplotlib.ticker.FuncFormatter(
+                lambda v, _: (f"{v:.0f}" if v >= 1 else f"{v:.2f}")))
     for ax in axes[-1]:
         ax.set_xlabel(L["noise"])
     for ax in axes[:, 0]:
@@ -410,27 +425,29 @@ def fig01(lang):
 
 def fig02(lang):
     L = LBL[lang]
-    fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.8),
+    all_models = ["ARIMA", "LSTM", "Fair", "KLA"]
+    fig, axes = plt.subplots(1, 4, figsize=(13.5, 3.8),
                              constrained_layout=True, sharey=True)
     cfg_labels = [f"{d}\ns={s}" for (d, s) in CFG_ORDER]
     vmax = 4.0
-    for ax, m in zip(axes, MODELS):
+    for ax, m in zip(axes, all_models):
         grid = np.array([MSE[(d, s)][m] for (d, s) in CFG_ORDER])
         im = ax.imshow(grid, aspect="auto", cmap="YlOrRd",
                        vmin=0, vmax=vmax)
         ax.set_xticks(range(4))
         ax.set_xticklabels([rf"$\sigma{{=}}{s}$" for s in SIGMAS])
         ax.set_yticks(range(len(cfg_labels)))
-        ax.set_yticklabels(cfg_labels)
+        ax.set_yticklabels(cfg_labels if m == "ARIMA" else [])
         ax.set_title(m)
         ax.tick_params(length=0)
         for i in range(len(cfg_labels)):
             for j in range(4):
                 v = grid[i, j]
-                ax.text(j, i, f"{v:.2f}",
+                txt = f"{v:.0f}" if v >= 10 else f"{v:.2f}"
+                ax.text(j, i, txt,
                         ha="center", va="center",
                         color="white" if v > 2.2 else "black",
-                        fontsize=8)
+                        fontsize=7)
     fig.colorbar(im, ax=axes, label=L["mse"], shrink=0.85, pad=0.02)
     return save(fig, "fig02_mse_heatmap", lang)
 

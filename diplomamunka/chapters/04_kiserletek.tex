@@ -203,6 +203,17 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
     \label{tab:degradation}
 \end{table}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_hu.png}
+  \caption{MSE hőtérkép mind a négy modellre (ARIMA, LSTM, Fair Mamba, KCMamba),
+           minden konfigurációra és zajszintre. A sötétpiros mezők katasztrofikus
+           összeomolást jeleznek ($\text{MSE} > 4$); az ARIMA és a Fair Mamba
+           a $s{=}16$ konfigurációkban mindösszesen $\sigma{\geq}3$-nál csűdöt
+           vallanak, míg a KCMamba végig stabil marad.}
+  \label{fig:mse_heatmap}
+\end{figure}
+
 \section{A Kalman-gain dinamikája}
 \label{sec:k_dynamics}
 
@@ -226,6 +237,18 @@ A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamik
              csökkenti és $A$-t növeli, ezáltal erősebb szűrést alkalmaz.}
     \label{tab:k_dynamics}
 \end{table}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig01_noise_curves_hu.png}
+  \caption{Zajrobusztussági összehasonlítás mind a négy modellre: MSE a
+           zajszint ($\sigma$) függvényében, logaritmikus skálán.
+           Az ARIMA (narancssárga, szaggatott) $s{=}16$-nál katastrofálisan
+           összeomlik ($\sigma{=}5$-nél MSE $>15$); a Fair Mamba szintén instaballá
+           válik $s{=}16$-nál; a KCMamba és az LSTM végig mérsékelt tartományban
+           maradnak.}
+  \label{fig:all_noise_curves}
+\end{figure}
 
 Amennyiben $R \gg Q$, a Kalman-szűrő az aktuális mérés helyett az
 előzmény-állapotra támaszkodik. A KCMamba ezt a viselkedést az

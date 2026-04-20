@@ -202,6 +202,17 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
 
 \begin{figure}[H]
   \centering
+  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_en.png}
+  \caption{MSE heatmap for all four models (ARIMA, LSTM, Fair Mamba, KCMamba)
+           across all configurations and noise levels. Dark red cells indicate
+           catastrophic failure (MSE $>4$); ARIMA and Fair Mamba collapse
+           completely at $s{=}16$, $\sigma{\geq}3$, while KCMamba remains
+           stable throughout.}
+  \label{fig:mse_heatmap}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
   \includegraphics[width=\textwidth]{images/fig03_degradation_en.png}
   \caption{MSE degradation on a log scale ($\sigma=0 \to \sigma=5$) across all
            configurations. Fair Mamba exhibits catastrophic collapse in three
@@ -217,10 +228,12 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{images/fig01_noise_curves_en.png}
-  \caption{Noise robustness comparison across all configurations: MSE vs.\
-           noise level $\sigma$. The green shaded area marks the regime where
-           KCMamba dominates. Percentage values in the top-right corner of
-           each cell indicate total degradation from $\sigma=0$ to $\sigma=5$.}
+  \caption{Noise robustness comparison across all four models: MSE vs.\
+           noise level $\sigma$ on a logarithmic scale.
+           ARIMA (orange dashed) collapses catastrophically at $s{=}16$
+           ($\text{MSE}>15$ at $\sigma{=}5$); Fair Mamba also becomes
+           unstable at $s{=}16$; KCMamba and LSTM remain in a manageable
+           range across all configurations.}
   \label{fig:all_noise_curves}
 \end{figure}
 
