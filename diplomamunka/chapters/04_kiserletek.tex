@@ -134,6 +134,18 @@ $K=0.706$, $\sigma=5$-nél $K=0.073$ ($A=0.926$). Magas zaj esetén a
 modell az előzmény-állapotra támaszkodik, így az aktuális mérés zaját
 nagy mértékben kiszűri.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_hu.png}
+  \caption{\textbf{Bal:} MSE a zajszint függvényében, Exchange/$s=16$ konfiguráció.
+           A Fair Mamba a legjobb zajmentes MSE-t adja ($\sigma=0$), de $\sigma=5$-nél
+           $+152\,350\%$-os degradációval összeomlik. A KCMamba degradációja $+66\%$.
+           \textbf{Jobb:} A KCMamba Kalman-gain ($K$), felejtési faktor ($A=1-K$)
+           és zajbecslés ($R$) automatikus adaptációja a zajszint növekedésével.
+           Magas zajnál $K$ merődlegel esést mutat ($0{,}706 \to 0{,}073$).}
+  \label{fig:exchange_s16}
+\end{figure}
+
 \begin{table}[H]
     \centering
     \small
@@ -214,6 +226,16 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
   \label{fig:mse_heatmap}
 \end{figure}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig03_degradation_hu.png}
+  \caption{MSE-degradáció logaritmikus skálán ($\sigma=0 \to \sigma=5$) az összes
+           konfigurációban. A Fair Mamba három esetben katasztrofikus összeomolást
+           mutat ($>10\,000\%$); a KCMamba (zöld) és az LSTM (kék) lényegesen
+           stabilabbak. A kiemelten jelölt mező az Exchange/$s=16$ esetet jelöli.}
+  \label{fig:degradation}
+\end{figure}
+
 \section{A Kalman-gain dinamikája}
 \label{sec:k_dynamics}
 
@@ -250,6 +272,17 @@ A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamik
   \label{fig:all_noise_curves}
 \end{figure}
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig06_radar_hu.png}
+  \caption{Pókháló-diagram: modellek összehasonlítása öt dimenzion:
+           zajmentes teljesítmény, zajrobusztusság, adat-hatékonyság ($s=16$
+           rezsim), paraméter-hatékonyság és konvergens-sebesség. A KCMamba a
+           zajrobusztusság és az adat-hatékonyság tengelyeken kiemelkedik;
+           a Fair Mamba a zajmentes teljesítményen vezet.}
+  \label{fig:radar}
+\end{figure}
+
 Amennyiben $R \gg Q$, a Kalman-szűrő az aktuális mérés helyett az
 előzmény-állapotra támaszkodik. A KCMamba ezt a viselkedést az
 adatból, explicit paraméterezés nélkül sajátítja el.
@@ -267,12 +300,37 @@ az előrejelzést: a modell elveszti a bemeneti jel követésének képességét
 
 A KCMamba előnye ritka adat mellett lesz valóban szembetűnő. Az Exchange/$s=16$
 konfiguráció egyszerre ötvözi a kis adatkészletet (7\,588 nap) és a nagy
-stride-ból adódó tizenhatszoros ablakritkítást, így a tanítás során rendkívül
+stride-ból adódó tizenhatszoross ablakritkítást, így a tanítás során rendkivül
 kevés példa áll rendelkezésre a zajszerkezet implicit megtanulásához.
 Az explicit $Q/R$ dekompozíció ilyen körülmények között erős priorként
-viselkedik: a modellnek nem kell a zajmodellt tisztán az adatból
-előállítania, mert az architekturális szinten be van építve. Ez magyarázza
+viselkedik: a modellnek nem kell a zajmodellt tisztan az adatból
+előállítánia, mert az architektúrális szinten be van építve. Ez magyarázza
 a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_hu.png}
+  \caption{Előrejelzés-vizualizáció három zajszinten (ETTh-típusú jel,
+           $T=96$ lookback, $H=96$ horizon).
+           Fekete $=$ valós jel; zöld $=$ KCMamba; narancssárga $=$ Fair Mamba;
+           kék $=$ LSTM.
+           \textbf{Bal:} $\sigma=0$-nál mindkét Mamba-modell pontosan követi a jelet.
+           \textbf{Közép/Jobb:} A zaj növekedésével a KCMamba simá marad,
+           a Fair Mamba instabillá válik, az LSTM lassan konvergál.}
+  \label{fig:forecast_viz}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_hu.png}
+  \caption{\textbf{Bal:} Paraméterszam vs.\ MSE ($\sigma{=}3$ átlag). A KCMamba
+           egyszerre a legkisebb paraméterszámú és a legjobb MSE-jű, optimalis
+           Pareto-pozícióban van.
+           \textbf{Jobb:} Epoch-tanítási idők (másodpercben). A PyTorch
+           implementáció KLA-t $\approx{}40\%$-kal lassítja, de Triton-kernellel
+           gyorsabb lesz az LSTM-nél.}
+  \label{fig:efficiency}
+\end{figure}
 
 
 \section{Hosszú szekvencia vizsgálat}
