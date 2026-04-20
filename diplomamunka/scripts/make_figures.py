@@ -153,6 +153,40 @@ LONGSEQ_MSE = {
 }
 
 # ---------------------------------------------------------------------------
+# Stride × long-sequence sweep data  (Exchange daily; s=1 and s=16)
+# Source: stride_seq_sweep.py, 10 epochs, FastAI LR finder, σ ∈ {0,1,3,5}
+# T=96 values for s=16 come from the original ltsf_benchmark experiments
+# (B_teljes_tablazatok: Exchange s=16, σ values from full result tables)
+# ---------------------------------------------------------------------------
+STRIDE_SEQ  = [96, 192, 336, 512]
+
+STRIDE_MSE = {
+    # (stride, noise_sigma): {"LSTM": [T=96,192,336,512], "Fair": [...], "KLA": [...]}
+    # s=1: T=96 from long_seq_sweep (Exchange|96|σ|*), T=192-512 from stride_seq_sweep
+    (1, 3): {
+        "LSTM": [0.960, 0.961, 1.185, 1.292],
+        "Fair": [2.119, 1.263, 1.148, 1.007],
+        "KLA":  [0.895, 0.823, 0.886, 0.836],
+    },
+    (1, 5): {
+        "LSTM": [1.321, 1.448, 1.240, 1.233],
+        "Fair": [2.837, 1.557, 1.526, 1.739],
+        "KLA":  [1.494, 1.153, 1.320, 1.076],
+    },
+    # s=16: T=96 from ltsf_benchmark original run; T=192-512 from stride_seq_sweep
+    (16, 3): {
+        "LSTM": [1.125, 1.049, 0.929, 1.155],
+        "Fair": [3.248, 8.162, 8.500, 8.460],
+        "KLA":  [1.264, 1.188, 1.089, 1.234],
+    },
+    (16, 5): {
+        "LSTM": [1.372, 1.077, 1.146, 1.528],
+        "Fair": [5.950, 3.628, 3.595, 5.868],
+        "KLA":  [1.307, 1.373, 1.900, 1.726],
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Language labels (mathtext-safe: no \text, no vs.\, no escaped %)
 # ---------------------------------------------------------------------------
 LBL = {
@@ -227,6 +261,10 @@ LBL = {
         "longseq_x":    "Szekvenciahossz $T$",
         "longseq_s3":   r"$\sigma=3$",
         "longseq_s5":   r"$\sigma=5$",
+        "stride_title": "MSE a szekvenciahossz függvényében, stride hatása",
+        "stride_s1":    "$s=1$ (sűrű ablak)",
+        "stride_s16":   "$s=16$ (ritka ablak)",
+        "stride_clip":  "Fair Mamba túllép ($>4.0$)",
     },
     "en": {
         "noise":        r"Noise level $\sigma$",
@@ -299,6 +337,10 @@ LBL = {
         "longseq_x":    "Sequence length $T$",
         "longseq_s3":   r"$\sigma=3$",
         "longseq_s5":   r"$\sigma=5$",
+        "stride_title": "MSE vs. sequence length: stride effect",
+        "stride_s1":    "$s=1$ (dense windows)",
+        "stride_s16":   "$s=16$ (sparse windows)",
+        "stride_clip":  "Fair Mamba exceeds ($>4.0$)",
     },
 }
 
@@ -856,6 +898,65 @@ def fig15(lang: str) -> str:
     return save(fig, "fig15_longseq", lang)
 
 
+def fig16(lang: str) -> str:
+    """Stride x long-seq interaction on Exchange: 2x2 grid (stride x noise).
+
+    Rows: s=1 (dense), s=16 (sparse). Cols: sigma=3, sigma=5.
+    y-axis clipped at 4.0 for s=16 panels (Fair Mamba exceeds this).
+    """
+    L = LBL[lang]
+    fig, axes = plt.subplots(2, 2, figsize=(9, 6), constrained_layout=True)
+    xs = STRIDE_SEQ
+
+    configs = [
+        (1,  3, axes[0][0]),
+        (1,  5, axes[0][1]),
+        (16, 3, axes[1][0]),
+        (16, 5, axes[1][1]),
+    ]
+    for (stride, sig, ax) in configs:
+        row = STRIDE_MSE.get((stride, sig), {})
+        sparse = (stride == 16)
+        ymax_hard = 4.0 if sparse else None
+
+        for mname, color, ls in [
+            ("LSTM", C_LSTM, "-o"),
+            ("Fair", C_FAIR, "-s"),
+            ("KLA",  C_KLA,  "-^"),
+        ]:
+            if mname not in row:
+                continue
+            ys = row[mname]
+            ax.plot(xs, ys, ls, color=color,
+                    label=mname if mname != "Fair" else "Fair Mamba",
+                    linewidth=1.4, markersize=5,
+                    clip_on=sparse)  # clip Fair's off-scale values in s=16
+
+        ax.set_xticks(xs)
+        ax.set_xlabel(L["longseq_x"], fontsize=9)
+        ax.set_ylabel(L["mse"], fontsize=9)
+
+        s_lbl = L["stride_s1"] if stride == 1 else L["stride_s16"]
+        sig_lbl = L["longseq_s3"] if sig == 3 else L["longseq_s5"]
+        ax.set_title(f"{s_lbl} -- {sig_lbl}", fontsize=9)
+
+        if sparse:
+            ax.set_ylim(0, ymax_hard)
+            ax.annotate(L["stride_clip"], xy=(0.98, 0.96),
+                        xycoords="axes fraction", ha="right", va="top",
+                        fontsize=7, color=C_FAIR,
+                        bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=C_FAIR, alpha=0.8))
+        else:
+            all_vals = [v for m in ["LSTM", "KLA"] for v in row.get(m, [])]
+            if all_vals:
+                ax.set_ylim(0, min(max(all_vals) * 1.5, 4.0))
+
+        if stride == 1 and sig == 5:
+            ax.legend(fontsize=8, loc="upper right")
+
+    return save(fig, "fig16_stride_seq", lang)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -865,7 +966,7 @@ ALL = {
     "fig05": fig05, "fig06": fig06, "fig07": fig07, "fig08": fig08,
     "fig09": fig09, "fig11": fig11, "fig12": fig12,
     "fig13": fig13, "kc_stack": kc_stack, "kla_stack": kla_stack,
-    "fig14": fig14, "fig15": fig15,
+    "fig14": fig14, "fig15": fig15, "fig16": fig16,
 }
 
 

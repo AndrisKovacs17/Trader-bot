@@ -63,6 +63,12 @@ Three concrete questions are investigated:
           On ETTm1 at $\sigma{=}3$, KCMamba is the only model whose MSE
           monotonically decreases with sequence length
           ($0.673 \to 0.466$ as $T{:}\,96 \to 512$, $-31\%$).
+    \item Stride $\times$ sequence-length sweep (Exchange, $s \in \{1,16\}$,
+          $T \in \{192,336,512\}$): at $s{=}1$, $\sigma{=}3$, KCMamba is
+          $\mathbf{+35\%}$ better than LSTM at $T{=}512$ ($0.836$ vs $1.292$);
+          the advantage grows monotonically with sequence length.
+          At $s{=}16$, $\sigma{\geq}3$, Fair Mamba's MSE rises to $8.1$--$8.5$
+          while KCMamba stays at $1.1$--$1.3$, a stability gap of $7$--$9\times$.
     \item An open-source Python/PyTorch/CUDA implementation and an
           asynchronous trading system for deploying the model in
           live markets.

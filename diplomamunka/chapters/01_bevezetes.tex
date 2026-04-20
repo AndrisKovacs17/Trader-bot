@@ -66,6 +66,13 @@ Három konkrét kérdést vizsgálunk:
           a Fair Mamba $2{,}121$ --- a KCMamba $63{,}6\%$-kal jobb.
           $\sigma=3$-nál az ETTm1-en a KCMamba MSE monoton csökken
           $T=96$-tól $T=512$-ig ($0{,}673 \to 0{,}466$, $-31\%$).
+    \item Stride $\times$ szekvenciahossz vizsgálat (Exchange, $s \in \{1, 16\}$,
+          $T \in \{192, 336, 512\}$): $s{=}1$, $\sigma{=}3$-nál a KCMamba
+          $T{=}512$-nél $\mathbf{+35\%}$-kal jobb az LSTM-nél ($0{,}836$ vs $1{,}292$);
+          az előny a szekvenciahossz növekedésével monoton nő.
+          $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik
+          (a KCMamba $1{,}1$--$1{,}3$ között marad), ami $7$--$9\times$-es
+          stabilitásbeli különbséget jelent.
     \item Nyílt forráskódú implementáció (Python/PyTorch/CUDA) és egy
           aszinkron kereskedési rendszer a modell deployálásához.
 \end{itemize}

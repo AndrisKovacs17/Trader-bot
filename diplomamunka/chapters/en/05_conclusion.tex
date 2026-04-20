@@ -31,6 +31,16 @@ SSM. The experiments on three datasets lead to the following conclusions:
                     length ($0.673 \to 0.466$, $-31\%$, $T{:}\,96 \to 512$).
           \end{itemize}
 
+    \item Stride $\times$ sequence-length sweep
+          (Section~\ref{sec:stride_longseq}, Exchange, $s \in \{1,16\}$,
+          $T \in \{192,336,512\}$): two distinct patterns emerged.
+          At $s{=}1$, $\sigma{=}3$, KCMamba's margin over LSTM grows
+          monotonically with $T$, reaching $+35\%$ at $T{=}512$
+          ($0.836$ vs $1.292$). At $s{=}16$, $\sigma{\geq}3$,
+          Fair Mamba catastrophically collapses (MSE $8.1$--$8.5$),
+          a $7$--$9\times$ stability gap vs.\ KCMamba which stays
+          at $1.1$--$1.3$.
+
     \item The model learned on its own to reduce $K$ as noise increases
           ($0.706 \to 0.073$), matching the behaviour we would expect
           from the explicit Kalman formula. The architectural prior

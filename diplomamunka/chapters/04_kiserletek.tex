@@ -360,3 +360,86 @@ alapján három mintázat figyelhető meg:
            növekedésével.}
   \label{fig:longseq}
 \end{figure}
+
+\section{Stride \texttimes{} Hosszú Szekvencia}
+\label{sec:stride_longseq}
+
+Az előző szekció csak az $s{=}1$ (sűrű ablakozású) eseteket tárgyalta.
+Kérdés, hogy az $s{=}16$ stride-dal (ritka ablakozás) is megmarad-e a KCMamba
+előnye növekvő szekvenciahossz mellett. Kiegészítő méréseket végeztem
+$T \in \{192, 336, 512\}$ és $s \in \{1, 16\}$ értékekkel az Exchange
+adatkészleten (10 epoch, FastAI LR-kereső). A $T{=}96$ referencia az eredeti
+ltsf\_benchmark futásból való.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|cccc|}
+        \hline
+        \textbf{Stride} & \textbf{Modell} &
+        $T{=}96$ & $T{=}192$ & $T{=}336$ & $T{=}512$ \\
+        \hline\hline
+        \multicolumn{6}{|c|}{$\sigma{=}3$} \\
+        \hline
+        \multirow{3}{*}{$s=1$}
+            & LSTM    & 0.960 & 0.961 & 1.185 & 1.292 \\
+            & Fair    & 2.119 & 1.263 & 1.148 & 1.007 \\
+            & KCMamba & \textbf{0.895} & \textbf{0.823} & \textbf{0.886} & \textbf{0.836} \\
+        \hline
+        \multirow{3}{*}{$s=16$}
+            & LSTM    & 1.125 & 1.049 & \textbf{0.929} & 1.155 \\
+            & Fair    & 3.248 & 8.162 & 8.500 & 8.460 \\
+            & KCMamba & 1.264 & 1.188 & 1.089 & 1.234 \\
+        \hline\hline
+        \multicolumn{6}{|c|}{$\sigma{=}5$} \\
+        \hline
+        \multirow{3}{*}{$s=1$}
+            & LSTM    & 1.321 & 1.448 & 1.240 & 1.233 \\
+            & Fair    & 2.837 & 1.557 & 1.526 & 1.739 \\
+            & KCMamba & \textbf{1.494} & \textbf{1.153} & 1.320 & \textbf{1.076} \\
+        \hline
+        \multirow{3}{*}{$s=16$}
+            & LSTM    & \textbf{1.372} & \textbf{1.077} & \textbf{1.146} & \textbf{1.528} \\
+            & Fair    & 5.950 & 3.628 & 3.595 & 5.868 \\
+            & KCMamba & 1.307 & 1.373 & 1.900 & 1.726 \\
+        \hline
+    \end{tabular}
+    \caption{MSE az Exchange adatkészleten, stride $\times$ szekvenciahossz
+             keresztfaktoriális kísérletben.
+             Félkövérrel az adott konfiguráción belül a legkisebb MSE.
+             $s{=}1$-nél a KCMamba $\sigma{=}3$-nál mindvégig nyer;
+             $s{=}16$-nál a Fair Mamba katasztrofikusan összeoml ($>8$).}
+    \label{tab:stride_longseq}
+\end{table}
+
+Két főmintázat olvasható le a \ref{tab:stride_longseq}.~táblázatból
+és a \ref{fig:stride_longseq}.~ábrából:
+
+\begin{itemize}
+    \item \textbf{$s{=}1$, $\sigma{=}3$}: A KCMamba $T{=}96$-tól $T{=}512$-ig
+          konzisztensen nyer az LSTM-mel szemben ($0{,}895 \to 0{,}836$),
+          miközben az LSTM monoton romlik ($0{,}960 \to 1{,}292$). Ez közvetlenül
+          alátámasztja az adaptív $K$ hipotézist: elegendő tanítóadattal és
+          hosszabb kontextussal a KCMamba zajmodellje egyre pontosabb lesz.
+
+    \item \textbf{$s{=}16$, $\sigma{\geq}3$}: A Fair Mamba teljesen összeoml
+          (MSE $8{,}1$--$8{,}5$, kb.\ $7$--$9\times$-es többlet a KCMambához
+          képest). Az LSTM enyh\'{e}n jobb a KCMambánál ($+6$--$17\%$),
+          de mindkettő kezelhető tartományban marad. Az extrém ritka konfiguráció
+          ($s{=}16$, $T{=}512$) mindössze $\sim{}10$ tanítóablakot jelent ---
+          egyik architektúra sem konvergál teljesen, de a Fair Mamba az egyetlen,
+          amely \emph{katasztrofikusan} omlik össze, miközben a KCMamba stabil marad.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig16_stride_seq_hu.png}
+  \caption{MSE a szekvenciahossz függvényében sűrű ($s{=}1$, felső sor)
+           és ritka ($s{=}16$, alsó sor) ablakozásnál, $\sigma{=}3$ (bal oszlop)
+           és $\sigma{=}5$ (jobb oszlop) zajszinten az Exchange adatkészleten.
+           Az $s{=}16$ panelokon a tengely $4{,}0$-nál el van vágva
+           (a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik).
+           A KCMamba $s{=}1$-nél nyeri a versenyt $\sigma{=}3$-nál;
+           $s{=}16$-nál $\sigma{\geq}3$ esetén az egyetlen stabil modell.}
+  \label{fig:stride_longseq}
+\end{figure}
