@@ -78,17 +78,15 @@ for every position; $s=16$ produces roughly sixteen times fewer windows.
         \textbf{Stride} & \textbf{Model} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
         \hline\hline
-        \multirow{4}{*}{$s=1$}
+        \multirow{3}{*}{$s=1$}
             & LSTM  & 0.22 & 0.66 & 0.92 & \textbf{1.14} & +421\% \\
-            & Fair  & 0.02 & 0.38 & 0.98 & 1.76 & +7\,833\% \\
-            & KLA   & 0.02 & 0.50 & \textbf{0.86} & 1.23 & +5\,505\% \\
-            & ARIMA & \textbf{0.00} & \textbf{0.18} & 1.72 & 5.43 & \cellcolor{red!20}+146\,461\% \\
+            & Fair  & 0.02 & \textbf{0.38} & 0.98 & 1.76 & +7\,833\% \\
+            & KLA   & \textbf{0.02} & 0.50 & \textbf{0.86} & 1.23 & +5\,505\% \\
         \hline
-        \multirow{4}{*}{$s=16$}
+        \multirow{3}{*}{$s=16$}
             & LSTM  & 0.85 & 0.97 & \textbf{1.12} & 1.37 & +61\% \\
-            & Fair  & 0.00 & 1.33 & 3.25 & 5.95 & \cellcolor{red!20}+152\,350\% \\
+            & Fair  & \textbf{0.00} & 1.33 & 3.25 & 5.95 & \cellcolor{red!20}+152\,350\% \\
             & KLA   & 0.79 & \textbf{0.75} & 1.26 & \textbf{1.31} & \cellcolor{green!20}+66\% \\
-            & ARIMA & \textbf{0.00} & 0.78 & 6.72 & 20.77 & \cellcolor{red!20}+631\,340\% \\
         \hline
     \end{tabular}
     \caption{MSE on the Exchange-Rate dataset at different noise levels.
@@ -97,10 +95,9 @@ for every position; $s=16$ produces roughly sixteen times fewer windows.
     \label{tab:exchange}
 \end{table}
 
-The $s=16$ case is the most striking: ARIMA achieves the lowest MSE at $\sigma=0$
-(0.003), but collapses $+631\,340\%$ at $\sigma=5$ ($6\,314\times$). Among neural
-models, Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$) but degrades
-$1\,487\times$ ($+152\,350\%$). KLA moves only $+66\%$, a multi-order-of-magnitude spread.
+The $s=16$ case is the most striking: Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$)
+but degrades $1\,487\times$ ($+152\,350\%$) by $\sigma=5$.
+KLA moves only $+66\%$, a multi-order-of-magnitude spread.
 
 The $K$-gain explains this: at $\sigma=0$, $K=0.706$; at $\sigma=5$,
 $K=0.073$ and $A=0.926$.
@@ -130,17 +127,15 @@ filtering out the noisy measurement.
         \textbf{Stride} & \textbf{Model} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
         \hline\hline
-        \multirow{4}{*}{$s=1$}
+        \multirow{3}{*}{$s=1$}
             & LSTM  & \textbf{0.17} & \textbf{0.45} & \textbf{0.86} & \textbf{1.26} & +624\% \\
             & Fair  & 0.29 & 0.53 & 0.93 & 1.27 & \textbf{+339\%} \\
             & KLA   & 0.18 & 0.56 & 1.09 & 1.36 & +658\% \\
-            & ARIMA & 0.18 & 0.54 & 2.07 & 4.74 & +2\,566\% \\
         \hline
-        \multirow{4}{*}{$s=16$}
+        \multirow{3}{*}{$s=16$}
             & LSTM  & 0.23 & \textbf{0.40} & \textbf{0.76} & \textbf{1.01} & +331\% \\
             & Fair  & \textbf{0.18} & 0.52 & 1.70 & 3.47 & +1\,817\% \\
             & KLA   & 0.19 & 0.45 & 0.86 & 1.12 & \textbf{+492\%} \\
-            & ARIMA & 0.19 & 0.62 & 6.01 & 18.64 & \cellcolor{red!20}+9\,653\% \\
         \hline
     \end{tabular}
     \caption{MSE on ETTh1. LSTM is a strong baseline when both data and noise
@@ -162,22 +157,18 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
         \textbf{Stride} & \textbf{Model} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
         \hline\hline
-        \multirow{4}{*}{$s=1$}
+        \multirow{3}{*}{$s=1$}
             & LSTM  & 0.06 & 0.18 & \textbf{0.43} & \textbf{0.67} & +1\,098\% \\
             & Fair  & 0.08 & \textbf{0.17} & 0.48 & 0.81 & \textbf{+919\%} \\
-            & KLA   & 0.06 & 0.21 & 0.51 & 0.87 & +1\,463\% \\
-            & ARIMA & \textbf{0.05} & 0.24 & 1.52 & 4.18 & \cellcolor{red!20}+8\,895\% \\
+            & KLA   & \textbf{0.06} & 0.21 & 0.51 & 0.87 & +1\,463\% \\
         \hline
-        \multirow{4}{*}{$s=16$}
+        \multirow{3}{*}{$s=16$}
             & LSTM  & 0.15 & 0.23 & \textbf{0.39} & \textbf{0.55} & +274\% \\
             & Fair  & 0.05 & 0.35 & 1.24 & 3.11 & +6\,145\% \\
-            & KLA   & 0.05 & \textbf{0.23} & 0.46 & 0.59 & \textbf{+982\%} \\
-            & ARIMA & \textbf{0.05} & 0.33 & 6.18 & 15.89 & \cellcolor{red!20}+33\,284\% \\
+            & KLA   & \textbf{0.05} & \textbf{0.23} & 0.46 & 0.59 & \textbf{+982\%} \\
         \hline
     \end{tabular}
-    \caption{MSE on ETTh2. ARIMA achieves the best $\sigma=0$ score for both strides
-             ($s=1$: 0.047, $s=16$: 0.048) but collapses at high noise. KCMamba
-             wins the $s=16$ competition at the highest noise level (0.592 vs.\ Fair 3.108).}
+    \caption{MSE on ETTh2. KCMamba wins the $s=16$ competition at the highest noise level (0.59 vs.\ Fair 3.11).}
     \label{tab:etth2}
 \end{table}
 
@@ -211,7 +202,6 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
         LSTM                       & $+468\%$    & $+61\%$   & $+1\,098\%$ \\
         KCMamba         & $+1\,528\%$ & $+66\%$ & $+5\,505\%$ \\
         Fair Mamba                 & $+28\,234\%$ & $+339\%$ & $+152\,350\%$ \\
-        ARIMA                      & $+138\,700\%$ & $+2\,566\%$ & $+631\,340\%$ \\
         \hline
     \end{tabular}
     \caption{Average MSE degradation from $\sigma=0$ to $\sigma=5$.
@@ -385,36 +375,32 @@ epochs and the FastAI learning-rate finder.
         \textbf{Seq.\ len.} & \textbf{Model} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
         \hline\hline
-        \multirow{4}{*}{96}
+        \multirow{3}{*}{96}
             & LSTM      & 0.07 & 0.23 & \textbf{0.65} & 0.96 \\
             & Fair      & 0.09 & 0.20 & 0.89 & \textbf{0.80} \\
             & KLA       & \textbf{0.07} & \textbf{0.20} & 0.67 & 0.89 \\
-            & ARIMA     & 0.07 & 0.28 & 1.45 & 3.86 \\
         \hline
-        \multirow{4}{*}{192}
+        \multirow{3}{*}{192}
             & LSTM      & 0.07 & 0.21 & 0.53 & 0.85 \\
             & Fair      & 0.07 & 0.20 & 0.84 & \textbf{0.83} \\
             & KLA       & \textbf{0.06} & \textbf{0.19} & \textbf{0.52} & 0.92 \\
-            & ARIMA     & 0.07 & 0.26 & 1.43 & 3.49 \\
         \hline
-        \multirow{4}{*}{336}
+        \multirow{3}{*}{336}
             & LSTM      & 0.06 & 0.20 & 0.53 & \textbf{0.71} \\
             & Fair      & 0.07 & 0.20 & 0.79 & 0.82 \\
             & KLA       & \textbf{0.06} & \textbf{0.18} & \textbf{0.51} & 0.87 \\
-            & ARIMA     & 0.06 & 0.27 & 1.50 & 3.94 \\
         \hline
-        \multirow{4}{*}{512}
+        \multirow{3}{*}{512}
             & LSTM      & \textbf{0.06} & 0.20 & 0.48 & 0.80 \\
             & Fair      & 0.07 & 0.20 & 0.94 & 1.02 \\
             & KLA       & 0.07 & \textbf{0.18} & \textbf{0.47} & \textbf{0.72} \\
-            & ARIMA     & 0.07 & 0.26 & 1.55 & 3.85 \\
         \hline
     \end{tabular}
     \caption{MSE on the ETTm1 dataset across four sequence lengths.
              Bold: lowest MSE per noise level.
              KLA is the only model whose MSE monotonically decreases
              with sequence length at $\sigma{=}3$ ($0.673 \to 0.466$, $-31\%$);
-             LSTM stagnates; Fair Mamba and ARIMA become unstable.}
+             LSTM stagnates; Fair Mamba becomes unstable.}
     \label{tab:longseq_ettm1}
 \end{table}
 
@@ -431,9 +417,8 @@ Figure~\ref{fig:longseq}:
     \item \textbf{LSTM}: at $\sigma{=}5$ on ETTm1 it improves from $0.957$ to
           $0.713$ with longer sequences, but shows slight deterioration at
           $T{=}512$ ($0.713 \to 0.796$), an early sign of gradient decay.
-    \item \textbf{Fair Mamba and ARIMA}: both become unstable at
-          $\sigma \geq 3$, $T \geq 336$; ARIMA reaches $3.8\times$ the KLA MSE
-          at $\sigma{=}5$.
+    \item \textbf{Fair Mamba}: becomes unstable at
+          $\sigma \geq 3$, $T \geq 336$.
 \end{itemize}
 
 \begin{figure}[H]
@@ -442,7 +427,6 @@ Figure~\ref{fig:longseq}:
   \caption{MSE vs.\ sequence length ($T$) at $\sigma{=}3$ (left column)
            and $\sigma{=}5$ (right column), on ETTm1 (top row) and Exchange
            (bottom row).
-           ARIMA is off-chart ($>3.0$).
            KLA is the only model showing a consistently improving trend
            with longer sequences on both datasets and both noise levels.}
   \label{fig:longseq}
