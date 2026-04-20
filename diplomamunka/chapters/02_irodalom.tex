@@ -117,7 +117,7 @@ előrejelzése nMSE minimalizálásával.
 
 \subsection{Referenciamodellek}
 
-\paragraph{LSTM}
+\subsubsection*{LSTM}
 A Long Short-Term Memory~\cite{hochreiter1997lstm} hálózat a rekurrens
 modellek közül a legszélesebb körben alkalmazott idősor-előrejelző
 architektúra. A \emph{forget gate} $f_t = \sigma(W_f [h_{t-1}, x_t] + b_f)$
@@ -129,7 +129,7 @@ szerepével, azzal a különbséggel, hogy az LSTM-ben nincs explicit
 zajmodell. Kísérleteinkben az LSTM erős baseline, különösen sok adat és
 magas zaj esetén.
 
-\paragraph{ARIMA}
+\subsubsection*{ARIMA}
 Az ARIMA($p,d,q$) modell a Box--Jenkins-eljárás klasszikus statisztikai
 módszere~\cite{box2015time}. A $d$-szeres differenciálás stacionerizálja az
 idősort, az AR($p$) tag lineáris autoregressziót, az MA($q$) tag mozgóátlagot

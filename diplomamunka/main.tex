@@ -98,9 +98,7 @@ Empirikus értékelést végzünk három nyilvános LTSF-adatkészleten
 körülmények között. Kísérleteink szerint a KCMamba MSE-degradációja
 $\sigma\!=\!0$-ról $\sigma\!=\!5$-re átlagosan $+1\,528\%$, míg a Fair Mamba
 baseline esetén $+28\,234\%$, ez közel $18{,}5\times$-es robusztusság-előnyt
-jelent. Az EC-MSE (Efficiency-Corrected MSE) metrika szerint, amely a
-paraméterszámot, a VRAM-igényt és a futási időt is figyelembe veszi, a
-KCMamba 24 konfigurációból 18-ban bizonyult a legelőnyösebbnek.
+jelent.
 
 A szakdolgozat a teljes szoftverrendszer leírását is tartalmazza: egy aszinkron,
 eseményvezérelt kereskedési motort hexagonális architektúrában, webalapú
@@ -128,9 +126,7 @@ We conduct empirical evaluation on three public LTSF benchmarks
 (stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
 MSE degradation of $+1\,528\%$ as noise increases from $\sigma\!=\!0$ to
 $\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba, a
-$18{.}5\times$ robustness advantage. Under the EC-MSE metric, which
-penalises parameter count, VRAM usage, and training speed, KCMamba
-wins in 18 out of 24 evaluated configurations.
+$18{.}5\times$ robustness advantage.
 
 The thesis also describes the complete production software system: an
 asynchronous, event-driven trading engine built in a hexagonal architecture,

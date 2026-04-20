@@ -23,7 +23,7 @@ elkerülése érdekében minden order a beépített szimulációs brókerbe fut.
 
 | Felhasználó típus | Tipikus feladat |
 |---|---|
-| Kutató / hallgató | A KCMamba modell teljesítményének reprodukciója (`run_benchmark_sweep.py`) |
+| Kutató / hallgató | A KCMamba modell teljesítményének reprodukciója a `tests/` suite-on keresztül |
 | Fejlesztő | A hexagonális architektúra bővítése új adapterekkel |
 | Szakmai bíráló | A rendszer működésének megtekintése a dashboardon |
 
@@ -77,19 +77,7 @@ Leállítás: **Ctrl+C**. A program ilyenkor szabályosan lezárja a WebSocketet
 kiüríti az eseménypuffert, leállítja a HTTP-szervert és kiírja a végleges
 pozíció-összegzést.
 
-### 5.2 Benchmark és tréning scriptek
-
-| Script | Célja |
-|---|---|
-| `run_quick_test.py` | Gyors (~10 perc) zaj-robusztossági próba, 3 dataseten |
-| `run_noise_sweep.py` | Zajszint-érzékenységi sweep, 8 dataseten |
-| `run_benchmark_sweep.py` | Teljes összehasonlítás (KCMamba vs Fair Mamba vs LSTM vs ARIMA vs DLinear) |
-| `eval_features.py` | TinyGRU feature-eval 90 napos BTCUSDT adaton |
-| `ablation.py` | Feature-ablációs tanulmány |
-
-Az eredmények a `benchmark_results/` mappába kerülnek (TXT + JSON).
-
-### 5.3 Tesztek futtatása
+### 5.2 Tesztek futtatása
 
 ```bash
 python -m pytest tests/ -q

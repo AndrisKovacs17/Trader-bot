@@ -72,15 +72,17 @@ by minimising normalised MSE.
 
 \subsection{Reference Models}
 
-\paragraph{Informer} Reduces Transformer complexity to $O(L \log L)$ via
-ProbSparse attention~\cite{zhou2021informer}.
-
-\paragraph{Autoformer} Applies series decomposition and auto-correlation-based
-attention~\cite{wu2021autoformer}.
-
-\paragraph{DLinear} Achieves surprisingly strong results with a plain linear
-projection, questioning the necessity of complex architectures~\cite{zeng2023transformers}.
-A reminder that a simpler model is not always worse.
+\begin{itemize}
+    \item \emph{Informer} reduces Transformer complexity to
+          $O(L \log L)$ via ProbSparse
+          attention~\cite{zhou2021informer}.
+    \item \emph{Autoformer} applies series decomposition and
+          auto-correlation-based attention~\cite{wu2021autoformer}.
+    \item \emph{DLinear} achieves surprisingly strong results with a
+          plain linear projection, questioning the necessity of complex
+          architectures~\cite{zeng2023transformers} --- a reminder that a
+          simpler model is not always worse.
+\end{itemize}
 
 \subsection{Datasets}
 \label{sec:datasets}

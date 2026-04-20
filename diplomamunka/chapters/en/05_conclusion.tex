@@ -10,34 +10,80 @@ KCMamba integrates a differentiable Kalman filtering mechanism into the Mamba
 SSM. The experiments on three datasets lead to the following conclusions:
 
 \begin{enumerate}
-    \item \textbf{Noise robustness.} Going from $\sigma=0$ to $\sigma=5$,
-          KCMamba's average MSE degradation is $+1\,528\%$, versus
-          $+28\,234\%$ for Fair Mamba, an $\mathbf{18.5\times}$ difference.
-          In the Exchange/$s=16$ setting this becomes five orders of magnitude:
-          $+66\%$ vs.\ $+152\,350\%$.
+    \item Going from $\sigma=0$ to $\sigma=5$, KCMamba's average MSE
+          degradation is $+1\,528\%$, versus $+28\,234\%$ for Fair
+          Mamba, an $18.5\times$ difference. In the Exchange/$s=16$
+          setting this becomes five orders of magnitude: $+66\%$ vs.\
+          $+152\,350\%$.
 
-    \item \textbf{Kalman gain adaptation.} The model learned on its own to
-          reduce $K$ as noise increases ($0.706 \to 0.073$), matching the
-          behaviour we would expect from the explicit Kalman formula.
-          The architectural prior genuinely guides learning.
+    \item The model learned on its own to reduce $K$ as noise increases
+          ($0.706 \to 0.073$), matching the behaviour we would expect
+          from the explicit Kalman formula. The architectural prior
+          genuinely guides learning.
 
-    \item \textbf{Scarce data.} With stride $s=16$, the Kalman structure acts
-          as an implicit regulariser that partially compensates for the lack of
+    \item With stride $s=16$, the Kalman structure acts as an implicit
+          regulariser that partially compensates for the lack of
           training windows.
 \end{enumerate}
 
 \section{Limitations}
 
-KCMamba does not win in every configuration:
+KCMamba does not win in every configuration, and the experimental
+framework contains several simplifications that meaningfully restrict the
+generalisability of our conclusions.
+
 \begin{itemize}
-    \item At $\sigma=0$, $s=16$, Fair Mamba nearly memorises and achieves
-          much better MSE.
-    \item On ETTh1/$s=1$, LSTM is the best; its gating mechanism exploits
-          the large data volume effectively.
-    \item Only 5 training epochs were run, which is not necessarily a converged
-          state. Longer training might reorder the results.
-    \item Only a seq=96/pred=96 horizon was evaluated; other horizons may show
-          different rankings.
+    \item At $\sigma=0$, $s=16$ Fair Mamba nearly memorises and achieves
+          a much better MSE. This suggests that in noise-free settings the
+          explicit Kalman structure imposes unnecessary overhead: the
+          always-present filtering term causes mild underfitting, and the
+          architecture cannot fully switch the filter off.
+
+    \item On ETTh1/$s=1$ LSTM is the best; its gating mechanism exploits
+          the large data volume. The forget/input gate pair realises a
+          similar adaptive filter, but more flexibly, because it is not
+          tied to the $K = Q/(Q+R)$ structure. This is not a KCMamba
+          failure but illustrates that the utility of the inductive prior
+          decreases in data-rich regimes.
+
+    \item Only 5 epochs were run, and every configuration used a single
+          seed. This guarantees neither convergence nor statistical
+          significance: the reported results are point estimates without
+          confidence intervals. A publication-grade study would require
+          at least three repetitions and early stopping.
+
+    \item Only $L = H = 96$ was evaluated. At 336, 720 and 960-step
+          horizons, Mamba's $O(T)$ complexity may yield a substantive
+          advantage over $O(T^2)$ Transformers, and LSTM's memory
+          limitations also begin to dominate; the conclusions here thus
+          formally apply only to short horizons.
+
+    \item The noise model is exclusively isotropic Gaussian
+          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$); in real
+          applications noise is typically heteroscedastic, temporally
+          correlated, sometimes non-Gaussian, and often structural
+          (sensor dropouts, missing values). Robustness measured here
+          does not automatically generalise to those noise forms.
+
+    \item Scalar $Q_t$, $R_t$ estimation assumes per-channel independent
+          noise components. Estimating a diagonal or full covariance
+          matrix would yield a richer noise model at the cost of a
+          noticeably larger parameter count.
+
+    \item Two benchmarks (Weather, ECL) were excluded from this round
+          because of training-time scaling; dimensional sensitivity
+          (7 vs.\ 21 vs.\ 321 channels) is therefore not \emph{a priori}
+          substantiated.
+
+    \item A broader hyperparameter-sensitivity study (hidden dimension,
+          number of heads, layers, kernel size, learning rate) was not
+          performed; the configuration presented is a reasonable default
+          that is not guaranteed to be Pareto-optimal.
+
+    \item On the trading side (Chapter~\ref{ch:implementacio}) the
+          system is validated in backtests; live-market effects,
+          slippage variance, outages and partial-fill ordering lie
+          outside the scope of this thesis.
 \end{itemize}
 
 \section{Future Work}
