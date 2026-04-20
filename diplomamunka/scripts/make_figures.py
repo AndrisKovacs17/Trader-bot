@@ -122,6 +122,37 @@ HORIZON = {"LSTM": 58, "Vanilla SSM": 28,
            "KLA": [2.4, 6.0, 15.5, 40.0]}
 
 # ---------------------------------------------------------------------------
+# Long-sequence sweep data  (ETTm1 15-min, Exchange daily; seq_len axis)
+# Source: long_seq_sweep.py, 10 epochs, FastAI LR finder, σ ∈ {0,1,3,5}
+# ---------------------------------------------------------------------------
+LONGSEQ_SEQ = [96, 192, 336, 512]
+
+LONGSEQ_MSE = {
+    # (dataset, noise_sigma): {"LSTM": [...], "Fair": [...], "KLA": [...]}
+    # values ordered by LONGSEQ_SEQ = [96, 192, 336, 512]
+    ("ETTm1", 3): {
+        "LSTM": [0.648, 0.528, 0.527, 0.482],
+        "Fair": [0.889, 0.840, 0.791, 0.939],
+        "KLA":  [0.673, 0.520, 0.513, 0.466],
+    },
+    ("ETTm1", 5): {
+        "LSTM": [0.957, 0.845, 0.713, 0.796],
+        "Fair": [0.803, 0.831, 0.818, 1.018],
+        "KLA":  [0.893, 0.919, 0.874, 0.717],
+    },
+    ("Exchange", 3): {
+        "LSTM": [0.960, 0.845, 1.000, 0.989],
+        "Fair": [2.119, 1.838, 1.162, 2.121],
+        "KLA":  [0.895, 0.770, 0.736, 0.773],
+    },
+    ("Exchange", 5): {
+        "LSTM": [1.321, 1.162, 1.188, 1.197],
+        "Fair": [2.837, 1.608, 1.547, 1.700],
+        "KLA":  [1.494, 1.276, 1.023, 1.074],
+    },
+}
+
+# ---------------------------------------------------------------------------
 # Language labels (mathtext-safe: no \text, no vs.\, no escaped %)
 # ---------------------------------------------------------------------------
 LBL = {
@@ -192,6 +223,10 @@ LBL = {
                          "Hír-feed",
                          "Event bus\n(pub/sub)"],
         "arch_title":   "KCMamba / KLA-Mamba blokk",
+        "longseq_title": r"MSE a szekvenciahossz függvényében (zajrobusztusság)",
+        "longseq_x":    "Szekvenciahossz $T$",
+        "longseq_s3":   r"$\sigma=3$",
+        "longseq_s5":   r"$\sigma=5$",
     },
     "en": {
         "noise":        r"Noise level $\sigma$",
@@ -260,6 +295,10 @@ LBL = {
                          "News feed",
                          "Event bus\n(pub/sub)"],
         "arch_title":   "KCMamba / KLA-Mamba block",
+        "longseq_title": r"MSE vs. sequence length (noise robustness)",
+        "longseq_x":    "Sequence length $T$",
+        "longseq_s3":   r"$\sigma=3$",
+        "longseq_s5":   r"$\sigma=5$",
     },
 }
 
@@ -775,6 +814,48 @@ def fig14(lang):
     return save(fig, "fig14_system_arch", lang)
 
 
+def fig15(lang: str) -> str:
+    """Long-sequence noise robustness: MSE vs seq_len for ETTm1 and Exchange.
+
+    2x2 grid: rows = datasets (ETTm1, Exchange), cols = noise (sigma=3, sigma=5).
+    Lines: LSTM, Fair Mamba, KLA-Mamba.  ARIMA excluded (off-scale).
+    """
+    L = LBL[lang]
+    fig, axes = plt.subplots(2, 2, figsize=(9, 6), constrained_layout=True)
+    xs = LONGSEQ_SEQ
+    datasets = ["ETTm1", "Exchange"]
+    noises   = [3, 5]
+    titles_ds = {"ETTm1": "ETTm1 (15-min)", "Exchange": "Exchange (daily)"}
+
+    for ri, ds in enumerate(datasets):
+        for ci, sig in enumerate(noises):
+            ax = axes[ri][ci]
+            row = LONGSEQ_MSE.get((ds, sig), {})
+            for mname, color, ls in [
+                ("LSTM", C_LSTM, "-o"),
+                ("Fair", C_FAIR, "-s"),
+                ("KLA",  C_KLA,  "-^"),
+            ]:
+                if mname in row:
+                    ax.plot(xs, row[mname], ls, color=color,
+                            label=mname if mname != "Fair" else "Fair Mamba",
+                            linewidth=1.4, markersize=5)
+            ax.set_xticks(xs)
+            ax.set_xlabel(L["longseq_x"], fontsize=9)
+            ax.set_ylabel(L["mse"], fontsize=9)
+            noise_lbl = L["longseq_s3"] if sig == 3 else L["longseq_s5"]
+            ax.set_title(f"{titles_ds[ds]} -- {noise_lbl}", fontsize=9)
+            # clip y so Fair's high values don't crush the interesting region
+            all_vals = [v for m in ["LSTM", "KLA"] for v in row.get(m, [])]
+            if all_vals:
+                ymax = min(max(all_vals) * 1.6, 3.0)
+                ax.set_ylim(0, ymax)
+            if ri == 0 and ci == 1:
+                ax.legend(fontsize=8, loc="upper right")
+
+    return save(fig, "fig15_longseq", lang)
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -784,7 +865,7 @@ ALL = {
     "fig05": fig05, "fig06": fig06, "fig07": fig07, "fig08": fig08,
     "fig09": fig09, "fig11": fig11, "fig12": fig12,
     "fig13": fig13, "kc_stack": kc_stack, "kla_stack": kla_stack,
-    "fig14": fig14,
+    "fig14": fig14, "fig15": fig15,
 }
 
 

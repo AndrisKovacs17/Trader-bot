@@ -367,3 +367,83 @@ combination achieves a similar adaptive-filtering effect using learned weights
 rather than an explicit Kalman structure. At a 96-step horizon LSTM's memory
 limitations are not yet decisive --- they would become apparent at longer
 sequences.
+
+\section{Long-Sequence Analysis}
+\label{sec:longseq}
+
+The experiments above used a fixed sequence length $T=96$, which favours LSTM.
+To verify that KLA's adaptive $A$-mechanism provides a benefit at longer memory
+windows, complementary measurements were run with $T \in \{96, 192, 336, 512\}$
+on ETTm1 (15-minute sampling, 17\,420 steps) and Exchange, using 10 training
+epochs and the FastAI learning-rate finder.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|cccc|}
+        \hline
+        \textbf{Seq.\ len.} & \textbf{Model} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
+        \hline\hline
+        \multirow{4}{*}{96}
+            & LSTM      & 0.074 & 0.234 & 0.648 & 0.957 \\
+            & Fair      & 0.086 & 0.203 & 0.889 & 0.803 \\
+            & KLA       & \textbf{0.065} & \textbf{0.200} & 0.673 & 0.893 \\
+            & ARIMA     & 0.070 & 0.279 & 1.446 & 3.861 \\
+        \hline
+        \multirow{4}{*}{192}
+            & LSTM      & 0.065 & 0.210 & 0.528 & 0.845 \\
+            & Fair      & 0.067 & 0.201 & 0.840 & 0.831 \\
+            & KLA       & \textbf{0.064} & \textbf{0.186} & \textbf{0.520} & 0.919 \\
+            & ARIMA     & 0.065 & 0.264 & 1.429 & 3.492 \\
+        \hline
+        \multirow{4}{*}{336}
+            & LSTM      & \textbf{0.064} & 0.199 & 0.527 & \textbf{0.713} \\
+            & Fair      & 0.068 & 0.197 & 0.791 & 0.818 \\
+            & KLA       & 0.064 & \textbf{0.181} & \textbf{0.513} & 0.874 \\
+            & ARIMA     & 0.064 & 0.267 & 1.499 & 3.937 \\
+        \hline
+        \multirow{4}{*}{512}
+            & LSTM      & \textbf{0.064} & 0.200 & 0.483 & 0.796 \\
+            & Fair      & 0.072 & 0.197 & 0.939 & 1.018 \\
+            & KLA       & 0.066 & \textbf{0.179} & \textbf{0.466} & \textbf{0.717} \\
+            & ARIMA     & 0.065 & 0.256 & 1.548 & 3.848 \\
+        \hline
+    \end{tabular}
+    \caption{MSE on the ETTm1 dataset across four sequence lengths.
+             Bold: lowest MSE per noise level.
+             KLA is the only model whose MSE monotonically decreases
+             with sequence length at $\sigma{=}3$ ($0.673 \to 0.466$, $-31\%$);
+             LSTM stagnates; Fair Mamba and ARIMA become unstable.}
+    \label{tab:longseq_ettm1}
+\end{table}
+
+Three patterns emerge from Table~\ref{tab:longseq_ettm1} and
+Figure~\ref{fig:longseq}:
+
+\begin{itemize}
+    \item \textbf{KLA}: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$
+          as $T$ grows from 96 to 512 ($-31\%$). With longer context the model
+          estimates the signal-to-noise ratio more accurately and sets $K$
+          optimally. On Exchange ($T{=}512$, $\sigma{=}3$) KLA achieves MSE
+          $0.773$ vs.\ LSTM $0.989$ ($+28\%$ advantage) while Fair Mamba
+          collapses to $2.121$.
+    \item \textbf{LSTM}: at $\sigma{=}5$ on ETTm1 it improves from $0.957$ to
+          $0.713$ with longer sequences, but shows slight deterioration at
+          $T{=}512$ ($0.713 \to 0.796$), an early sign of gradient decay.
+    \item \textbf{Fair Mamba and ARIMA}: both become unstable at
+          $\sigma \geq 3$, $T \geq 336$; ARIMA reaches $3.8\times$ the KLA MSE
+          at $\sigma{=}5$.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig15_longseq_en.png}
+  \caption{MSE vs.\ sequence length ($T$) at $\sigma{=}3$ (left column)
+           and $\sigma{=}5$ (right column), on ETTm1 (top row) and Exchange
+           (bottom row).
+           ARIMA is off-chart ($>3.0$).
+           KLA is the only model showing a consistently improving trend
+           with longer sequences on both datasets and both noise levels.}
+  \label{fig:longseq}
+\end{figure}

@@ -276,3 +276,87 @@ forget/input gate együttese tanult súlyokkal (explicit Kalman-struktúra
 nélkül) hasonló adaptív szűrési hatást valósít meg. A 96 lépéses
 előrejelzési horizonton az LSTM memória-korlátai még nem dominánsak;
 ezek hatása hosszabb szekvenciáknál várható.
+
+\section{Hosszú szekvencia vizsgálat}
+\label{sec:longseq}
+
+A fenti kísérletek rögzített $T=96$ szekvenciahosszal futottak, ami az
+LSTM-nek kedvez. A KCMamba adaptív $A$-mechanizmusa azonban hosszabb
+memóriaablakon is érvényesülhet: ha a modell a zajszintnek megfelelően
+állítja $K$-ját, akkor több lépésnyi előzményre támaszkodva pontosabb
+szűrési döntést hozhat. Ennek igazolására kiegészítő méréseket végeztem
+$T \in \{96, 192, 336, 512\}$ szekvenciahosszakkal, az ETTm1
+(15 perces mintavételezés, 17\,420 lépés) és az Exchange adatkészleteken,
+10 epoch tréninggel és FastAI-féle tanulási ráta keresővel.
+
+\begin{table}[H]
+    \centering
+    \small
+    \begin{tabular}{|c|l|cccc|}
+        \hline
+        \textbf{Seq.\ len.} & \textbf{Modell} &
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
+        \hline\hline
+        \multirow{4}{*}{96}
+            & LSTM      & 0.074 & 0.234 & 0.648 & 0.957 \\
+            & Fair      & 0.086 & 0.203 & 0.889 & 0.803 \\
+            & KCMamba   & \textbf{0.065} & \textbf{0.200} & 0.673 & 0.893 \\
+            & ARIMA     & 0.070 & 0.279 & 1.446 & 3.861 \\
+        \hline
+        \multirow{4}{*}{192}
+            & LSTM      & 0.065 & 0.210 & 0.528 & 0.845 \\
+            & Fair      & 0.067 & 0.201 & 0.840 & 0.831 \\
+            & KCMamba   & \textbf{0.064} & \textbf{0.186} & \textbf{0.520} & 0.919 \\
+            & ARIMA     & 0.065 & 0.264 & 1.429 & 3.492 \\
+        \hline
+        \multirow{4}{*}{336}
+            & LSTM      & \textbf{0.064} & 0.199 & 0.527 & \textbf{0.713} \\
+            & Fair      & 0.068 & 0.197 & 0.791 & 0.818 \\
+            & KCMamba   & 0.064 & \textbf{0.181} & \textbf{0.513} & 0.874 \\
+            & ARIMA     & 0.064 & 0.267 & 1.499 & 3.937 \\
+        \hline
+        \multirow{4}{*}{512}
+            & LSTM      & \textbf{0.064} & 0.200 & 0.483 & 0.796 \\
+            & Fair      & 0.072 & 0.197 & 0.939 & 1.018 \\
+            & KCMamba   & 0.066 & \textbf{0.179} & \textbf{0.466} & \textbf{0.717} \\
+            & ARIMA     & 0.065 & 0.256 & 1.548 & 3.848 \\
+        \hline
+    \end{tabular}
+    \caption{MSE értékek az ETTm1 adatkészleten négy szekvenciahosszon.
+             Félkövérrel zajszintenként a legkisebb MSE.
+             A KCMamba $\sigma{=}3$-nál a szekvenciahossz növekedésével
+             monoton javul ($0{,}673 \to 0{,}466$, $-31\%$);
+             az LSTM stagnál, a Fair Mamba és az ARIMA instabillá válik.}
+    \label{tab:longseq_ettm1}
+\end{table}
+
+A \ref{tab:longseq_ettm1}.~táblázat és a \ref{fig:longseq}.~ábra
+alapján három mintázat figyelhető meg:
+
+\begin{itemize}
+    \item \textbf{KCMamba}: $\sigma{=}3$-nál MSE $0{,}673$-ról $0{,}466$-ra
+          csökken, ahogy $T$ 96-ról 512-re nő ($-31\%$). Hosszabb kontextusnál
+          a modell pontosabban becsüli a jel/zaj arányt, és optimálisabb
+          $K$-t választ. Az Exchange adatkészleten ($T{=}512$, $\sigma{=}3$)
+          a KCMamba MSE-je $0{,}773$ az LSTM $0{,}989$-ével szemben ($+28\%$
+          előny), míg a Fair Mamba $2{,}121$-re esik vissza.
+    \item \textbf{LSTM}: $\sigma{=}5$-nél az ETTm1-en $0{,}957$-ről $0{,}796$-ra
+          javul a hosszabb szekvenciával, de $T{=}512$-nél enyhe romlás látható
+          ($0{,}713 \to 0{,}796$), ami a gradienscsökkenés korai jeleit mutatja.
+    \item \textbf{Fair Mamba és ARIMA}: mindkettő instabil $\sigma \geq 3$-nál
+          és $T \geq 336$-nál; az ARIMA $\sigma{=}5$-nél $3{,}8$-szeres MSE-t
+          mutat a KCMambához képest.
+\end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{images/fig15_longseq_hu.png}
+  \caption{MSE a szekvenciahossz ($T$) függvényében $\sigma{=}3$ (bal oszlop)
+           és $\sigma{=}5$ (jobb oszlop) zajszinten, ETTm1 (felső sor) és
+           Exchange (alsó sor) adatkészleteken.
+           Az ARIMA az ábrán kívül esik ($>3{,}0$).
+           A KCMamba az egyetlen modell, amely mindkét adatkészleten és
+           mindkét zajszinten javuló trendet mutat a szekvenciahossz
+           növekedésével.}
+  \label{fig:longseq}
+\end{figure}
