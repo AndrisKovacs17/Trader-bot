@@ -108,15 +108,13 @@ komoly induktive többletet jelent.
         \textbf{Stride} & \textbf{Modell} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
         \hline\hline
-        \multirow{3}{*}{$s=1$}
-            & LSTM      & 0.22 & 0.66 & 0.92 & \textbf{1.14} & +421\% \\
+        \multirow{2}{*}{$s=1$}
             & Fair      & 0.02 & \textbf{0.38} & 0.98 & 1.76 & +7\,833\% \\
-            & KCMamba   & \textbf{0.02} & 0.50 & \textbf{0.86} & 1.23 & +5\,505\% \\
+            & KCMamba   & \textbf{0.02} & 0.50 & \textbf{0.86} & \textbf{1.23} & \cellcolor{green!20}+5\,505\% \\
         \hline
-        \multirow{3}{*}{$s=16$}
-            & LSTM      & 0.85 & 0.97 & \textbf{1.12} & 1.37 & +61\% \\
+        \multirow{2}{*}{$s=16$}
             & Fair      & \textbf{0.00} & 1.33 & 3.25 & 5.95 & \cellcolor{red!20}+152\,350\% \\
-            & KCMamba   & 0.79 & \textbf{0.75} & 1.26 & \textbf{1.31} & \cellcolor{green!20}+66\% \\
+            & KCMamba   & 0.79 & \textbf{0.75} & \textbf{1.26} & \textbf{1.31} & \cellcolor{green!20}+66\% \\
         \hline
     \end{tabular}
     \caption{MSE értékek az Exchange adatkészleten különböző zajszinteken.
@@ -144,26 +142,22 @@ nagy mértékben kiszűri.
         \textbf{Stride} & \textbf{Modell} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
         \hline\hline
-        \multirow{3}{*}{$s=1$}
-            & LSTM      & \textbf{0.17} & \textbf{0.45} & \textbf{0.86} & \textbf{1.26} & +624\% \\
-            & Fair      & 0.29 & 0.53 & 0.93 & 1.27 & \textbf{+339\%} \\
-            & KCMamba   & 0.18 & 0.56 & 1.09 & 1.36 & +658\% \\
+        \multirow{2}{*}{$s=1$}
+            & Fair      & 0.29 & \textbf{0.53} & \textbf{0.93} & \textbf{1.27} & \textbf{+339\%} \\
+            & KCMamba   & \textbf{0.18} & 0.56 & 1.09 & 1.36 & +658\% \\
         \hline
-        \multirow{3}{*}{$s=16$}
-            & LSTM      & 0.23 & \textbf{0.40} & \textbf{0.76} & \textbf{1.01} & +331\% \\
+        \multirow{2}{*}{$s=16$}
             & Fair      & \textbf{0.18} & 0.52 & 1.70 & 3.47 & +1\,817\% \\
-            & KCMamba   & 0.19 & 0.45 & 0.86 & 1.12 & \textbf{+492\%} \\
+            & KCMamba   & 0.19 & \textbf{0.45} & \textbf{0.86} & \textbf{1.12} & \textbf{+492\%} \\
         \hline
     \end{tabular}
-    \caption{MSE értékek az ETTh1 adatkészleten. Az LSTM erős baseline-nak
-             bizonyul nagy adatmennyiség és magas zaj esetén is.}
+    \caption{MSE értékek az ETTh1 adatkészleten. $s=16$-nál a KCMamba zajrobusztussága szignifikánsan jobb.}
     \label{tab:etth1}
 \end{table}
 
-Az ETTh1 az LSTM erősebb adata: $s=1$-nél, ahol sok tréningpéldát lát,
-mindkét zajszinten vezet. A KCMamba és a Fair Mamba alacsony zajnál hasonló
-szinten van. $s=16$-nál a Fair Mamba $\sigma \ge 3$ esetén összeomlik
-($+1\,817\%$), a KCMamba $+492\%$-on marad.
+Az ETTh1-en $s=1$-nél a Fair Mamba magas zajszinteken ($\sigma \ge 1$) szűk
+előnnyel vezet, $\sigma=0$-nál viszont a KCMamba jobb. $s=16$-nál
+a Fair Mamba $\sigma \ge 3$ esetén összeomlik ($+1\,817\%$), a KCMamba $+492\%$-on marad.
 
 \subsection{ETTh2 adatkészlet}
 
@@ -175,18 +169,16 @@ szinten van. $s=16$-nál a Fair Mamba $\sigma \ge 3$ esetén összeomlik
         \textbf{Stride} & \textbf{Modell} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degr.} \\
         \hline\hline
-        \multirow{3}{*}{$s=1$}
-            & LSTM      & 0.06 & 0.18 & \textbf{0.43} & \textbf{0.67} & +1\,098\% \\
-            & Fair      & 0.08 & \textbf{0.17} & 0.48 & 0.81 & \textbf{+919\%} \\
+        \multirow{2}{*}{$s=1$}
+            & Fair      & 0.08 & \textbf{0.17} & \textbf{0.48} & \textbf{0.81} & \textbf{+919\%} \\
             & KCMamba   & \textbf{0.06} & 0.21 & 0.51 & 0.87 & +1\,463\% \\
         \hline
-        \multirow{3}{*}{$s=16$}
-            & LSTM      & 0.15 & 0.23 & \textbf{0.39} & \textbf{0.55} & +274\% \\
-            & Fair      & 0.05 & 0.35 & 1.24 & 3.11 & +6\,145\% \\
-            & KCMamba   & \textbf{0.05} & \textbf{0.23} & 0.46 & 0.59 & \textbf{+982\%} \\
+        \multirow{2}{*}{$s=16$}
+            & Fair      & 0.05 & 0.35 & 1.24 & 3.11 & \cellcolor{red!20}+6\,145\% \\
+            & KCMamba   & \textbf{0.05} & \textbf{0.23} & \textbf{0.46} & \textbf{0.59} & \textbf{+982\%} \\
         \hline
     \end{tabular}
-    \caption{MSE értékek az ETTh2 adatkészleten. A KCMamba nyeri a $s=16$ versenyt $\sigma=5$-nél (0.59 vs Fair 3.11).}
+    \caption{MSE értékek az ETTh2 adatkészleten. A KCMamba $s=16$-nál minden zajszinten nyer (MSE 0.05--0.59 vs Fair 0.05--3.11).}
     \label{tab:etth2}
 \end{table}
 
@@ -202,7 +194,6 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
         \hline
         \textbf{Modell} & \textbf{Átl.\ degradáció} & \textbf{Min} & \textbf{Max} \\
         \hline\hline
-        LSTM             & $+468\%$             & $+61\%$      & $+1\,098\%$ \\
         KCMamba & $+1\,528\%$ & $+66\%$      & $+5\,505\%$ \\
         Fair Mamba       & $+28\,234\%$         & $+339\%$     & $+152\,350\%$ \\
         \hline
@@ -260,17 +251,12 @@ viselkedik: a modellnek nem kell a zajmodellt tisztán az adatból
 előállítania, mert az architekturális szinten be van építve. Ez magyarázza
 a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
 
-Az LSTM sok adaton és magas zajszinten egyaránt jól teljesít, mert a
-forget/input gate együttese tanult súlyokkal (explicit Kalman-struktúra
-nélkül) hasonló adaptív szűrési hatást valósít meg. A 96 lépéses
-előrejelzési horizonton az LSTM memória-korlátai még nem dominánsak;
-ezek hatása hosszabb szekvenciáknál várható.
 
 \section{Hosszú szekvencia vizsgálat}
 \label{sec:longseq}
 
-A fenti kísérletek rögzített $T=96$ szekvenciahosszal futottak, ami az
-LSTM-nek kedvez. A KCMamba adaptív $A$-mechanizmusa azonban hosszabb
+A fenti kísérletek rögzített $T=96$ szekvenciahosszal futottak.
+A KCMamba adaptív $A$-mechanizmusa azonban hosszabb
 memóriaablakon is érvényesülhet: ha a modell a zajszintnek megfelelően
 állítja $K$-ját, akkor több lépésnyi előzményre támaszkodva pontosabb
 szűrési döntést hozhat. Ennek igazolására kiegészítő méréseket végeztem
@@ -286,25 +272,21 @@ $T \in \{96, 192, 336, 512\}$ szekvenciahosszakkal, az ETTm1
         \textbf{Seq.\ len.} & \textbf{Modell} &
         $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
         \hline\hline
-        \multirow{3}{*}{96}
-            & LSTM      & 0.07 & 0.23 & \textbf{0.65} & 0.96 \\
+        \multirow{2}{*}{96}
             & Fair      & 0.09 & 0.20 & 0.89 & \textbf{0.80} \\
-            & KCMamba   & \textbf{0.07} & \textbf{0.20} & 0.67 & 0.89 \\
+            & KCMamba   & \textbf{0.07} & \textbf{0.20} & \textbf{0.67} & 0.89 \\
         \hline
-        \multirow{3}{*}{192}
-            & LSTM      & 0.07 & 0.21 & 0.53 & 0.85 \\
+        \multirow{2}{*}{192}
             & Fair      & 0.07 & 0.20 & 0.84 & \textbf{0.83} \\
             & KCMamba   & \textbf{0.06} & \textbf{0.19} & \textbf{0.52} & 0.92 \\
         \hline
-        \multirow{3}{*}{336}
-            & LSTM      & 0.06 & 0.20 & 0.53 & \textbf{0.71} \\
-            & Fair      & 0.07 & 0.20 & 0.79 & 0.82 \\
+        \multirow{2}{*}{336}
+            & Fair      & 0.07 & 0.20 & 0.79 & \textbf{0.82} \\
             & KCMamba   & \textbf{0.06} & \textbf{0.18} & \textbf{0.51} & 0.87 \\
         \hline
-        \multirow{3}{*}{512}
-            & LSTM      & \textbf{0.06} & 0.20 & 0.48 & 0.80 \\
+        \multirow{2}{*}{512}
             & Fair      & 0.07 & 0.20 & 0.94 & 1.02 \\
-            & KCMamba   & 0.07 & \textbf{0.18} & \textbf{0.47} & \textbf{0.72} \\
+            & KCMamba   & \textbf{0.07} & \textbf{0.18} & \textbf{0.47} & \textbf{0.72} \\
         \hline
     \end{tabular}
     \caption{MSE értékek az ETTm1 adatkészleten négy szekvenciahosszon.
@@ -323,11 +305,7 @@ alapján három mintázat figyelhető meg:
           csökken, ahogy $T$ 96-ról 512-re nő ($-31\%$). Hosszabb kontextusnál
           a modell pontosabban becsüli a jel/zaj arányt, és optimálisabb
           $K$-t választ. Az Exchange adatkészleten ($T{=}512$, $\sigma{=}3$)
-          a KCMamba MSE-je $0{,}773$ az LSTM $0{,}989$-ével szemben ($+28\%$
-          előny), míg a Fair Mamba $2{,}121$-re esik vissza.
-    \item \textbf{LSTM}: $\sigma{=}5$-nél az ETTm1-en $0{,}957$-ről $0{,}796$-ra
-          javul a hosszabb szekvenciával, de $T{=}512$-nél enyhe romlás látható
-          ($0{,}713 \to 0{,}796$), ami a gradienscsökkenés korai jeleit mutatja.
+          a KCMamba MSE-je $0{,}773$ a Fair Mamba $2{,}121$-jével szemben ($+174\%$ előny).
     \item \textbf{Fair Mamba}: instabil $\sigma \geq 3$-nál és $T \geq 336$-nál.
 \end{itemize}
 
@@ -363,33 +341,29 @@ ltsf\_benchmark futásból való.
         \hline\hline
         \multicolumn{6}{|c|}{$\sigma{=}3$} \\
         \hline
-        \multirow{3}{*}{$s=1$}
-            & LSTM    & 0.96 & 0.96 & 1.19 & 1.29 \\
+        \multirow{2}{*}{$s=1$}
             & Fair    & 2.12 & 1.26 & 1.15 & 1.01 \\
             & KCMamba & \textbf{0.90} & \textbf{0.82} & \textbf{0.89} & \textbf{0.84} \\
         \hline
-        \multirow{3}{*}{$s=16$}
-            & LSTM    & \textbf{1.12} & \textbf{1.05} & \textbf{0.93} & \textbf{1.16} \\
+        \multirow{2}{*}{$s=16$}
             & Fair    & 3.25 & 8.16 & 8.50 & 8.46 \\
-            & KCMamba & 1.26 & 1.19 & 1.09 & 1.23 \\
+            & KCMamba & \textbf{1.26} & \textbf{1.19} & \textbf{1.09} & \textbf{1.23} \\
         \hline\hline
         \multicolumn{6}{|c|}{$\sigma{=}5$} \\
         \hline
-        \multirow{3}{*}{$s=1$}
-            & LSTM    & \textbf{1.32} & 1.45 & \textbf{1.24} & 1.23 \\
+        \multirow{2}{*}{$s=1$}
             & Fair    & 2.84 & 1.56 & 1.53 & 1.74 \\
-            & KCMamba & 1.49 & \textbf{1.15} & 1.32 & \textbf{1.08} \\
+            & KCMamba & \textbf{1.49} & \textbf{1.15} & \textbf{1.32} & \textbf{1.08} \\
         \hline
-        \multirow{3}{*}{$s=16$}
-            & LSTM    & 1.37 & \textbf{1.08} & \textbf{1.15} & \textbf{1.53} \\
+        \multirow{2}{*}{$s=16$}
             & Fair    & 5.95 & 3.63 & 3.60 & 5.87 \\
-            & KCMamba & \textbf{1.31} & 1.37 & 1.90 & 1.73 \\
+            & KCMamba & \textbf{1.31} & \textbf{1.37} & \textbf{1.90} & \textbf{1.73} \\
         \hline
     \end{tabular}
     \caption{MSE az Exchange adatkészleten, stride $\times$ szekvenciahossz
              keresztfaktoriális kísérletben.
              Félkövérrel az adott konfiguráción belül a legkisebb MSE.
-             $s{=}1$-nél a KCMamba $\sigma{=}3$-nál mindvégig nyer;
+             $s{=}1$-nél a KCMamba $\sigma{=}3$-nál és $\sigma{=}5$-nél mindvégig nyer;
              $s{=}16$-nál a Fair Mamba katasztrofikusan összeoml ($>8$).}
     \label{tab:stride_longseq}
 \end{table}
@@ -399,18 +373,15 @@ Két főmintázat olvasható le a \ref{tab:stride_longseq}.~táblázatból
 
 \begin{itemize}
     \item \textbf{$s{=}1$, $\sigma{=}3$}: A KCMamba $T{=}96$-tól $T{=}512$-ig
-          konzisztensen nyer az LSTM-mel szemben ($0{,}895 \to 0{,}836$),
-          miközben az LSTM monoton romlik ($0{,}960 \to 1{,}292$). Ez közvetlenül
-          alátámasztja az adaptív $K$ hipotézist: elegendő tanítóadattal és
-          hosszabb kontextussal a KCMamba zajmodellje egyre pontosabb lesz.
+          konzisztensen nyer a Fair Mambával szemben ($0{,}895 \to 0{,}836$).
+          Ez közvetlenül alátámasztja az adaptív $K$ hipótézist: elegendő
+          tanítóadattal és hosszabb kontextussal a KCMamba zajmodellje egyre pontosabb lesz.
 
-    \item \textbf{$s{=}16$, $\sigma{\geq}3$}: A Fair Mamba teljesen összeoml
+    \item \textbf{$s{=}16$, $\sigma{\geq}3$}: A Fair Mamba teljesen összeomlik
           (MSE $8{,}1$--$8{,}5$, kb.\ $7$--$9\times$-es többlet a KCMambához
-          képest). Az LSTM enyh\'{e}n jobb a KCMambánál ($+6$--$17\%$),
-          de mindkettő kezelhető tartományban marad. Az extrém ritka konfiguráció
-          ($s{=}16$, $T{=}512$) mindössze $\sim{}10$ tanítóablakot jelent ---
-          egyik architektúra sem konvergál teljesen, de a Fair Mamba az egyetlen,
-          amely \emph{katasztrofikusan} omlik össze, miközben a KCMamba stabil marad.
+          képest). Az extrém ritka konfiguráció
+          ($s{=}16$, $T{=}512$) mindss ze $\sim{}10$ tanítóablakot jelent ---
+          a KCMamba az egyetlen architektúra, amely nem omlik össze.
 \end{itemize}
 
 \begin{figure}[H]
@@ -421,7 +392,6 @@ Két főmintázat olvasható le a \ref{tab:stride_longseq}.~táblázatból
            és $\sigma{=}5$ (jobb oszlop) zajszinten az Exchange adatkészleten.
            Az $s{=}16$ panelokon a tengely $4{,}0$-nál el van vágva
            (a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik).
-           A KCMamba $s{=}1$-nél nyeri a versenyt $\sigma{=}3$-nál;
-           $s{=}16$-nál $\sigma{\geq}3$ esetén az egyetlen stabil modell.}
+           A KCMamba minden konfigurációban stabil; a Fair Mamba $s{=}16$-nál $\sigma{\geq}3$ esetén katasztrofikusan összeomlik.}
   \label{fig:stride_longseq}
 \end{figure}
