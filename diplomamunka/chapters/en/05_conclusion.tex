@@ -16,6 +16,21 @@ SSM. The experiments on three datasets lead to the following conclusions:
           setting this becomes five orders of magnitude: $+66\%$ vs.\
           $+152\,350\%$.
 
+    \item Long-sequence sweep (Section~\ref{sec:longseq},
+          $T \in \{96,192,336,512\}$ on ETTm1 and Exchange)
+          confirms KCMamba's advantage at longer contexts:
+          \begin{itemize}
+              \item $T{=}336$, $\sigma{=}1$: KCMamba MSE $0.502$ vs
+                    LSTM $0.735$ ($\mathbf{-31.7\%}$, the largest margin
+                    over LSTM in the sweep).
+              \item $T{=}512$, $\sigma{=}3$ (Exchange): KCMamba $0.773$,
+                    Fair Mamba $2.121$ ($\mathbf{-63.6\%}$, the largest
+                    margin over Fair Mamba in the sweep).
+              \item On ETTm1 at $\sigma{=}3$ KCMamba is the only model
+                    whose MSE monotonically decreases with sequence
+                    length ($0.673 \to 0.466$, $-31\%$, $T{:}\,96 \to 512$).
+          \end{itemize}
+
     \item The model learned on its own to reduce $K$ as noise increases
           ($0.706 \to 0.073$), matching the behaviour we would expect
           from the explicit Kalman formula. The architectural prior

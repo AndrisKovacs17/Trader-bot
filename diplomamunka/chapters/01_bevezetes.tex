@@ -58,7 +58,14 @@ Három konkrét kérdést vizsgálunk:
           $\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
     \item Összehasonlítás három adatkészleten (Exchange-Rate, ETTh1, ETTh2):
           a Fair Mamba átlag $+28\,234\%$ MSE-degradációt mutat zajjal,
-          a KCMamba $+1\,528\%$-ot.
+          a KCMamba $+1\,528\%$-ot ($18{,}5\times$ kisebb romlás).
+    \item Hosszú szekvencia vizsgálat (ETTm1, Exchange; $T \in \{96, 192, 336, 512\}$,
+          10 epoch, FastAI LR-keresővel): a KCMamba $T=336$, $\sigma=1$
+          konfigurációban $\mathbf{31{,}7\%}$-kal jobb MSE-t ér el, mint az LSTM
+          ($0{,}502$ vs $0{,}735$). $T=512$, $\sigma=3$-nál a KCMamba $0{,}773$,
+          a Fair Mamba $2{,}121$ --- a KCMamba $63{,}6\%$-kal jobb.
+          $\sigma=3$-nál az ETTm1-en a KCMamba MSE monoton csökken
+          $T=96$-tól $T=512$-ig ($0{,}673 \to 0{,}466$, $-31\%$).
     \item Nyílt forráskódú implementáció (Python/PyTorch/CUDA) és egy
           aszinkron kereskedési rendszer a modell deployálásához.
 \end{itemize}

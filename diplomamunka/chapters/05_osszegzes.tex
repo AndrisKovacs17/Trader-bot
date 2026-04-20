@@ -15,7 +15,19 @@ az alábbi következtetések vonhatók le:
           a KCMamba átlagos MSE-degrádációja $+1\,528\%$, a Fair Mambáé $+28\,234\%$,
           ami $18{,}5\times$-os különbség. Exchange/$s=16$-nál
           a különbség öt nagyságrend: $+66\%$ vs $+152\,350\%$.
-
+    \item Hosszú szekvencia (\ref{sec:longseq}.~fejezet): az új mérések
+          ($T \in \{96,192,336,512\}$, ETTm1 + Exchange) a KCMamba
+          erősségét hosszabb kontextusnál is igazolják.
+          \begin{itemize}
+              \item $T=336$, $\sigma=1$: KCMamba MSE $0{,}502$ vs LSTM $0{,}735$
+                    ($\mathbf{-31{,}7\%}$, a legnagyobb LSTM-el szemben arány). 
+              \item $T=512$, $\sigma=3$ (Exchange): KCMamba $0{,}773$,
+                    Fair Mamba $2{,}121$ ($\mathbf{-63{,}6\%}$, a legnagyobb
+                    Fair Mambával szembeni arány).
+              \item ETTm1-en $\sigma=3$-nál a KCMamba MSE-je egyeduli
+                    modellként monoton csökken a szekvenciahossz növekedésével
+                    ($0{,}673 \to 0{,}466$, $-31\%$, $T{:}\,96 \to 512$).
+          \end{itemize}
     \item Kalman-gain adaptáció: a modell által az adatokból
           megtanult $K$-érték a zajszint emelkedésével monoton csökken
           ($0.706 \to 0.073$), ami konzisztens az explicit Kalman-egyenletekből

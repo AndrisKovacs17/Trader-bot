@@ -54,7 +54,15 @@ Three concrete questions are investigated:
           $K \approx 0{.}07$ at $\sigma=5$ (strong filtering).
     \item Benchmark results on three datasets (Exchange-Rate, ETTh1, ETTh2):
           Fair Mamba degrades by $+28\,234\%$ under noise; KCMamba
-          by $+1\,528\%$.
+          by $+1\,528\%$ ($18.5\times$ smaller degradation).
+    \item Long-sequence analysis (ETTm1, Exchange; $T \in \{96,192,336,512\}$,
+          10 epochs, FastAI LR finder): KCMamba achieves $\mathbf{31.7\%}$ lower
+          MSE than LSTM at $T{=}336$, $\sigma{=}1$ ($0.502$ vs $0.735$).
+          At $T{=}512$, $\sigma{=}3$, KCMamba scores $0.773$ while Fair Mamba
+          collapses to $2.121$ ($63.6\%$ better).
+          On ETTm1 at $\sigma{=}3$, KCMamba is the only model whose MSE
+          monotonically decreases with sequence length
+          ($0.673 \to 0.466$ as $T{:}\,96 \to 512$, $-31\%$).
     \item An open-source Python/PyTorch/CUDA implementation and an
           asynchronous trading system for deploying the model in
           live markets.
