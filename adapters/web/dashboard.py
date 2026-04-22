@@ -318,6 +318,7 @@ class HttpServer:
                     "/tailwind.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "tailwind.js")),
                     "/tailwind.min.css": ("text/css", os.path.join(_DASHBOARD_DIR, "tailwind.min.css")),
                     "/help.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "help.js")),
+                    "/tooltip.js": ("application/javascript", os.path.join(_DASHBOARD_DIR, "tooltip.js")),
                 }
                 if path in _STATIC_FILES:
                     mime, fpath = _STATIC_FILES[path]
@@ -422,11 +423,13 @@ class HttpServer:
                     msg = format % args
                 except Exception:
                     msg = repr((format, args))
-                print(f"[HTTP ERROR] {self.path!r}: {msg}", file=sys.stderr, flush=True)
+                path = getattr(self, "path", "<unknown>")
+                print(f"[HTTP ERROR] {path!r}: {msg}", file=sys.stderr, flush=True)
 
             def handle_error_in_handler(self, exc: Exception) -> None:
                 import sys, traceback
-                print(f"[HTTP CRASH] {self.path!r}: {exc!r}", file=sys.stderr, flush=True)
+                path = getattr(self, "path", "<unknown>")
+                print(f"[HTTP CRASH] {path!r}: {exc!r}", file=sys.stderr, flush=True)
                 traceback.print_exc(file=sys.stderr)
                 try:
                     self._send_body(500, "text/plain", f"Internal error: {exc}".encode())

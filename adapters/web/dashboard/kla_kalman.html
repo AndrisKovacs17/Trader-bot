@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Kalman-szűrő diagnosztika</title>
+  <title>KCA-Mamba · Kalman-szűrő diagnosztika</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -91,9 +91,9 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 <!-- NAV -->
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
-      <button class="nav-a active">KLA elemzés ▾</button>
+      <button class="nav-a active">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a active">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -128,14 +128,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="flex items-start justify-between flex-wrap gap-3">
     <div>
       <h1 class="text-xl font-extrabold text-slate-200">Kalman-szűrő diagnosztika</h1>
-      <p class="text-xs text-slate-500 mt-1">A KLA-Mamba adaptív Kalman-erősítőjének (K gain) és memória-dinamikájának elemzése — az utolsó benchmark futás eredményei alapján.</p>
+      <p class="text-xs text-slate-500 mt-1">A KCA-Mamba adaptív Kalman-erősítőjének (K gain) és memória-dinamikájának elemzése — az utolsó benchmark futás eredményei alapján.</p>
     </div>
     <div id="noDataBanner" class="badge badge-warn">Futtasd le az LSTM / Mamba összehasonlítást az adatokhoz</div>
   </div>
 
   <!-- Elmélet panel -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hogyan működik a KLA szűrő?</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hogyan működik a KCA szűrő?<button class="tip-btn" data-tip="A KCA (Kalman-Calibrated Attention) egy attention-alapú gating mechanizmus, amely a klasszikus Kalman-szűrő Gain (K) koncepcióját adaptálja deep learningre.&#10;&#10;Gain kiszámítása: K = softmax(attention) → a modell maga dönti el, mennyire bízzon az új megfigyelésben vs. a prior állapotban.">?</button></h2>
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div>
         <p class="text-xs text-slate-400 font-semibold mb-1">Kalman-erősítés (K)</p>
@@ -184,7 +184,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Numerikus stats táblázat -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Kalman paraméterek részletesen</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Kalman paraméterek részletesen<button class="tip-btn" data-tip="Folyamat-zaj (Q), mérés-zaj (R), prior kovariancia (P).&#10;&#10;Deep learning kontextusban: ezek tanulható paraméterek / head outputs.">?</button></h2>
       <div class="space-y-1">
         <div class="kv"><span class="lbl">K gain · átlag</span><span class="val" id="statKmean">—</span></div>
         <div class="kv"><span class="lbl">K gain · szórás</span><span class="val" id="statKstd">—</span></div>
@@ -200,7 +200,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Értelmező panel -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Automatikus értékelés</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Automatikus értékelés<button class="tip-btn" data-tip="Rendszer által generált minőségi pontszám a KCA komponens teljesítményére.&#10;Figyelembe veszi: gain stabilitás, jel-zaj szeparáció, memóriamélység.">?</button></h2>
       <div class="space-y-3" id="interpretPanel">
         <p class="text-xs text-slate-500">Adatok betöltése...</p>
       </div>
@@ -211,7 +211,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="section">
     <div class="flex items-center justify-between mb-3">
       <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">K gain eloszlás (szimulált)</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">K gain eloszlás (szimulált)<button class="tip-btn" data-tip="A Kalman gain (K) eloszlása szimulált / valós adatokon.&#10;&#10;K ≈ 0 → a modell ragaszkodik a priorhoz (stabil trend).&#10;K ≈ 1 → teljesen megbízik az új mérésben (gyors reakció).">?</button></h2>
         <p class="text-[11px] text-slate-600 mt-0.5">A K értékek sűrűségeloszlása a teszt adatokon — széles eloszlás = magas adaptivitás</p>
       </div>
       <span class="badge badge-info" id="kDistBadge" style="display:none">—</span>
@@ -227,7 +227,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="section">
     <div class="flex items-center justify-between mb-1">
       <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jel vs. Zaj szeparáció</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jel vs. Zaj szeparáció<button class="tip-btn" data-tip="A szűrő mennyire képes elválasztani a valódi jelet a piaci zajtól.&#10;&#10;Magas SNR javulás → a KCA szűrő hatékonyan simít.">?</button></h2>
         <p class="text-[11px] text-slate-600 mt-0.5">KLA szűrt μ (tiszta jel) vs. zajos bemenet vs. Ground Truth — a Kalman-filter hatékonyságának közvetlen bizonyítéka</p>
       </div>
       <div class="flex items-center gap-3">
@@ -249,7 +249,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <div class="section">
       <div class="flex items-center justify-between mb-1">
         <div>
-          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Szűrési minőség — MSE összehasonlítás</h2>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Szűrési minőség — MSE összehasonlítás<button class="tip-btn" data-tip="Mean Squared Error összehasonlítás: nyers adat vs. KCA-szűrt vs. klasszikus Kalman.&#10;&#10;Alacsonyabb MSE → jobb szűrő.">?</button></h2>
           <p class="text-[11px] text-slate-600 mt-0.5">KLA szűrt μ MSE vs. nyers bemenet MSE a Ground Truth-hoz képest</p>
         </div>
       </div>
@@ -257,7 +257,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     </div>
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">K gain interpretáció térkép</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">K gain interpretáció térkép<button class="tip-btn" data-tip="Hőtérkép: K értékek vizuálisan idő × state dimenzió mátrixban.&#10;Minták (pl. epizódikus magas K) a rezsim-változások detektálását mutatják.">?</button></h2>
       <div class="space-y-3">
         <!-- K regime bar -->
         <div>
@@ -298,7 +298,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Memória mélység vizualizáció -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Effektív memória mélység</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Effektív memória mélység<button class="tip-btn" data-tip="A KCA mennyi múltbeli időpontra 'emlékszik' effektíven (1 / (1−(1−K)) közelítés).&#10;&#10;Alacsony K → hosszú memória (lassan felejt).&#10;Magas K → rövid memória (gyors reakció).">?</button></h2>
     <p class="text-xs text-slate-500 mb-4">Az 1/(1−A) képlet megmutatja, hogy a KLA átlagosan hány időlépés "emlékét" tartja fenn. Összehasonlítás rögzített memóriájú modellekkel (LSTM hidden window vs. fix lookback).</p>
     <div class="h-[220px]"><canvas id="cMemDepth"></canvas></div>
     <p class="text-[11px] text-slate-600 mt-2 text-center">Alacsonyabb = rövidebb memória (gyorsan felejt) · Magasabb = mélyebb memória (lassan felejt) · KLA értéke futásonként változik (adaptív)</p>
@@ -377,9 +377,9 @@ function initCharts() {
   if (ctx('cMemDepth')) cMemDepth = new Chart(ctx('cMemDepth'), {
     type: 'bar',
     data: {
-      labels: ['LSTM (seq_len)', 'Fixed ARIMA (p)', 'DLinear (kernel)', 'KLA-Mamba (adaptív 1/(1−A))'],
+      labels: ['LSTM (seq_len)', 'Fixed ARIMA (p)', 'PatchTST (patch_len)', 'KCA-Mamba (adaptív 1/(1−A))'],
       datasets: [{
-        data: [96, 5, 25, 10],
+        data: [96, 5, 16, 10],
         backgroundColor: ['rgba(96,165,250,.35)', 'rgba(245,158,11,.35)', 'rgba(167,139,250,.35)', 'rgba(34,211,238,.55)'],
         borderColor:      ['#60a5fa',              '#f59e0b',              '#a78bfa',              '#22d3ee'],
         borderWidth: 1.5,
@@ -479,7 +479,7 @@ function interpretKalman(ks) {
 }
 
 // ── Update UI ─────────────────────────────────────────────────────────────────
-function updateUI(ks, sample, seqLen, arimaP, dlinearK) {
+function updateUI(ks, sample, seqLen, arimaP, patchLen) {
   if (!ks || Object.keys(ks).length === 0) {
     $('noDataBanner').classList.remove('hidden');
     return;
@@ -596,8 +596,8 @@ function updateUI(ks, sample, seqLen, arimaP, dlinearK) {
   if (cMemDepth) {
     const seqLenVal    = seqLen    || 96;
     const arimaPVal    = arimaP    || 5;
-    const dlinearKVal  = dlinearK  || 25;
-    cMemDepth.data.datasets[0].data = [seqLenVal, arimaPVal, dlinearKVal, Math.round(memDepth)];
+    const patchLenVal  = patchLen  || 16;
+    cMemDepth.data.datasets[0].data = [seqLenVal, arimaPVal, patchLenVal, Math.round(memDepth)];
     cMemDepth.update('none');
   }
 }
@@ -614,12 +614,12 @@ async function loadData() {
   if (d.status === 'done' && d.models) {
     badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-400';
     badge.textContent = '● Kész';
-    const ks     = d.models.kla_mamba?.kalman_stats;
-    const sample = d.models.kla_mamba?.sample;
+    const ks     = d.models.kca_mamba?.kalman_stats;
+    const sample = d.models.kca_mamba?.sample;
     const seqLen = d.config?.seq_len ?? d.input_dim ?? 96;
     const arimaP = d.config?.arima_p ?? 5;
-    const dlinearK = d.config?.dlinear_kernel ?? 25;
-    updateUI(ks, sample, seqLen, arimaP, dlinearK);
+    const patchLen = d.config?.patchtst_patch_len ?? 16;
+    updateUI(ks, sample, seqLen, arimaP, patchLen);
   } else if (d.status === 'running') {
     badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
     badge.textContent = '● Fut...';
@@ -641,5 +641,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

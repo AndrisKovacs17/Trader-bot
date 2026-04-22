@@ -11,7 +11,7 @@ Usage:
 
 The script reproduces the 13 data-driven figures from hardcoded benchmark
 values (matching the thesis tables). Static architecture schematics
-(fig08, fig09, fig14, kc_stack, kla_stack) are drawn via matplotlib
+(fig08, fig09, fig14, kc_stack, kca_stack) are drawn via matplotlib
 boxes/arrows with minimal decoration.
 """
 
@@ -42,41 +42,41 @@ SIGMAS = [0, 1, 3, 5]
 CFG_ORDER = [("Exchange", 1), ("Exchange", 16),
              ("ETTh1", 1), ("ETTh1", 16),
              ("ETTh2", 1), ("ETTh2", 16)]
-MODELS = ["ARIMA", "LSTM", "Fair", "KLA"]
-COLORS = {"ARIMA": C_ARIMA, "LSTM": C_LSTM, "Fair": C_FAIR, "KLA": C_KLA, "Triton": C_TRI}
+MODELS = ["ARIMA", "LSTM", "Fair", "KCA"]
+COLORS = {"ARIMA": C_ARIMA, "LSTM": C_LSTM, "Fair": C_FAIR, "KCA": C_KLA, "Triton": C_TRI}
 
 MSE = {
     ("Exchange", 1):  {"ARIMA": [0.00,  0.18,  1.72,  5.43],
                        "LSTM":  [0.219, 0.664, 0.922, 1.139],
                        "Fair":  [0.022, 0.381, 0.979, 1.757],
-                       "KLA":   [0.022, 0.496, 0.860, 1.228]},
+                       "KCA":   [0.022, 0.496, 0.860, 1.228]},
     ("Exchange", 16): {"ARIMA": [0.00,  0.78,  6.72,  20.77],
                        "LSTM":  [0.853, 0.966, 1.125, 1.372],
                        "Fair":  [0.004, 1.332, 3.248, 5.950],
-                       "KLA":   [0.788, 0.750, 1.264, 1.307]},
+                       "KCA":   [0.788, 0.750, 1.264, 1.307]},
     ("ETTh1", 1):     {"ARIMA": [0.18,  0.54,  2.07,  4.74],
                        "LSTM":  [0.175, 0.455, 0.858, 1.264],
                        "Fair":  [0.288, 0.534, 0.928, 1.266],
-                       "KLA":   [0.180, 0.559, 1.092, 1.363]},
+                       "KCA":   [0.180, 0.559, 1.092, 1.363]},
     ("ETTh1", 16):    {"ARIMA": [0.19,  0.62,  6.01,  18.64],
                        "LSTM":  [0.234, 0.399, 0.760, 1.010],
                        "Fair":  [0.181, 0.525, 1.698, 3.470],
-                       "KLA":   [0.189, 0.453, 0.856, 1.120]},
+                       "KCA":   [0.189, 0.453, 0.856, 1.120]},
     ("ETTh2", 1):     {"ARIMA": [0.05,  0.24,  1.52,  4.18],
                        "LSTM":  [0.056, 0.183, 0.432, 0.674],
                        "Fair":  [0.079, 0.174, 0.476, 0.808],
-                       "KLA":   [0.056, 0.206, 0.512, 0.871]},
+                       "KCA":   [0.056, 0.206, 0.512, 0.871]},
     ("ETTh2", 16):    {"ARIMA": [0.05,  0.33,  6.18,  15.89],
                        "LSTM":  [0.146, 0.225, 0.392, 0.545],
                        "Fair":  [0.050, 0.351, 1.238, 3.108],
-                       "KLA":   [0.055, 0.232, 0.456, 0.592]},
+                       "KCA":   [0.055, 0.232, 0.456, 0.592]},
 }
 
 RAW_WIN = [
     ["Fair", "Fair", "LSTM", "Fair", "LSTM", "Fair"],
-    ["Fair", "KLA",  "LSTM", "LSTM", "Fair", "LSTM"],
-    ["KLA",  "LSTM", "LSTM", "LSTM", "LSTM", "LSTM"],
-    ["LSTM", "KLA",  "LSTM", "LSTM", "LSTM", "LSTM"],
+    ["Fair", "KCA",  "LSTM", "LSTM", "Fair", "LSTM"],
+    ["KCA",  "LSTM", "LSTM", "LSTM", "LSTM", "LSTM"],
+    ["LSTM", "KCA",  "LSTM", "LSTM", "LSTM", "LSTM"],
 ]
 RAW_VAL = [
     [0.022, 0.004, 0.175, 0.181, 0.056, 0.050],
@@ -85,10 +85,10 @@ RAW_VAL = [
     [1.139, 1.307, 1.264, 1.010, 0.674, 0.545],
 ]
 EC_WIN = [
-    ["KLA", "Fair", "KLA",  "KLA", "KLA",  "KLA"],
-    ["KLA", "KLA",  "LSTM", "KLA", "KLA",  "KLA"],
-    ["KLA", "KLA",  "LSTM", "KLA", "LSTM", "LSTM"],
-    ["KLA", "KLA",  "KLA",  "KLA", "LSTM", "KLA"],
+    ["KCA", "Fair", "KCA",  "KCA", "KCA",  "KCA"],
+    ["KCA", "KCA",  "LSTM", "KCA", "KCA",  "KCA"],
+    ["KCA", "KCA",  "LSTM", "KCA", "LSTM", "LSTM"],
+    ["KCA", "KCA",  "KCA",  "KCA", "LSTM", "KCA"],
 ]
 EC_VAL = [
     [0.022, 0.006, 0.184, 0.193, 0.058, 0.057],
@@ -101,32 +101,32 @@ K_VAL = [0.706, 0.390, 0.170, 0.073]
 A_VAL = [1 - k for k in K_VAL]
 R_VAL = [0.13, 0.33, 0.44, 0.50]
 
-PARAMS_K = {"LSTM": 71.0, "Fair": 53.2, "KLA": 46.1}
-AVG_MSE_S3 = {"LSTM": 0.74, "Fair": 1.43, "KLA": 0.84}
+PARAMS_K = {"LSTM": 71.0, "Fair": 53.2, "KCA": 46.1}
+AVG_MSE_S3 = {"LSTM": 0.74, "Fair": 1.43, "KCA": 0.84}
 EPOCH_S = {
     "Exchange s=1": {"LSTM": 1.7, "Fair": 6.0,
-                     "KLA-PT": 8.5, "KLA-TR": 1.5},
+                     "KCA-PT": 8.5, "KCA-TR": 1.5},
     "ETTh1 s=1":    {"LSTM": 3.5, "Fair": 13.7,
-                     "KLA-PT": 19.2, "KLA-TR": 3.1},
+                     "KCA-PT": 19.2, "KCA-TR": 3.1},
     "ETTh2 s=1":    {"LSTM": 3.1, "Fair": 8.8,
-                     "KLA-PT": 18.7, "KLA-TR": 2.8},
+                     "KCA-PT": 18.7, "KCA-TR": 2.8},
 }
 THROUGHPUT = {"LSTM": 17.8, "Fair (PyTorch)": 5.2,
-              "KLA (PyTorch)": 3.8, "KLA (Triton)": 19.2}
+              "KCA (PyTorch)": 3.8, "KCA (Triton)": 19.2}
 REL_SPEED = {"LSTM": 1.00, "Fair (PyTorch)": 0.29,
-             "KLA (PyTorch)": 0.21, "KLA (Triton)": 1.08}
+             "KCA (PyTorch)": 0.21, "KCA (Triton)": 1.08}
 
 RADAR_SCORES = {
     "LSTM": [0.90, 0.58, 0.45, 0.40, 0.65, 0.55, 0.57],
     "Fair": [0.10, 1.00, 0.45, 0.40, 0.65, 0.77, 0.27],
-    "KLA":  [0.73, 0.95, 1.00, 0.95, 1.00, 1.00, 0.90],
+    "KCA":  [0.73, 0.95, 1.00, 0.95, 1.00, 1.00, 0.90],
 }
 
 A_COEFFS = {"LSTM": 0.95, "Vanilla SSM": 0.90,
-            "KLA sigma=5": 0.926, "KLA sigma=3": 0.836,
-            "KLA sigma=1": 0.613, "KLA sigma=0": 0.294}
+            "KCA sigma=5": 0.926, "KCA sigma=3": 0.836,
+            "KCA sigma=1": 0.613, "KCA sigma=0": 0.294}
 HORIZON = {"LSTM": 58, "Vanilla SSM": 28,
-           "KLA": [2.4, 6.0, 15.5, 40.0]}
+           "KCA": [2.4, 6.0, 15.5, 40.0]}
 
 # ---------------------------------------------------------------------------
 # Long-sequence sweep data  (ETTm1 15-min, Exchange daily; seq_len axis)
@@ -135,27 +135,27 @@ HORIZON = {"LSTM": 58, "Vanilla SSM": 28,
 LONGSEQ_SEQ = [96, 192, 336, 512]
 
 LONGSEQ_MSE = {
-    # (dataset, noise_sigma): {"LSTM": [...], "Fair": [...], "KLA": [...]}
+    # (dataset, noise_sigma): {"LSTM": [...], "Fair": [...], "KCA": [...]}
     # values ordered by LONGSEQ_SEQ = [96, 192, 336, 512]
     ("ETTm1", 3): {
         "LSTM": [0.648, 0.528, 0.527, 0.482],
         "Fair": [0.889, 0.840, 0.791, 0.939],
-        "KLA":  [0.673, 0.520, 0.513, 0.466],
+        "KCA":  [0.673, 0.520, 0.513, 0.466],
     },
     ("ETTm1", 5): {
         "LSTM": [0.957, 0.845, 0.713, 0.796],
         "Fair": [0.803, 0.831, 0.818, 1.018],
-        "KLA":  [0.893, 0.919, 0.874, 0.717],
+        "KCA":  [0.893, 0.919, 0.874, 0.717],
     },
     ("Exchange", 3): {
         "LSTM": [0.960, 0.845, 1.000, 0.989],
         "Fair": [2.119, 1.838, 1.162, 2.121],
-        "KLA":  [0.895, 0.770, 0.736, 0.773],
+        "KCA":  [0.895, 0.770, 0.736, 0.773],
     },
     ("Exchange", 5): {
         "LSTM": [1.321, 1.162, 1.188, 1.197],
         "Fair": [2.837, 1.608, 1.547, 1.700],
-        "KLA":  [1.494, 1.276, 1.023, 1.074],
+        "KCA":  [1.494, 1.276, 1.023, 1.074],
     },
 }
 
@@ -168,28 +168,28 @@ LONGSEQ_MSE = {
 STRIDE_SEQ  = [96, 192, 336, 512]
 
 STRIDE_MSE = {
-    # (stride, noise_sigma): {"LSTM": [T=96,192,336,512], "Fair": [...], "KLA": [...]}
+    # (stride, noise_sigma): {"LSTM": [T=96,192,336,512], "Fair": [...], "KCA": [...]}
     # s=1: T=96 from long_seq_sweep (Exchange|96|σ|*), T=192-512 from stride_seq_sweep
     (1, 3): {
         "LSTM": [0.960, 0.961, 1.185, 1.292],
         "Fair": [2.119, 1.263, 1.148, 1.007],
-        "KLA":  [0.895, 0.823, 0.886, 0.836],
+        "KCA":  [0.895, 0.823, 0.886, 0.836],
     },
     (1, 5): {
         "LSTM": [1.321, 1.448, 1.240, 1.233],
         "Fair": [2.837, 1.557, 1.526, 1.739],
-        "KLA":  [1.494, 1.153, 1.320, 1.076],
+        "KCA":  [1.494, 1.153, 1.320, 1.076],
     },
     # s=16: T=96 from ltsf_benchmark original run; T=192-512 from stride_seq_sweep
     (16, 3): {
         "LSTM": [1.125, 1.049, 0.929, 1.155],
         "Fair": [3.248, 8.162, 8.500, 8.460],
-        "KLA":  [1.264, 1.188, 1.089, 1.234],
+        "KCA":  [1.264, 1.188, 1.089, 1.234],
     },
     (16, 5): {
         "LSTM": [1.372, 1.077, 1.146, 1.528],
         "Fair": [5.950, 3.628, 3.595, 5.868],
-        "KLA":  [1.307, 1.373, 1.900, 1.726],
+        "KCA":  [1.307, 1.373, 1.900, 1.726],
     },
 }
 
@@ -211,12 +211,12 @@ LBL = {
         "ground_truth": "Valós jel",
         "noisy":        "Zajos bemenet",
         "vanilla_fix":  "Vanilla SSM (rögzített A)",
-        "kla_adapt":    "KLA-Mamba (adaptív A)",
+        "kla_adapt":    "KCA-Mamba (adaptív A)",
         "kalman_gain":  r"K (Kalman-gain)",
         "forget":       r"A $=$ 1 $-$ K",
         "noise_est":    r"R (zajbecslés)",
         "raw_winner":   "Nyers MSE győztes",
-        "win_note":     "KLA: {k}/24    Fair: {f}/24    LSTM: {l}/24",
+        "win_note":     "KCA: {k}/24    Fair: {f}/24    LSTM: {l}/24",
         "rel_speed":    "Relatív sebesség (LSTM-hez képest)",
         "throughput":   "Áteresztőképesség (minta/s)",
         "rel_title":    r"Relatív sebesség (LSTM $=$ 1$\times$)",
@@ -245,7 +245,7 @@ LBL = {
                          "Exchange\nzajállóság"],
         "scan_title":   r"$O(\log T)$ lépés -- asszociatív párhuzamos scan ($T{=}8$)",
         "scan_rows":    ["Bemenet", "1. lépés", "2. lépés", "3. lépés"],
-        "kc_boxes":     ["bemenet", r"KLA-Mamba blokk ($\times L$)",
+        "kc_boxes":     ["bemenet", r"KCA-Mamba blokk ($\times L$)",
                          "Kereszt-figyelmi\nréteg",
                          "reziduális bypass", "előrejelzés"],
         "kla_boxes":    [r"bemenet $x$", "DepthwiseConv1d + SiLU",
@@ -263,7 +263,7 @@ LBL = {
                          "Offline training\n(KCMamba)",
                          "Hír-feed",
                          "Event bus\n(pub/sub)"],
-        "arch_title":   "KCMamba / KLA-Mamba blokk",
+        "arch_title":   "KCMamba / KCA-Mamba blokk",
         "longseq_title": r"MSE a szekvenciahossz függvényében (zajrobusztusság)",
         "longseq_x":    "Szekvenciahossz $T$",
         "longseq_s3":   r"$\sigma=3$",
@@ -287,12 +287,12 @@ LBL = {
         "ground_truth": "Ground truth",
         "noisy":        "Noisy input",
         "vanilla_fix":  "Vanilla SSM (fixed A)",
-        "kla_adapt":    "KLA-Mamba (adaptive A)",
+        "kla_adapt":    "KCA-Mamba (adaptive A)",
         "kalman_gain":  r"K (Kalman gain)",
         "forget":       r"A $=$ 1 $-$ K",
         "noise_est":    r"R (noise estimate)",
         "raw_winner":   "Raw MSE winner",
-        "win_note":     "KLA: {k}/24    Fair: {f}/24    LSTM: {l}/24",
+        "win_note":     "KCA: {k}/24    Fair: {f}/24    LSTM: {l}/24",
         "rel_speed":    "Relative speed (vs. LSTM)",
         "throughput":   "Throughput (samples/s)",
         "rel_title":    r"Relative speed (LSTM $=$ 1$\times$)",
@@ -321,7 +321,7 @@ LBL = {
                          "Exchange\nresilience"],
         "scan_title":   r"$O(\log T)$ steps -- associative parallel scan ($T{=}8$)",
         "scan_rows":    ["Input", "Step 1", "Step 2", "Step 3"],
-        "kc_boxes":     ["input", r"KLA-Mamba block ($\times L$)",
+        "kc_boxes":     ["input", r"KCA-Mamba block ($\times L$)",
                          "Cross-attention\nlayer",
                          "residual bypass", "prediction"],
         "kla_boxes":    [r"input $x$", "DepthwiseConv1d + SiLU",
@@ -339,7 +339,7 @@ LBL = {
                          "Offline training\n(KCMamba)",
                          "News feed",
                          "Event bus\n(pub/sub)"],
-        "arch_title":   "KCMamba / KLA-Mamba block",
+        "arch_title":   "KCMamba / KCA-Mamba block",
         "longseq_title": r"MSE vs. sequence length (noise robustness)",
         "longseq_x":    "Sequence length $T$",
         "longseq_s3":   r"$\sigma=3$",
@@ -400,7 +400,7 @@ def fig01(lang):
     fig, axes = plt.subplots(2, 3, figsize=(9.5, 5.6),
                              constrained_layout=True, sharex=True)
     model_styles = [("ARIMA", "D", "--"), ("LSTM", "o", "-"),
-                    ("Fair", "s", "-"), ("KLA", "^", "-")]
+                    ("Fair", "s", "-"), ("KCA", "^", "-")]
     for ax, (ds, stride) in zip(axes.flat, CFG_ORDER):
         data = MSE[(ds, stride)]
         for m, mk, ls in model_styles:
@@ -425,7 +425,7 @@ def fig01(lang):
 
 def fig02(lang):
     L = LBL[lang]
-    all_models = ["ARIMA", "LSTM", "Fair", "KLA"]
+    all_models = ["ARIMA", "LSTM", "Fair", "KCA"]
     fig, axes = plt.subplots(1, 4, figsize=(13.5, 3.8),
                              constrained_layout=True, sharey=True)
     cfg_labels = [f"{d}\ns={s}" for (d, s) in CFG_ORDER]
@@ -480,7 +480,7 @@ def fig04(lang):
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4),
                                    constrained_layout=True)
     data = MSE[("Exchange", 16)]
-    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KLA", "^")):
+    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KCA", "^")):
         ax1.plot(SIGMAS, data[m], marker=mk, color=COLORS[m], label=m)
     ax1.set_yscale("log")
     ax1.set_title(L["panel_left"] + "  " + L["exch_mse"])
@@ -523,7 +523,7 @@ def fig05(lang):
         kla = base + rng.normal(0, 0.04 + 0.04 * sigma, T)
         fair = base + rng.normal(0, 0.05 + 0.35 * sigma, T)
         lstm = base + rng.normal(0, 0.08 + 0.05 * sigma, T)
-        ax.plot(t[look:], kla[look:], color=C_KLA, lw=1.3, label="KLA")
+        ax.plot(t[look:], kla[look:], color=C_KLA, lw=1.3, label="KCA")
         ax.plot(t[look:], fair[look:], color=C_FAIR, lw=1.0, ls="--",
                 label="Fair")
         ax.plot(t[look:], lstm[look:], color=C_LSTM, lw=1.0, ls=":",
@@ -543,7 +543,7 @@ def fig06(lang):
     angles = [2 * np.pi * i / N for i in range(N)] + [0]
     fig, ax = plt.subplots(figsize=(6, 6), constrained_layout=True,
                            subplot_kw=dict(polar=True))
-    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KLA", "^")):
+    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KCA", "^")):
         vals = RADAR_SCORES[m] + [RADAR_SCORES[m][0]]
         ax.plot(angles, vals, color=COLORS[m], marker=mk,
                 linewidth=1.4, label=m)
@@ -562,7 +562,7 @@ def fig07(lang):
     L = LBL[lang]
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4),
                                    constrained_layout=True)
-    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KLA", "^")):
+    for m, mk in (("LSTM", "o"), ("Fair", "s"), ("KCA", "^")):
         ax1.scatter(PARAMS_K[m], AVG_MSE_S3[m], s=120, color=COLORS[m],
                     marker=mk, edgecolors="white", linewidth=1.0,
                     label=m, zorder=3)
@@ -576,14 +576,14 @@ def fig07(lang):
     ax1.legend()
 
     cfg_names = list(EPOCH_S.keys())
-    bar_labels = ["LSTM", "Fair", "KLA (PyTorch)", "KLA (Triton)"]
-    key_order = ["LSTM", "Fair", "KLA-PT", "KLA-TR"]
+    bar_labels = ["LSTM", "Fair", "KCA (PyTorch)", "KCA (Triton)"]
+    key_order = ["LSTM", "Fair", "KCA-PT", "KCA-TR"]
     x = np.arange(len(cfg_names))
     w = 0.2
     colors_b = [C_LSTM, C_FAIR, C_KLA, C_TRI]
     for i, (k, lab, c) in enumerate(zip(key_order, bar_labels, colors_b)):
         vals = [EPOCH_S[cfg][k] for cfg in cfg_names]
-        hatch = "//" if k == "KLA-TR" else None
+        hatch = "//" if k == "KCA-TR" else None
         ax2.bar(x + (i - 1.5) * w, vals, width=w, color=c, label=lab,
                 hatch=hatch, edgecolor="white", linewidth=0.6)
     ax2.set_xticks(x)
@@ -671,10 +671,10 @@ def fig13(lang):
     k = np.arange(0, 121)
     styles = [("LSTM",        C_LSTM,  "-"),
               ("Vanilla SSM", C_ALT1,  "--"),
-              ("KLA sigma=5", C_KLA,   "-"),
-              ("KLA sigma=3", "#77BB44", "-"),
-              ("KLA sigma=1", "#AACC66", ":"),
-              ("KLA sigma=0", "#CCDDAA", "-")]
+              ("KCA sigma=5", C_KLA,   "-"),
+              ("KCA sigma=3", "#77BB44", "-"),
+              ("KCA sigma=1", "#AACC66", ":"),
+              ("KCA sigma=0", "#CCDDAA", "-")]
     for name, col, ls in styles:
         a = A_COEFFS[name]
         label_name = name.replace("sigma", r"$\sigma$")
@@ -693,9 +693,9 @@ def fig13(lang):
     ax2.axhline(HORIZON["Vanilla SSM"], ls="-.", color=C_ALT1, lw=1.2,
                 label=f"Vanilla SSM ({HORIZON['Vanilla SSM']}"
                       f"{L['horizon_unit']})")
-    ax2.plot(SIGMAS, HORIZON["KLA"], "o-", color=C_KLA, lw=1.6,
-             label="KLA-Mamba")
-    ax2.fill_between(SIGMAS, 0, HORIZON["KLA"], color=C_KLA, alpha=0.1)
+    ax2.plot(SIGMAS, HORIZON["KCA"], "o-", color=C_KLA, lw=1.6,
+             label="KCA-Mamba")
+    ax2.fill_between(SIGMAS, 0, HORIZON["KCA"], color=C_KLA, alpha=0.1)
     ax2.set_title(L["panel_right"] + "  " + L["horizon_title"])
     ax2.set_xlabel(L["noise"])
     ax2.set_ylabel(L["horizon_y"])
@@ -835,7 +835,7 @@ def kc_stack(lang):
     return save(fig, "kc_stack_diagram", lang)
 
 
-def kla_stack(lang):
+def kca_stack(lang):
     L = LBL[lang]
     labels = L["kla_boxes"]
     fig, ax = plt.subplots(figsize=(5.5, 7.5), constrained_layout=True)
@@ -847,7 +847,7 @@ def kla_stack(lang):
         _box(ax, (0.5, y), 0.82, 0.09, lab, fc=c, ec="0.3", fs=8.5)
     for y0, y1 in zip(ys[:-1], ys[1:]):
         _arrow(ax, (0.5, y0 - 0.05), (0.5, y1 + 0.05))
-    return save(fig, "kla_stack_diagram", lang)
+    return save(fig, "kca_stack_diagram", lang)
 
 
 def fig14(lang):
@@ -877,7 +877,7 @@ def fig15(lang: str) -> str:
     """Long-sequence noise robustness: MSE vs seq_len for ETTm1 and Exchange.
 
     2x2 grid: rows = datasets (ETTm1, Exchange), cols = noise (sigma=3, sigma=5).
-    Lines: LSTM, Fair Mamba, KLA-Mamba.  ARIMA excluded (off-scale).
+    Lines: LSTM, Fair Mamba, KCA-Mamba.  ARIMA excluded (off-scale).
     """
     L = LBL[lang]
     fig, axes = plt.subplots(2, 2, figsize=(9, 6), constrained_layout=True)
@@ -893,7 +893,7 @@ def fig15(lang: str) -> str:
             for mname, color, ls in [
                 ("LSTM", C_LSTM, "-o"),
                 ("Fair", C_FAIR, "-s"),
-                ("KLA",  C_KLA,  "-^"),
+                ("KCA",  C_KLA,  "-^"),
             ]:
                 if mname in row:
                     ax.plot(xs, row[mname], ls, color=color,
@@ -905,7 +905,7 @@ def fig15(lang: str) -> str:
             noise_lbl = L["longseq_s3"] if sig == 3 else L["longseq_s5"]
             ax.set_title(f"{titles_ds[ds]} -- {noise_lbl}", fontsize=9)
             # clip y so Fair's high values don't crush the interesting region
-            all_vals = [v for m in ["LSTM", "KLA"] for v in row.get(m, [])]
+            all_vals = [v for m in ["LSTM", "KCA"] for v in row.get(m, [])]
             if all_vals:
                 ymax = min(max(all_vals) * 1.6, 3.0)
                 ax.set_ylim(0, ymax)
@@ -939,7 +939,7 @@ def fig16(lang: str) -> str:
         for mname, color, ls in [
             ("LSTM", C_LSTM, "-o"),
             ("Fair", C_FAIR, "-s"),
-            ("KLA",  C_KLA,  "-^"),
+            ("KCA",  C_KLA,  "-^"),
         ]:
             if mname not in row:
                 continue
@@ -964,7 +964,7 @@ def fig16(lang: str) -> str:
                         fontsize=7, color=C_FAIR,
                         bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=C_FAIR, alpha=0.8))
         else:
-            all_vals = [v for m in ["LSTM", "KLA"] for v in row.get(m, [])]
+            all_vals = [v for m in ["LSTM", "KCA"] for v in row.get(m, [])]
             if all_vals:
                 ax.set_ylim(0, min(max(all_vals) * 1.5, 4.0))
 
@@ -982,7 +982,7 @@ ALL = {
     "fig01": fig01, "fig02": fig02, "fig03": fig03, "fig04": fig04,
     "fig05": fig05, "fig06": fig06, "fig07": fig07, "fig08": fig08,
     "fig09": fig09, "fig11": fig11, "fig12": fig12,
-    "fig13": fig13, "kc_stack": kc_stack, "kla_stack": kla_stack,
+    "fig13": fig13, "kc_stack": kc_stack, "kca_stack": kca_stack,
     "fig14": fig14, "fig15": fig15, "fig16": fig16,
 }
 

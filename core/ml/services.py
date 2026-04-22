@@ -16,7 +16,7 @@ except ImportError:  # pragma: no cover - optional dependency
     torch = None
     nn = None
 
-from core.ml.kla_mamba import KLAMambaBlock, KLAMambaStack
+from core.ml.kca_mamba import KCAMambaBlock, KCAMambaStack
 
 if TYPE_CHECKING:
     from core.application.stores import RunContext
@@ -85,7 +85,7 @@ class IModelUpdatePort(Protocol):
 # =====================================================
 
 # KLA-hoz szükséges minimális feature state előállító.
-class KLAStateEstimator:
+class KCAStateEstimator:
     def __init__(self) -> None:
         self.models: dict[str, EstimatedState] = {}
 
@@ -142,8 +142,8 @@ class KLAStateEstimator:
 # PREDICTOR IMPLEMENTATIONS
 # =====================================================
 
-# KLAPredictor: KLA alapú prediktor, közvetlen online modellfrissítéssel
-class KLAPredictor(IPredictor, IModelUpdatePort):
+# KCAPredictor: KLA alapú prediktor, közvetlen online modellfrissítéssel
+class KCAPredictor(IPredictor, IModelUpdatePort):
     """
     KLA-based predictor with model versioning and online update capability.
     
@@ -179,17 +179,25 @@ class KLAPredictor(IPredictor, IModelUpdatePort):
         if not state_dict:
             return None
 
-        model_type = str(hyper.get("model_type", "kla"))
-        if model_type != "kla":
+        # Back-compat: accept both new ("kca") and legacy ("kla") model_type
+        model_type = str(hyper.get("model_type", "kca")).lower()
+        if model_type not in ("kca", "kla"):
             raise ValueError(f"Unsupported model_type for predictor: {model_type}")
 
         input_size = int(hyper.get("input_size", 3))
         self._class_count = max(1, int(hyper.get("class_count", 1)))
-        kla_heads = int(hyper.get("kla_heads", 4))
-        kla_state_dim = int(hyper.get("kla_state_dim", 16))
-        kla_num_layers = int(hyper.get("kla_num_layers", 1))
-        kla_hidden_dim = int(hyper.get("kla_hidden_dim", input_size))
-        kla_slow_stride = int(hyper.get("kla_slow_stride", 12))
+        # Back-compat: accept both kca_* and legacy kla_* hyperparam keys
+        def _hp(new_key: str, legacy_key: str, default):
+            if new_key in hyper:
+                return hyper[new_key]
+            if legacy_key in hyper:
+                return hyper[legacy_key]
+            return default
+        kca_heads = int(_hp("kca_heads", "kla_heads", 4))
+        kca_state_dim = int(_hp("kca_state_dim", "kla_state_dim", 16))
+        kca_num_layers = int(_hp("kca_num_layers", "kla_num_layers", 1))
+        kca_hidden_dim = int(_hp("kca_hidden_dim", "kla_hidden_dim", input_size))
+        kca_slow_stride = int(_hp("kca_slow_stride", "kla_slow_stride", 12))
         self._lookback = max(1, int(hyper.get("lookback", 1)))
         self._horizon = max(1, int(hyper.get("horizon", 1)))
         self._train_positive_ratio = min(max(float(hyper.get("train_positive_ratio", 0.5)), 1e-4), 1.0 - 1e-4)
@@ -210,26 +218,39 @@ class KLAPredictor(IPredictor, IModelUpdatePort):
                 self._train_class_priors = [1.0 / float(self._class_count)] * self._class_count
         self._train_mu_mean = float(hyper.get("train_mu_mean", 0.0))
 
-        # Detect architecture from state_dict keys
-        _has_kla_stack = any(k.startswith("kla_stack.") for k in state_dict)
+        # Detect architecture from state_dict keys.
+        # Back-compat: legacy checkpoints used "kla_stack." / "kla_block." prefixes.
+        # Remap them in-place to the current "kca_stack." / "kca_block." names so
+        # that strict-loading succeeds against the renamed ModuleDict.
+        _legacy_stack  = any(k.startswith("kla_stack.")  for k in state_dict)
+        _legacy_block  = any(k.startswith("kla_block.")  for k in state_dict)
+        if _legacy_stack or _legacy_block:
+            state_dict = {
+                (k.replace("kla_stack.", "kca_stack.", 1)
+                  if k.startswith("kla_stack.")
+                  else (k.replace("kla_block.", "kca_block.", 1)
+                        if k.startswith("kla_block.") else k)): v
+                for k, v in state_dict.items()
+            }
+        _has_kca_stack = any(k.startswith("kca_stack.") for k in state_dict)
         _has_mlp_head = any(k.startswith("mu_head.0.") or k.startswith("up_head.0.") for k in state_dict)
-        _head_input = kla_hidden_dim if _has_kla_stack else input_size
+        _head_input = kca_hidden_dim if _has_kca_stack else input_size
         _hh = 64
-        if _has_kla_stack:
-            backbone = KLAMambaStack(
+        if _has_kca_stack:
+            backbone = KCAMambaStack(
                 feature_dim=input_size,
-                hidden_dim=kla_hidden_dim,
-                num_layers=kla_num_layers,
-                heads=kla_heads,
-                d_state=kla_state_dim,
-                slow_stride=kla_slow_stride,
+                hidden_dim=kca_hidden_dim,
+                num_layers=kca_num_layers,
+                heads=kca_heads,
+                d_state=kca_state_dim,
+                slow_stride=kca_slow_stride,
             )
             mu_head = nn.Sequential(nn.Linear(_head_input, _hh), nn.SiLU(), nn.Linear(_hh, 1))
             up_head = nn.Sequential(nn.Linear(_head_input, _hh), nn.SiLU(), nn.Linear(_hh, self._class_count))
             var_head = nn.Sequential(nn.Linear(_head_input, _hh), nn.SiLU(), nn.Linear(_hh, 1))
-            model = nn.ModuleDict({"kla_stack": backbone, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
+            model = nn.ModuleDict({"kca_stack": backbone, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
         else:
-            backbone = KLAMambaBlock(d_model=input_size, heads=kla_heads, d_state=kla_state_dim)
+            backbone = KCAMambaBlock(d_model=input_size, heads=kca_heads, d_state=kca_state_dim)
             if _has_mlp_head:
                 mu_head = nn.Sequential(nn.Linear(_head_input, _hh), nn.SiLU(), nn.Linear(_hh, 1))
                 up_head = nn.Sequential(nn.Linear(_head_input, _hh), nn.SiLU(), nn.Linear(_hh, self._class_count))
@@ -238,7 +259,7 @@ class KLAPredictor(IPredictor, IModelUpdatePort):
                 mu_head = nn.Linear(_head_input, 1)
                 up_head = nn.Linear(_head_input, self._class_count)
                 var_head = nn.Linear(_head_input, 1)
-            model = nn.ModuleDict({"kla_block": backbone, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
+            model = nn.ModuleDict({"kca_block": backbone, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
         # Validate checkpoint compatibility — strict=False silently loads partial
         # weights, leaving missing layers at random init without any warning.
         _ckpt_keys = set(state_dict.keys())
@@ -331,7 +352,7 @@ class KLAPredictor(IPredictor, IModelUpdatePort):
             ]
             with torch.no_grad():
                 x = torch.tensor([normalized_seq], dtype=torch.float32, device=self.device)
-                _kla_key = "kla_stack" if "kla_stack" in self._compiled_model else "kla_block"
+                _kla_key = "kca_stack" if "kca_stack" in self._compiled_model else "kca_block"
                 y_seq, _, _, _ = self._compiled_model[_kla_key](x)
                 h = y_seq[:, -1, :]
                 mu_raw = float(self._compiled_model["mu_head"](h).squeeze().item())

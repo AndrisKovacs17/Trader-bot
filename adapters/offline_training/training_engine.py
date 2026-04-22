@@ -25,7 +25,7 @@ except ImportError:  # pragma: no cover - optional dependency
 
 from core.ml.services import IModelUpdatePort
 from core.ml.feature_engineering import build_trade_feature_rows
-from core.ml.kla_mamba import KLAMambaBlock, KLAMambaStack
+from core.ml.kca_mamba import KCAMambaBlock, KCAMambaStack
 
 if TYPE_CHECKING:
     from core.domain.models import Instrument
@@ -73,11 +73,11 @@ class TrainingEngine:
         use_nll_loss: bool = True,
         lookback: int = 32,
         horizon: int = 3,
-        kla_heads: int = 4,
-        kla_state_dim: int = 16,
-        kla_num_layers: int = 3,
-        kla_hidden_dim: int = 64,
-        kla_slow_stride: int = 12,
+        kca_heads: int = 4,
+        kca_state_dim: int = 16,
+        kca_num_layers: int = 3,
+        kca_hidden_dim: int = 64,
+        kca_slow_stride: int = 12,
         direction_epsilon: float = 5e-5,
         balance_direction_loss: bool = True,
         direction_pos_weight_min: float = 0.5,
@@ -101,6 +101,7 @@ class TrainingEngine:
         weight_decay: float = 0.01,
         label_smoothing: float = 0.0,
         sequence_stride: int = 1,
+        find_lr: bool = False,
     ) -> dict[str, Any]:
         """
         Train KLA predictor on historical dataset (OFFLINE).
@@ -122,8 +123,8 @@ class TrainingEngine:
             use_nll_loss: If True, train with uncertainty-aware NLL-style loss
             lookback: Number of past timesteps per sample
             horizon: Future return horizon in steps
-            kla_heads: Number of KLA heads
-            kla_state_dim: KLA state dimension per head
+            kca_heads: Number of KLA heads
+            kca_state_dim: KLA state dimension per head
         
         Returns:
             dict with training metadata:
@@ -147,10 +148,10 @@ class TrainingEngine:
             raise ValueError(f"lookback must be >= 4, got {lookback}")
         if horizon < 1:
             raise ValueError(f"horizon must be >= 1, got {horizon}")
-        if kla_heads <= 0:
-            raise ValueError(f"kla_heads must be positive, got {kla_heads}")
-        if kla_state_dim <= 0:
-            raise ValueError(f"kla_state_dim must be positive, got {kla_state_dim}")
+        if kca_heads <= 0:
+            raise ValueError(f"kca_heads must be positive, got {kca_heads}")
+        if kca_state_dim <= 0:
+            raise ValueError(f"kca_state_dim must be positive, got {kca_state_dim}")
         if direction_epsilon < 0:
             raise ValueError(f"direction_epsilon must be >= 0, got {direction_epsilon}")
         if direction_pos_weight_min <= 0:
@@ -315,18 +316,18 @@ class TrainingEngine:
         feature_dim = int(x_train.shape[2])
         class_count = 2  # Binary: DOWN=0, UP=1  (FLAT removed)
         _head_hidden = 64
-        kla_stack = KLAMambaStack(
+        kca_stack = KCAMambaStack(
             feature_dim=feature_dim,
-            hidden_dim=kla_hidden_dim,
-            num_layers=kla_num_layers,
-            heads=kla_heads,
-            d_state=kla_state_dim,
-            slow_stride=kla_slow_stride,
+            hidden_dim=kca_hidden_dim,
+            num_layers=kca_num_layers,
+            heads=kca_heads,
+            d_state=kca_state_dim,
+            slow_stride=kca_slow_stride,
         )
-        mu_head = nn.Sequential(nn.Linear(kla_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, 1))
-        up_head = nn.Sequential(nn.Linear(kla_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, class_count))
-        var_head = nn.Sequential(nn.Linear(kla_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, 1))
-        model = nn.ModuleDict({"kla_stack": kla_stack, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
+        mu_head = nn.Sequential(nn.Linear(kca_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, 1))
+        up_head = nn.Sequential(nn.Linear(kca_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, class_count))
+        var_head = nn.Sequential(nn.Linear(kca_hidden_dim, _head_hidden), nn.SiLU(), nn.Linear(_head_hidden, 1))
+        model = nn.ModuleDict({"kca_stack": kca_stack, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
 
         device = "cuda" if torch.cuda.is_available() else "cpu"
         model = model.to(device)
@@ -335,8 +336,88 @@ class TrainingEngine:
         non_blocking_transfer = device == "cuda"
         eval_batch_size = max(1, int(batch_size))
 
+        # ── Fastai-style LR finder (optional) ────────────────────────────────
+        # Same algorithm as _find_lr_fastai in ltsf_benchmark.py, but uses the
+        # actual NLL+CE forward pass of this model (nn.ModuleDict has no .forward).
+        if find_lr and train_size >= batch_size:
+            import copy as _copy
+            _lr_start, _lr_end, _num_it = 1e-7, 1.0, 100
+            _beta_ema = 0.98
+            _model_clone = _copy.deepcopy(model).to(device)
+            _opt_clone = torch.optim.Adam(_model_clone.parameters(), lr=_lr_start)
+            _avg_loss_ema = 0.0
+            _best_smooth = float("inf")
+            _lrs: list[float] = []
+            _losses: list[float] = []
+            _perm_lr = torch.randperm(train_size)
+            _ptr = 0
+            print("[LR-find] Probing 1e-7 → 1.0 …", flush=True)
+            for _i in range(_num_it):
+                _lr_i = _lr_start * (_lr_end / _lr_start) ** (_i / _num_it)
+                for _pg in _opt_clone.param_groups:
+                    _pg["lr"] = _lr_i
+                if _ptr + batch_size > train_size:
+                    _perm_lr = torch.randperm(train_size)
+                    _ptr = 0
+                _idx = _perm_lr[_ptr: _ptr + batch_size]
+                _ptr += batch_size
+                _xb = x_train[_idx].to(device)
+                _yb_mu = y_mu_train[_idx].to(device)
+                _yb_cls = y_cls_train[_idx].to(device)
+                _opt_clone.zero_grad(set_to_none=True)
+                _y_seq, _, _, _ = _model_clone["kca_stack"](_xb)
+                _h = _y_seq[:, -1, :]
+                _pred_mu = _model_clone["mu_head"](_h)
+                _pred_var = torch.nn.functional.softplus(_model_clone["var_head"](_h)).clamp(1e-6, 10.0)
+                _pred_logits = _model_clone["up_head"](_h)
+                _nll = ((_pred_mu - _yb_mu).pow(2) / (2.0 * _pred_var) + 0.5 * torch.log(_pred_var)).mean()
+                if nll_loss_clip > -1e6:
+                    _nll = _nll.clamp(min=float(nll_loss_clip))
+                _ce_probe = nn.CrossEntropyLoss()(_pred_logits, _yb_cls)
+                _loss = _nll + float(cls_loss_weight) * _ce_probe
+                if not torch.isfinite(_loss):
+                    break
+                _loss.backward()
+                torch.nn.utils.clip_grad_norm_(_model_clone.parameters(), 1.0)
+                _opt_clone.step()
+                _avg_loss_ema = _beta_ema * _avg_loss_ema + (1.0 - _beta_ema) * _loss.item()
+                _smooth = _avg_loss_ema / (1.0 - _beta_ema ** (_i + 1))
+                if _smooth < _best_smooth:
+                    _best_smooth = _smooth
+                elif _smooth > 4.0 * _best_smooth:
+                    break
+                _lrs.append(_lr_i)
+                _losses.append(_smooth)
+            del _model_clone, _opt_clone
+            # Valley suggestion: trim edges, find longest decreasing run, take ~2/3 through
+            _trim_s = max(0, _num_it // 10)
+            _trim_e = max(_trim_s + 1, len(_lrs) - 5)
+            _lt = _lrs[_trim_s:_trim_e]
+            _ls = _losses[_trim_s:_trim_e]
+            if len(_ls) >= 3:
+                _dp = [1] * len(_ls)
+                _prev = [-1] * len(_ls)
+                for _j in range(1, len(_ls)):
+                    for _k in range(_j):
+                        if _ls[_k] > _ls[_j] and _dp[_k] + 1 > _dp[_j]:
+                            _dp[_j] = _dp[_k] + 1
+                            _prev[_j] = _k
+                _best_end = max(range(len(_dp)), key=lambda x: _dp[x])
+                _cur = _best_end
+                _run_indices: list[int] = []
+                while _cur >= 0:
+                    _run_indices.append(_cur)
+                    _cur = _prev[_cur]
+                _run_indices.reverse()
+                _valley_idx = _run_indices[int(len(_run_indices) * 2 // 3)]
+                _suggested_lr = _lt[_valley_idx]
+            else:
+                _suggested_lr = float(learning_rate)
+            _suggested_lr = float(max(1e-6, min(_suggested_lr, 1e-2)))
+            print(f"[LR-find] Suggested LR: {_suggested_lr:.2e}  (was {float(learning_rate):.2e})", flush=True)
+            learning_rate = _suggested_lr
+
         optimizer = torch.optim.AdamW(model.parameters(), lr=float(learning_rate), weight_decay=float(weight_decay))
-        # Linear warmup for 3 epochs then cosine decay.
         # Warmup prevents Beta-NLL exploding gradients on epoch 1 when sigma is random.
         _warmup_epochs = min(3, max(1, epochs // 5))
         def _lr_lambda(epoch_idx: int) -> float:
@@ -652,7 +733,7 @@ class TrainingEngine:
                         non_blocking=non_blocking_transfer,
                     )
 
-                    y_val, _, _, _ = model["kla_stack"](xb)
+                    y_val, _, _, _ = model["kca_stack"](xb)
                     h_val = y_val[:, -1, :]
                     pred_mu_val = model["mu_head"](h_val)
                     pred_logits_val = model["up_head"](h_val)
@@ -716,7 +797,7 @@ class TrainingEngine:
         # ── training header ───────────────────────────────────────────────────
         print(
             f"\n{'='*72}\n"
-            f"  KLA-Mamba Training  |  epochs={epochs}  batches/epoch={num_batches}"
+            f"  KCA-Mamba Training  |  epochs={epochs}  batches/epoch={num_batches}"
             f"  |  train={train_size}  val={val_size}  feat={feature_dim}\n"
             f"  device={device}  lookback={lookback}  horizon={horizon}"
             f"  |  baseline_acc={baseline_reference_accuracy:.4f}  baseline_brier={baseline_reference_brier:.4f}\n"
@@ -738,7 +819,7 @@ class TrainingEngine:
                 yb_mu = y_mu_train[idx].to(device, non_blocking=non_blocking_transfer)
                 yb_cls = y_cls_train[idx].to(device, non_blocking=non_blocking_transfer)
 
-                y_seq, _, _, _ = model["kla_stack"](xb)
+                y_seq, _, _, _ = model["kca_stack"](xb)
                 h = y_seq[:, -1, :]
                 if head_dropout > 0.0:
                     h = torch.nn.functional.dropout(h, p=float(head_dropout), training=True)
@@ -904,15 +985,15 @@ class TrainingEngine:
             "predictor": {
                 "state_dict": state_dict,
                 "hyperparams": {
-                    "model_type": "kla",
+                    "model_type": "kca",
                     "input_size": feature_dim,
                     "feature_names": feature_names,
                     "class_count": class_count,
-                    "kla_heads": int(kla_heads),
-                    "kla_state_dim": int(kla_state_dim),
-                    "kla_num_layers": int(kla_num_layers),
-                    "kla_hidden_dim": int(kla_hidden_dim),
-                    "kla_slow_stride": int(kla_slow_stride),
+                    "kca_heads": int(kca_heads),
+                    "kca_state_dim": int(kca_state_dim),
+                    "kca_num_layers": int(kca_num_layers),
+                    "kca_hidden_dim": int(kca_hidden_dim),
+                    "kca_slow_stride": int(kca_slow_stride),
                     "lookback": int(lookback),
                     "horizon": int(horizon),
                     "device": device,
@@ -1011,8 +1092,8 @@ class TrainingEngine:
             "deploy_reason": deploy_reason,
             "version": self.trained_version,
             "device": device,
-            "kla_heads": kla_heads,
-            "kla_state_dim": kla_state_dim,
+            "kca_heads": kca_heads,
+            "kca_state_dim": kca_state_dim,
             "lookback": lookback,
             "horizon": horizon,
             "direction_epsilon": direction_epsilon,
@@ -1051,11 +1132,11 @@ class TrainingEngine:
                 "batch_size": batch_size,
                 "batches_per_epoch": num_batches,
                 "samples": total_samples,
-                "kla_heads": int(kla_heads),
-                "kla_state_dim": int(kla_state_dim),
-                "kla_num_layers": int(kla_num_layers),
-                "kla_hidden_dim": int(kla_hidden_dim),
-                "kla_slow_stride": int(kla_slow_stride),
+                "kca_heads": int(kca_heads),
+                "kca_state_dim": int(kca_state_dim),
+                "kca_num_layers": int(kca_num_layers),
+                "kca_hidden_dim": int(kca_hidden_dim),
+                "kca_slow_stride": int(kca_slow_stride),
                 "horizon": horizon,
                 "instrument": getattr(instrument, "symbol", None) if instrument else None,
                 "target_mode": "net_of_fee" if net_target else "raw_return",
@@ -1085,7 +1166,7 @@ class TrainingEngine:
             - Next N bytes: version string (UTF-8)
             - Remaining: pickled model_weights dict
         
-        This format is consumed by KLAPredictor.request_model_update()
+        This format is consumed by KCAPredictor.request_model_update()
         
         ⚠️ Production Risk: pickle is not secure and not language-agnostic.
         For production systems, consider:
@@ -1116,7 +1197,7 @@ class TrainingEngine:
         The production system predictor receives update via request_model_update().
         
         Args:
-            update_port: IModelUpdatePort implementer (e.g., KLAPredictor)
+            update_port: IModelUpdatePort implementer (e.g., KCAPredictor)
         """
         if self._artifact is None:
             raise RuntimeError("No trained weights available")

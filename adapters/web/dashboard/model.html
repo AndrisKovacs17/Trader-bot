@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Modell diagnosztika</title>
+  <title>KCA-Mamba · Modell diagnosztika</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -88,7 +88,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a active">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -106,7 +106,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -128,7 +128,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Model identity -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Modell azonosítás</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Modell azonosítás<button class="tip-btn" data-tip="A jelenleg aktív modell verziója és paraméterei.&#10;&#10; • Verzió → UTC időbélyeg az utolsó sikeres tréningből&#10; • Tréning minta → ennyi szekvencián tanult a modell&#10; • Loss → NLL + CE súlyozott kombinációja&#10;&#10;A Predikciós cél: 3-osztályos irány (DOWN / FLAT / UP).">?</button></h2>
       <div id="modelIdentity">
         <div class="kv"><span class="lbl">Verzió</span><span class="val" id="mVersion">—</span></div>
         <div class="kv"><span class="lbl">Modell típus</span><span class="val" id="mType">—</span></div>
@@ -136,10 +136,10 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
         <div class="kv"><span class="lbl">Osztályok száma</span><span class="val" id="mClassCount">—</span></div>
         <div class="kv"><span class="lbl">Lookback</span><span class="val" id="mLookback">—</span></div>
         <div class="kv"><span class="lbl">Horizon</span><span class="val" id="mHorizon">—</span></div>
-        <div class="kv"><span class="lbl">KLA heads</span><span class="val" id="mHeads">—</span></div>
-        <div class="kv"><span class="lbl">KLA layers</span><span class="val" id="mLayers">—</span></div>
-        <div class="kv"><span class="lbl">KLA hidden dim</span><span class="val" id="mHidDim">—</span></div>
-        <div class="kv"><span class="lbl">KLA state dim</span><span class="val" id="mStateDim">—</span></div>
+        <div class="kv"><span class="lbl">KCA heads</span><span class="val" id="mHeads">—</span></div>
+        <div class="kv"><span class="lbl">KCA layers</span><span class="val" id="mLayers">—</span></div>
+        <div class="kv"><span class="lbl">KCA hidden dim</span><span class="val" id="mHidDim">—</span></div>
+        <div class="kv"><span class="lbl">KCA state dim</span><span class="val" id="mStateDim">—</span></div>
         <div class="kv"><span class="lbl">Device</span><span class="val" id="mDevice">—</span></div>
         <div class="kv"><span class="lbl">Loss típus</span><span class="val" id="mLoss">—</span></div>
         <div class="kv"><span class="lbl">Target mód</span><span class="val" id="mTarget">—</span></div>
@@ -148,7 +148,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Probability health -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Valószínűségi kimenet egészség</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Valószínűségi kimenet egészség<button class="tip-btn" data-tip="A modell prob_up kimenetének diagnosztikája.&#10;&#10; • Átlag → ideálisan 0.5 körül (balanced piac)&#10; • Szórás → ha &lt;0.02 → a modell nem differenciál&#10; • Min/Max → 0.30 – 0.70 tartomány szignifikáns edge-re utal&#10;&#10;Ha az átlag folyamatosan ~0.47 körül van → a modell pesszimista torzult. Label smoothing / head dropout túl agresszív lehet.">?</button></h2>
       <div id="probHealth">
         <div class="kv"><span class="lbl">Átlag Prob↑</span><span class="val" id="phAvgProb">—</span></div>
         <div class="kv"><span class="lbl">Prob↑ szórás</span><span class="val" id="phStdProb">—</span></div>
@@ -163,7 +163,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Sigma health -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Sigma (bizonytalanság) egészség</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Sigma (bizonytalanság) egészség<button class="tip-btn" data-tip="A heteroscedasztikus NLL loss által tanult σ értékek eloszlása.&#10;&#10; • Alacsony σ → magabiztos predikció&#10; • Magas σ → bizonytalan piac, kisebb pozíció&#10;&#10;Ha σ konstans → a heteroscedasztikus fej nem tanult meg valódi bizonytalanságot (nll_loss_clip túl alacsony, vagy var_head zárva).">?</button></h2>
       <div>
         <div class="kv"><span class="lbl">Átlag Sigma</span><span class="val" id="shAvgSig">—</span></div>
         <div class="kv"><span class="lbl">Sigma szórás</span><span class="val" id="shStdSig">—</span></div>
@@ -182,7 +182,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Training priors + class distribution -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning priorok és statisztikák</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning priorok és statisztikák<button class="tip-btn" data-tip="A tanítási halmaz osztálymegoszlása és eloszlási tulajdonságai.&#10;&#10;BTC 5m-en tipikus: ~48% UP / ~4% FLAT / ~48% DOWN (net_target=False mellett).&#10;A class_weights ezekből az arányokból kerül kiszámításra a kiegyensúlyozott tanuláshoz.">?</button></h2>
       <div>
         <div class="kv"><span class="lbl">train_positive_ratio</span><span class="val" id="tPosRatio">—</span></div>
         <div class="kv"><span class="lbl">train_class_priors [DOWN/FLAT/UP]</span><span class="val" id="tClassPriors">—</span></div>
@@ -197,7 +197,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     </div>
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Osztályarány a kimenetben (élő)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Osztályarány a kimenetben (élő)<button class="tip-btn" data-tip="A modell éles inferencia során milyen arányban jósol egyes osztályokat.&#10;&#10;Ha egy osztály &gt;80% → mode collapse, a modell egyetlen címkét memorizált.&#10;Egészséges: közel a tréning priorokhoz (~48/4/48%).">?</button></h2>
       <div style="height:200px"><canvas id="cClassDist"></canvas></div>
       <div class="mt-3 space-y-1 text-xs" id="classDistInfo"></div>
     </div>
@@ -206,7 +206,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Baseline összehasonlítás -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Baseline összehasonlítás — irányossági pontosság</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Baseline összehasonlítás — irányossági pontosság<button class="tip-btn" data-tip="A KCA-Mamba vs. egyszerű baseline modellek (MLP, GRU, LSTM, AR, naive_last) directional accuracy-je validáción.&#10;&#10;A deploy gate megköveteli, hogy a KCA legalább annyira jó legyen mint a legjobb baseline (min_baseline_improvement küszöb).">?</button></h2>
       <span id="baselineCompMeta" class="text-xs text-slate-600">—</span>
     </div>
     <div id="baselineCompNoData" class="hidden text-xs text-slate-600 text-center py-8">Nincs tréning eredmény — futtass tréninge a run_simple_baselines=True opcióval</div>
@@ -219,7 +219,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
             <th class="py-1.5 pr-4 font-semibold">Dir. Acc.</th>
             <th class="py-1.5 pr-4 font-semibold">Brier↑</th>
             <th class="py-1.5 pr-4 font-semibold">Pred D/F/U</th>
-            <th class="py-1.5 font-semibold">KLA előnye</th>
+            <th class="py-1.5 font-semibold">KCA előnye</th>
           </tr>
         </thead>
         <tbody id="baselineCompTbody" class="font-mono"></tbody>
@@ -229,7 +229,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Feature names + scaler stats -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feature nevek és scaler statisztikák</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feature nevek és scaler statisztikák<button class="tip-btn" data-tip="A modellnek bemenő 23+ feature listája: ret, rsi, macd, ema_diff, volume_ratio, atr, stoch, bollinger, stb.&#10;&#10;A scaler per-feature μ és σ értékekkel normalizál (z-score), hogy a különböző nagyságrendű jellemzők egyenlő súllyal szerepeljenek a tanulásban.">?</button></h2>
     <div id="featureTable" class="overflow-auto">
       <table class="w-full text-xs">
         <thead>
@@ -250,14 +250,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up historikus</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up historikus<button class="tip-btn" data-tip="A modell által kiadott UP valószínűségek idősora az utolsó futtatás óta.&#10;&#10;Egyenletes 0.5 → a modell nem tanult edge-et. Hullámzás 0.4–0.6 között → működő edge.">?</button></h2>
         <span id="probChartMeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:200px"><canvas id="cProbHist"></canvas></div>
     </div>
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma historikus</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma historikus<button class="tip-btn" data-tip="A predikciós bizonytalanság (σ) változása időben.&#10;&#10;Volatilis piacon (pl. hírekkor) magasabb, nyugodt trendben alacsonyabb.">?</button></h2>
         <span id="sigChartMeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:200px"><canvas id="cSigHist"></canvas></div>
@@ -267,7 +267,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Predikció vs valódi ármozgás -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">📈 Predikció vs valódi ármozgás</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">📈 Predikció vs valódi ármozgás<button class="tip-btn" data-tip="A modell által előrejelzett és a ténylegesen realizált hozam összehasonlítása.&#10;&#10;Korreláció → kalibráltság jele.&#10;Mu mindig 0 közelében → a modell nem mer markáns becslést adni.">?</button></h2>
       <span id="predVsActualMeta" class="text-xs text-slate-600">—</span>
     </div>
     <div style="height:260px"><canvas id="cPredVsActual"></canvas></div>
@@ -283,7 +283,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Mu vs Realized scatter -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu vs Realizált hozam (igazítás)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu vs Realizált hozam (igazítás)<button class="tip-btn" data-tip="A modell várható hozama (μ) és a tényleges hozam pontról pontra.&#10;&#10;Ideális: μ és realizált R² &gt; 0.05 (kis pozitív korreláció is szignifikáns 5m-en).">?</button></h2>
       <span class="text-xs text-slate-600">Ideálisan: erős korreláció, nem konstans</span>
     </div>
     <div style="height:200px"><canvas id="cMuReal"></canvas></div>
@@ -292,7 +292,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Pred error distribution -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Előrejelzési hiba (pred_error historikus)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Előrejelzési hiba (pred_error historikus)<button class="tip-btn" data-tip="A residuum (realizált − μ) idősora.&#10;&#10;Fehér zaj → a modell a legtöbb szisztematikus jelet megragadta.&#10;Trend / autokorrelált hiba → a modell hiányos, bizonyos mintákat nem lát.">?</button></h2>
       <span id="errMeta" class="text-xs text-slate-600">—</span>
     </div>
     <div style="height:160px"><canvas id="cErr"></canvas></div>
@@ -301,7 +301,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Raw model JSON -->
   <details class="group section">
     <summary class="flex items-center justify-between cursor-pointer select-none list-none">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nyers modell JSON (/model endpoint)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nyers modell JSON (/model endpoint)<button class="tip-btn" data-tip="A /model endpoint válasza nyersen — minden diagnosztikai érték egyben.&#10;Debug és fejlesztéshez hasznos.">?</button></h2>
       <span class="text-slate-600 text-xs group-open:rotate-180 transition-transform">▾</span>
     </summary>
     <pre class="mt-4 text-xs bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-auto max-h-96 text-slate-400 leading-relaxed" id="rawModelJson">Töltés...</pre>
@@ -391,10 +391,10 @@ async function refresh(){
   set('mClassCount',hp.class_count??'—');
   set('mLookback',hp.lookback??'—');
   set('mHorizon',hp.horizon??'—');
-  set('mHeads',hp.kla_heads??'—');
-  set('mLayers',hp.kla_num_layers??'—');
-  set('mHidDim',hp.kla_hidden_dim??'—');
-  set('mStateDim',hp.kla_state_dim??'—');
+  set('mHeads',hp.kca_heads??'—');
+  set('mLayers',hp.kca_num_layers??'—');
+  set('mHidDim',hp.kca_hidden_dim??'—');
+  set('mStateDim',hp.kca_state_dim??'—');
   set('mDevice',hp.device||model.device||'—');
   set('mLoss',hp.loss||'—');
   set('mTarget',hp.target_mode||'—');
@@ -557,12 +557,12 @@ async function refresh(){
     const mOrd=['logistic','ar','mlp','plain_mamba','lstm','gru'];
     const mLbl={logistic:'Logistic',mlp:'MLP',ar:'AR',plain_mamba:'Plain Mamba',lstm:'LSTM',gru:'GRU'};
     const blRows=[...mOrd.filter(k=>bl[k]!=null).map(k=>({k,label:mLbl[k]||k,acc:Number(bl[k].val_directional_accuracy??0),brier:bl[k].val_brier_up!=null?Number(bl[k].val_brier_up):null,pcs:bl[k].pred_class_share,isKla:false}))];
-    if(klaAcc2!=null)blRows.push({k:'KLA',label:'KLA (this)',acc:Number(klaAcc2),brier:lr2.val_brier_up!=null?Number(lr2.val_brier_up):null,pcs:null,isKla:true});
+    if(klaAcc2!=null)blRows.push({k:'KLA',label:'KCA (this)',acc:Number(klaAcc2),brier:lr2.val_brier_up!=null?Number(lr2.val_brier_up):null,pcs:null,isKla:true});
     const noData=document.getElementById('baselineCompNoData'),chartDiv=document.getElementById('baselineCompChart');
     if(blRows.length){
       if(noData)noData.classList.add('hidden');if(chartDiv)chartDiv.classList.remove('hidden');
       upC('cBaselineComp',blRows.map(r=>r.label),[{data:blRows.map(r=>r.acc),backgroundColor:blRows.map(r=>r.isKla?'rgba(59,130,246,.85)':'rgba(71,85,105,.55)'),borderColor:blRows.map(r=>r.isKla?'#60a5fa':'#94a3b8'),borderWidth:2,borderRadius:4,borderSkipped:false}]);
-      if(klaAcc2!=null&&baseRef2!=null){const diff=klaAcc2-baseRef2;set('baselineCompMeta',(diff>=0?'✅ KLA +':'⚠️ KLA ')+pct(diff)+' vs best baseline');}
+      if(klaAcc2!=null&&baseRef2!=null){const diff=klaAcc2-baseRef2;set('baselineCompMeta',(diff>=0?'✅ KCA +':'⚠️ KCA ')+pct(diff)+' vs best baseline');}
       const bTbody=document.getElementById('baselineCompTbody');
       if(bTbody){bTbody.innerHTML=blRows.map(r=>{
         const diffFromKla=r.isKla?null:(klaAcc2!=null&&r.acc!=null?klaAcc2-r.acc:null);
@@ -591,5 +591,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Benchmark</title>
+  <title>KCA-Mamba · Benchmark</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -86,7 +86,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -104,7 +104,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -122,7 +122,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="flex items-center justify-between flex-wrap gap-3">
     <div>
       <h1 class="text-xl font-extrabold text-slate-200">⚗️ Szintetikus Benchmark</h1>
-      <p class="text-xs text-slate-500 mt-1">KLA-Mamba vs. Plain Mamba — rezsimváltó AR(1) látens állapot követési feladat</p>
+      <p class="text-xs text-slate-500 mt-1">KCA-Mamba vs. Plain Mamba — rezsimváltó AR(1) látens állapot követési feladat</p>
     </div>
     <div class="flex items-center gap-3">
       <span id="runStatus" class="badge badge-warn">⏸ Idle</span>
@@ -132,7 +132,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Config strip -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció<button class="tip-btn" data-tip="A benchmark futtatás paraméterei (lookback, horizon, adatméret, epochok, device).&#10;Reprodukálhatóságért fontos minden érték rögzítése.">?</button></h2>
     <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 text-xs">
       <div>
         <div class="kv"><span class="lbl">Batch méret</span><span class="val" id="cfgBatch">16</span></div>
@@ -162,7 +162,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Plain Mamba card -->
     <div class="section border-slate-700" id="cardPlain">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">📊 Plain Mamba</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">📊 Plain Mamba<button class="tip-btn" data-tip="Az eredeti Mamba architektúra — state space model selective scan-nel, Kalman/KCA kiegészítés NÉLKÜL.&#10;Referencia: mennyire javít a Kalman-inspired gating a puszta Mamba-hoz képest.">?</button></h2>
       <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="pParams">—</span></div>
       <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="pTestLoss">—</span></div>
       <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="pTrainRange">—</span></div>
@@ -172,7 +172,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- KLA card -->
     <div class="section bg-blue-950/20 border-blue-900" id="cardKla">
-      <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-3">🧠 KLA-Mamba</h2>
+      <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-3">🧠 KCA-Mamba<button class="tip-btn" data-tip="A diplomamunka modellje: KCA-Mamba (Kalman-Calibrated Attention Mamba).&#10;Kalman-inspired gain gating + slow-context cross-attention.">?</button></h2>
       <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="kParams">—</span></div>
       <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="kTestLoss">—</span></div>
       <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="kTrainRange">—</span></div>
@@ -200,26 +200,26 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Train loss curves -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Train loss görbe (mindkét modell)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Train loss görbe (mindkét modell)<button class="tip-btn" data-tip="A két benchmark modell tanulási görbéi egy ábrán.&#10;Gyorsabban konvergáló, alacsonyabb plateau → jobb modell.">?</button></h2>
       <span class="text-xs text-slate-600">Alacsonyabb = jobb</span>
     </div>
     <div style="height:260px"><canvas id="cLoss"></canvas></div>
     <div class="mt-2 flex gap-6 text-xs text-slate-500">
-      <span><span style="display:inline-block;width:10px;height:3px;background:#60a5fa;border-radius:2px;margin-right:5px;vertical-align:middle"></span>KLA-Mamba</span>
+      <span><span style="display:inline-block;width:10px;height:3px;background:#60a5fa;border-radius:2px;margin-right:5px;vertical-align:middle"></span>KCA-Mamba</span>
       <span><span style="display:inline-block;width:10px;height:3px;background:#94a3b8;border-radius:2px;margin-right:5px;vertical-align:middle"></span>Plain Mamba</span>
     </div>
   </div>
 
   <!-- Prediction plots: Train sample -->
   <div>
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Tréning minta</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Tréning minta<button class="tip-btn" data-tip="Tréning halmazon a látens állapot rekonstrukciójának minősége.&#10;Túltanulás jele: tréningen tökéletes, teszten gyenge.">?</button></h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="section">
         <h3 class="text-xs text-slate-500 mb-2">Plain Mamba</h3>
         <div style="height:220px"><canvas id="cPredTrainPlain"></canvas></div>
       </div>
       <div class="section bg-blue-950/20 border-blue-900">
-        <h3 class="text-xs text-blue-400 mb-2">KLA-Mamba</h3>
+        <h3 class="text-xs text-blue-400 mb-2">KCA-Mamba</h3>
         <div style="height:220px"><canvas id="cPredTrainKla"></canvas></div>
       </div>
     </div>
@@ -227,14 +227,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Prediction plots: Test sample -->
   <div>
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Test minta <span class="text-slate-600 font-normal">(nem látott adatok)</span></h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Predikció vs valós látens állapot — Test minta <span class="text-slate-600 font-normal">(nem látott adatok)</span><button class="tip-btn" data-tip="Nem látott test adatokon a rekonstrukció minősége.&#10;Ez a valódi generalizáció mérőszáma.">?</button></h2>
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="section">
         <h3 class="text-xs text-slate-500 mb-2">Plain Mamba</h3>
         <div style="height:220px"><canvas id="cPredTestPlain"></canvas></div>
       </div>
       <div class="section bg-blue-950/20 border-blue-900">
-        <h3 class="text-xs text-blue-400 mb-2">KLA-Mamba</h3>
+        <h3 class="text-xs text-blue-400 mb-2">KCA-Mamba</h3>
         <div style="height:220px"><canvas id="cPredTestKla"></canvas></div>
       </div>
     </div>
@@ -272,7 +272,7 @@ function makePredCfg(){
 
 function initCharts(){
   initC('cLoss',{type:'line',data:{labels:[],datasets:[
-    {label:'KLA-Mamba',data:[],borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
+    {label:'KCA-Mamba',data:[],borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
     {label:'Plain Mamba',data:[],borderColor:'#94a3b8',fill:false,tension:.3,borderWidth:2,...NP},
   ]},options:{...BASE,plugins:{legend:{display:true,position:'top',labels:{boxWidth:12,font:{size:10},color:'#64748b'}},tooltip:{mode:'index',intersect:false}},scales:{x:xA(),y:yA()}}});
   initC('cPredTrainPlain', makePredCfg());
@@ -365,7 +365,7 @@ async function refresh(){
   set('cfgDevice',d.device||'—');
 
   const models=d.models||{};
-  const plain=models.plain, kla=models.kla;
+  const plain=models.plain, kla=models.kca;
 
   fillModel('p', plain);
   fillModel('k', kla);
@@ -377,7 +377,7 @@ async function refresh(){
   const maxSteps   =Math.max(klaTrain.length,plainTrain.length);
   if(maxSteps>0){
     upC('cLoss',Array.from({length:maxSteps},(_,i)=>i+1),[
-      {label:'KLA-Mamba',  data:klaTrain,   borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
+      {label:'KCA-Mamba',  data:klaTrain,   borderColor:'#60a5fa',fill:false,tension:.3,borderWidth:2,...NP},
       {label:'Plain Mamba',data:plainTrain, borderColor:'#94a3b8',fill:false,tension:.3,borderWidth:2,...NP},
     ]);
   }
@@ -394,8 +394,8 @@ async function refresh(){
     const banner=document.getElementById('verdictBanner');
     if(banner){banner.classList.remove('hidden');}
     if(diff>0){
-      set('verdictText','🏆 KLA-Mamba nyert! MSE: '+kL.toFixed(6)+' vs '+pL.toFixed(6),'text-lg font-extrabold text-emerald-400');
-      set('verdictSub','KLA-Mamba '+pct+'%-kal kisebb test MSE-t ér el ugyanazon az adaton.');
+      set('verdictText','🏆 KCA-Mamba nyert! MSE: '+kL.toFixed(6)+' vs '+pL.toFixed(6),'text-lg font-extrabold text-emerald-400');
+      set('verdictSub','KCA-Mamba '+pct+'%-kal kisebb test MSE-t ér el ugyanazon az adaton.');
     } else if(diff<0){
       set('verdictText','📊 Plain Mamba nyert! MSE: '+pL.toFixed(6)+' vs '+kL.toFixed(6),'text-lg font-extrabold text-amber-400');
       set('verdictSub','Plain Mamba '+pct+'%-kal kisebb test MSE-t ér el ezen a konfiguráción.');
@@ -415,5 +415,6 @@ refresh();
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

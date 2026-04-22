@@ -9,7 +9,7 @@ Dataset : Exchange-Rate  (only dataset where stride effect was dramatic)
 seq_len : 192, 336, 512  (T=96 already in sweep_results.json)
 strides : 1, 16
 noise   : 0.0, 1.0, 3.0, 5.0
-Models  : lstm, fair_mamba, kla_mamba   (ARIMA skipped: deterministic, slow)
+Models  : lstm, fair_mamba, kca_mamba   (ARIMA skipped: deterministic, slow)
 Epochs  : 10
 
 Results saved incrementally to stride_sweep_results.json after every cell.
@@ -39,7 +39,7 @@ OUT_FILE   = pathlib.Path(__file__).parent / "stride_sweep_results.json"
 MODEL_CFGS = {
     "lstm":       {"lstm_hidden": 128},
     "fair_mamba": {"fair_heads": 4, "fair_state": 32},
-    "kla_mamba":  {"kla_heads": 4,  "kla_state": 32},
+    "kca_mamba":  {"kca_heads": 4,  "kca_state": 32},
 }
 
 
@@ -88,7 +88,7 @@ def main() -> None:
     from adapters.offline_training.ltsf_benchmark import (
         _make_lstm,
         _make_fair_mamba,
-        _make_kla_mamba,
+        _make_kca_mamba,
         _load_dataset,
         _find_lr_fastai,
         _train_one,
@@ -144,9 +144,9 @@ def main() -> None:
             elif mdl == "fair_mamba":
                 model = _make_fair_mamba(input_dim, int(cfg["fair_heads"]),
                                          int(cfg["fair_state"])).to(device)
-            elif mdl == "kla_mamba":
-                model = _make_kla_mamba(input_dim, int(cfg["kla_heads"]),
-                                        int(cfg["kla_state"])).to(device)
+            elif mdl == "kca_mamba":
+                model = _make_kca_mamba(input_dim, int(cfg["kca_heads"]),
+                                        int(cfg["kca_state"])).to(device)
         except Exception as exc:
             results[key] = {"error": f"model init: {exc}"}
             _save_results(OUT_FILE, results)
@@ -178,7 +178,7 @@ def main() -> None:
 
         # Collect K values for KCA
         k_vals = None
-        if mdl == "kla_mamba" and hasattr(model, "blocks"):
+        if mdl == "kca_mamba" and hasattr(model, "blocks"):
             try:
                 import torch
                 ks = []
@@ -219,19 +219,19 @@ def main() -> None:
 
     # Print summary table
     print("\n" + "=" * 78)
-    print(f"{'Seq':>5} {'Stride':>7} {'Noise':>6}  {'LSTM':>9}  {'Fair':>9}  {'KLA':>9}  {'KLA-LSTM%':>10}")
+    print(f"{'Seq':>5} {'Stride':>7} {'Noise':>6}  {'LSTM':>9}  {'Fair':>9}  {'KCA':>9}  {'KCA-LSTM%':>10}")
     print("=" * 78)
     for stride in STRIDES:
         for seq in SEQ_LENS:
             for noise in NOISES:
                 row = {}
-                for mdl in ["lstm", "fair_mamba", "kla_mamba"]:
+                for mdl in ["lstm", "fair_mamba", "kca_mamba"]:
                     k = _cell_key(seq, stride, noise, mdl)
                     if k in results and "test_mse" in results[k]:
                         row[mdl] = results[k]["test_mse"]
                 lstm_m = row.get("lstm", float("nan"))
                 fair_m = row.get("fair_mamba", float("nan"))
-                kla_m  = row.get("kla_mamba", float("nan"))
+                kla_m  = row.get("kca_mamba", float("nan"))
                 vs_lstm = (lstm_m - kla_m) / lstm_m * 100 if lstm_m else float("nan")
                 print(
                     f"{seq:>5} {stride:>7} {noise:>6.1f}  "

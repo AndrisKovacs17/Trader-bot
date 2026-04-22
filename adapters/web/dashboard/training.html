@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Tréning</title>
+  <title>KCA-Mamba · Tréning</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -92,7 +92,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a active">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -110,7 +110,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -162,7 +162,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span id="mDataset" class="font-mono text-xl font-bold text-slate-300">—</span>
     </div>
     <div class="section flex flex-col gap-1">
-      <span class="text-xs text-slate-500">KLA baselinehoz</span>
+      <span class="text-xs text-slate-500">KCA baselinehoz</span>
       <span id="mVsBase" class="font-mono text-xl font-bold">—</span>
     </div>
     <div class="section flex flex-col gap-1">
@@ -178,7 +178,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Epoch charts -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Epoch metrikák — loss és val_dir_acc</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Epoch metrikák — loss és val_dir_acc<button class="tip-btn" data-tip="Az epoch-onkénti veszteség és validációs directional accuracy együtt.&#10;&#10;Loss monoton csökken, val_acc emelkedik → egészséges tanulás.&#10;Loss csökken de val_acc stagnál → túltanulás.">?</button></h2>
       <span id="epochMeta" class="text-xs text-slate-600">—</span>
     </div>
     <div style="height:240px"><canvas id="cEpoch"></canvas></div>
@@ -188,13 +188,13 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Train / Val loss per epoch</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Train / Val loss per epoch<button class="tip-btn" data-tip="Tréning és validációs veszteség görbéi.&#10;&#10;Jó: mindkét görbe lefelé megy, kis hézaggal.&#10;Rossz (overfit): train tovább csökken, val emelkedik.">?</button></h2>
       </div>
       <div style="height:200px"><canvas id="cLoss"></canvas></div>
     </div>
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Val dir. accuracy per epoch</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Val dir. accuracy per epoch<button class="tip-btn" data-tip="Az irány-találati arány validáción minden epoch után.&#10;&#10;Célérték: &gt;50.5% tartósan. 52%+ szignifikáns edge.&#10;Monoton 50.0% → a modell nem tanul hasznos jelet.">?</button></h2>
       </div>
       <div style="height:200px"><canvas id="cAcc"></canvas></div>
     </div>
@@ -202,7 +202,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Baseline comparison -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Baseline modellek összehasonlítása</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Baseline modellek összehasonlítása<button class="tip-btn" data-tip="Egyszerű referenciamodellek: naive_last, MLP, GRU, LSTM, AR(p).&#10;&#10;A KCA-Mamba-nak el kell érnie ezeket a gate (deploy) érdekében.&#10;Ha minden baseline 50% körül → a piac adott 5m-en nehezen jósolható → várható, hogy a KCA is csak kicsit jobb lesz.">?</button></h2>
     <div id="baselineBarNoData" class="text-xs text-slate-600 text-center py-5">Nincs baseline adat — tréning után frissül</div>
     <div id="baselineBarChart" style="height:190px" class="mb-4 hidden"><canvas id="cBaselineBar"></canvas></div>
     <div class="overflow-auto">
@@ -213,24 +213,24 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
             <th>Dir. Acc.</th>
             <th>Brier Up</th>
             <th>Pred D/F/U</th>
-            <th>KLA-tól</th>
+            <th>KCA-tól</th>
           </tr>
         </thead>
         <tbody id="baselineTbody"></tbody>
       </table>
     </div>
-    <div class="mt-3 text-xs text-slate-600">KLA eredménye összevetve minden baseline-nal. A KLA jobb, ha dir_acc magasabb és Brier alacsonyabb.</div>
+    <div class="mt-3 text-xs text-slate-600">KCA eredménye összevetve minden baseline-nal. A KCA jobb, ha dir_acc magasabb és Brier alacsonyabb.</div>
   </div>
 
   <!-- Class weights + pred class share -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Osztály súlyok (tréning)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Osztály súlyok (tréning)<button class="tip-btn" data-tip="Inverse-frequency class weights a CE loss-ban.&#10;&#10;FLAT osztály ~4% gyakoriságú, ezért ~10–25× súllyal szerepel, hogy ne nyomódjon el.">?</button></h2>
       <div style="height:200px"><canvas id="cClassW"></canvas></div>
       <div class="mt-3 text-xs text-slate-600">Kiegyensúlyozó súlyok — nagyobb súly = ritka osztály. Ideális: DOWN/UP magas, FLAT alacsony.</div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Val pred class share (kimenet megoszlás)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Val pred class share (kimenet megoszlás)<button class="tip-btn" data-tip="Milyen arányban jósolt a modell a val halmazon DOWN / FLAT / UP osztályokat.&#10;&#10;Egészséges: közel a priorokhoz.&#10;100% egy osztályban → collapse, újratanítás kell.">?</button></h2>
       <div style="height:200px"><canvas id="cPredShare"></canvas></div>
       <div class="mt-3 text-xs text-slate-600">Milyen arányban mondott DOWN/FLAT/UP-ot a modell a val seten. Ha lapos (1/3 mindenből) → megkülönböztetési gond.</div>
     </div>
@@ -239,7 +239,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Training config details -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning konfiguráció</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning konfiguráció<button class="tip-btn" data-tip="A tréning hiperparaméterei: LR, batch size, lookback, horizon, weight_decay, dropout, stb.&#10;A main.py config blokkjából származnak.">?</button></h2>
       <div class="kv"><span class="lbl">horizon</span><span class="val" id="cfHorizon">—</span></div>
       <div class="kv"><span class="lbl">lookback</span><span class="val" id="cfLookback">—</span></div>
       <div class="kv"><span class="lbl">feature_count</span><span class="val" id="cfFeat">—</span></div>
@@ -250,7 +250,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <div class="kv"><span class="lbl">balance_direction_loss</span><span class="val" id="cfBalance">—</span></div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning statisztikák</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Tréning statisztikák<button class="tip-btn" data-tip="Időtartam, epoch szám, early stop epoch, eszköz (CPU/GPU), memóriahasználat.">?</button></h2>
       <div class="kv"><span class="lbl">train_mu_mean</span><span class="val" id="stMuMean">—</span></div>
       <div class="kv"><span class="lbl">train_mu_std</span><span class="val" id="stMuStd">—</span></div>
       <div class="kv"><span class="lbl">train_class_priors [D/F/U]</span><span class="val" id="stPriors">—</span></div>
@@ -259,12 +259,12 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <div class="kv"><span class="lbl">train_positive_ratio</span><span class="val" id="stPosRatio">—</span></div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">KLA architektúra</h2>
-      <div class="kv"><span class="lbl">kla_heads</span><span class="val" id="arcHeads">—</span></div>
-      <div class="kv"><span class="lbl">kla_num_layers</span><span class="val" id="arcLayers">—</span></div>
-      <div class="kv"><span class="lbl">kla_hidden_dim</span><span class="val" id="arcHidden">—</span></div>
-      <div class="kv"><span class="lbl">kla_state_dim</span><span class="val" id="arcState">—</span></div>
-      <div class="kv"><span class="lbl">kla_slow_stride</span><span class="val" id="arcStride">—</span></div>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">KCA architektúra<button class="tip-btn" data-tip="A KCA-Mamba hálózat szerkezete: N blokk × (Kalman-inspired gain gate + cross-attention + feed-forward), 3 külön fej (μ, σ², class).">?</button></h2>
+      <div class="kv"><span class="lbl">kca_heads</span><span class="val" id="arcHeads">—</span></div>
+      <div class="kv"><span class="lbl">kca_num_layers</span><span class="val" id="arcLayers">—</span></div>
+      <div class="kv"><span class="lbl">kca_hidden_dim</span><span class="val" id="arcHidden">—</span></div>
+      <div class="kv"><span class="lbl">kca_state_dim</span><span class="val" id="arcState">—</span></div>
+      <div class="kv"><span class="lbl">kca_slow_stride</span><span class="val" id="arcStride">—</span></div>
       <div class="kv"><span class="lbl">device</span><span class="val" id="arcDevice">—</span></div>
       <div class="kv"><span class="lbl">seed</span><span class="val" id="arcSeed">—</span></div>
     </div>
@@ -272,14 +272,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Feature names -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feature nevek (utolsó tréning)</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Feature nevek (utolsó tréning)<button class="tip-btn" data-tip="Az utolsó tréning során használt feature oszlopok listája a sorrendjük szerint.&#10;Ha a prediktor inferenciakor ettől eltérő sorrendet kap → scaler hibás eredményt ad.">?</button></h2>
     <div id="featureChips" class="flex flex-wrap gap-2"></div>
   </div>
 
   <!-- Epoch table -->
   <details class="group section">
     <summary class="flex items-center justify-between cursor-pointer select-none list-none">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Epoch-onkénti metrikák (részletes táblázat)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Epoch-onkénti metrikák (részletes táblázat)<button class="tip-btn" data-tip="Részletes táblázat: minden epochban train_loss, val_loss, val_acc, acc_gain, brier, gate státusz.">?</button></h2>
       <span class="text-slate-600 text-xs group-open:rotate-180 transition-transform">▾</span>
     </summary>
     <div class="mt-4 overflow-auto max-h-80">
@@ -302,7 +302,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Raw training JSON -->
   <details class="group section">
     <summary class="flex items-center justify-between cursor-pointer select-none list-none">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nyers tréning JSON (/training endpoint)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nyers tréning JSON (/training endpoint)<button class="tip-btn" data-tip="A /training endpoint teljes válasza — minden tréning statisztika nyersen.">?</button></h2>
       <span class="text-slate-600 text-xs group-open:rotate-180 transition-transform">▾</span>
     </summary>
     <pre class="mt-4 text-xs bg-slate-950 border border-slate-800 rounded-xl p-3 overflow-auto max-h-96 text-slate-400 leading-relaxed" id="rawJson">Töltés...</pre>
@@ -386,11 +386,11 @@ async function refresh(){
   set('stPosRatio',lr.train_positive_ratio!=null?pct(lr.train_positive_ratio):'—');
 
   // Arch
-  set('arcHeads',lr.kla_heads??'—');
-  set('arcLayers',lr.kla_num_layers??'—');
-  set('arcHidden',lr.kla_hidden_dim??'—');
-  set('arcState',lr.kla_state_dim??'—');
-  set('arcStride',lr.kla_slow_stride??'—');
+  set('arcHeads',lr.kca_heads??'—');
+  set('arcLayers',lr.kca_num_layers??'—');
+  set('arcHidden',lr.kca_hidden_dim??'—');
+  set('arcState',lr.kca_state_dim??'—');
+  set('arcStride',lr.kca_slow_stride??'—');
   set('arcDevice',lr.device??'—');
   set('arcSeed',lr.seed??'—');
 
@@ -430,13 +430,13 @@ async function refresh(){
   const tbody2=document.getElementById('baselineTbody');
   const modelLabels={logistic:'Logistic Reg.',mlp:'MLP',gru:'GRU',lstm:'LSTM',plain_mamba:'Plain Mamba (SSM)',ar:'AR / ARIMA-like'};
   if(tbody2){
-    const rows=[...Object.entries(baselines).map(([k,v])=>[k,v]),['KLA (this)',{val_directional_accuracy:vda,val_brier_up:lr.val_brier_up}]];
+    const rows=[...Object.entries(baselines).map(([k,v])=>[k,v]),['KCA (this)',{val_directional_accuracy:vda,val_brier_up:lr.val_brier_up}]];
     tbody2.innerHTML=rows.map(([name,v])=>{
       const acc2=v&&(v.val_directional_accuracy??v.directional_accuracy)!=null?Number(v.val_directional_accuracy??v.directional_accuracy):null;
       const brier=v&&(v.val_brier_up??v.brier_up)!=null?Number(v.val_brier_up??v.brier_up):null;
       const pcs2=v&&v.pred_class_share;
       const pcsStr=Array.isArray(pcs2)?pcs2.map(x=>pct(Number(x))).join(' / '):'—';
-      const isKla=name.startsWith('KLA');
+      const isKla=name.startsWith('KCA');
       const diffAcc=acc2!=null&&baseRefAcc!=null?acc2-baseRefAcc:null;
       const accCls=acc2!=null?(acc2>=.55?'text-emerald-400':acc2>=.52?'text-amber-400':'text-red-400'):'text-slate-500';
       const label=modelLabels[name]||name;
@@ -455,7 +455,7 @@ async function refresh(){
     const mOrd2=['logistic','ar','mlp','plain_mamba','lstm','gru'];
     const mLbl2={logistic:'Logistic',mlp:'MLP',ar:'AR',plain_mamba:'Plain Mamba',lstm:'LSTM',gru:'GRU'};
     const blRows2=[...mOrd2.filter(k=>baselines[k]!=null).map(k=>({label:mLbl2[k]||k,acc:Number(baselines[k].val_directional_accuracy??0),isKla:false}))];
-    if(vda!=null)blRows2.push({label:'KLA (this)',acc:Number(vda),isKla:true});
+    if(vda!=null)blRows2.push({label:'KCA (this)',acc:Number(vda),isKla:true});
     const noData2=document.getElementById('baselineBarNoData'),chartDiv2=document.getElementById('baselineBarChart');
     if(blRows2.length){
       if(noData2)noData2.classList.add('hidden');if(chartDiv2)chartDiv2.classList.remove('hidden');
@@ -487,5 +487,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

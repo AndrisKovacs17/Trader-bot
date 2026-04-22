@@ -1,4 +1,4 @@
-"""KLA-Mamba model definition (PyTorch)."""
+"""KCA-Mamba model definition (PyTorch)."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ except ImportError:  # pragma: no cover - optional dependency
 
 
 if nn is not None:
-    class KLAMambaBlock(nn.Module):
+    class KCAMambaBlock(nn.Module):
         def __init__(self, d_model: int, heads: int, d_state: int, kernel_size: int = 4):
             super().__init__()
             self.H, self.D, self.E = heads, d_state, heads * d_state
@@ -103,21 +103,21 @@ if nn is not None:
             return out, Q, R, debug_stats
 
 else:
-    class KLAMambaBlock:  # pragma: no cover - optional dependency fallback
+    class KCAMambaBlock:  # pragma: no cover - optional dependency fallback
         def __init__(self, *args, **kwargs):
-            raise ImportError("KLAMambaBlock requires PyTorch. Install torch to use this module.")
+            raise ImportError("KCAMambaBlock requires PyTorch. Install torch to use this module.")
 
 
 if nn is not None:
-    class KLAMambaStack(nn.Module):
-        """Stacked KLA-Mamba encoder with multi-timescale cross-attention.
+    class KCAMambaStack(nn.Module):
+        """Stacked KCA-Mamba encoder with multi-timescale cross-attention.
 
         Architecture:
           input_proj  : Linear(feature_dim → hidden_dim)
           input_norm  : LayerNorm(hidden_dim) — applied right after input_proj so all
                         blocks receive unit-variance inputs regardless of feature scale
           block_norms : N-1 intermediate LayerNorms between KLA blocks (pre-norm style)
-          blocks      : N × KLAMambaBlock(hidden_dim)   [like real Mamba: 3-24 layers]
+          blocks      : N × KCAMambaBlock(hidden_dim)   [like real Mamba: 3-24 layers]
           norm        : LayerNorm(hidden_dim) — final output norm
           cross_attn  : last-token queries slow (every slow_stride-th token) context
                         → simulates a coarser timeframe (e.g. 5m bars, stride=12 ≈ 1h)
@@ -140,7 +140,7 @@ if nn is not None:
             # unit-variance input regardless of how diverse/scaled the raw features are.
             self.input_norm = nn.LayerNorm(hidden_dim)
             self.blocks = nn.ModuleList(
-                [KLAMambaBlock(d_model=hidden_dim, heads=heads, d_state=d_state) for _ in range(num_layers)]
+                [KCAMambaBlock(d_model=hidden_dim, heads=heads, d_state=d_state) for _ in range(num_layers)]
             )
             # Inter-block LayerNorms (pre-norm between consecutive blocks).
             # Prevents activation scale drift across layers without adding skip paths.
@@ -185,9 +185,9 @@ if nn is not None:
             return h_out, last_Q, last_R, last_debug
 
 else:
-    class KLAMambaStack:  # pragma: no cover
+    class KCAMambaStack:  # pragma: no cover
         def __init__(self, *args, **kwargs):
-            raise ImportError("KLAMambaStack requires PyTorch.")
+            raise ImportError("KCAMambaStack requires PyTorch.")
 
 
-__all__ = ["KLAMambaBlock", "KLAMambaStack"]
+__all__ = ["KCAMambaBlock", "KCAMambaStack"]

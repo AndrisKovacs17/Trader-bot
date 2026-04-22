@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Áttekintés</title>
+  <title>KCA-Mamba · Áttekintés</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -80,7 +80,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 <!-- NAV -->
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a active">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -98,7 +98,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -117,22 +117,22 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- KPI strip -->
   <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Egyenleg</span><span class="text-2xl font-extrabold" id="kpiEq">—</span></div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">P&amp;L</span><span class="text-2xl font-extrabold" id="kpiPnl">—</span></div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Sharpe</span><span class="text-2xl font-extrabold" id="kpiSharpe">—</span></div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Max DD</span><span class="text-2xl font-extrabold" id="kpiDd">—</span></div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Win Rate</span><span class="text-2xl font-extrabold" id="kpiWr">—</span></div>
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><span class="text-[10px] text-slate-500 uppercase tracking-widest">AR Pontosság</span><span class="text-2xl font-extrabold" id="kpiAcc">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Egyenleg</span><button class="tip-btn" data-tip="A paper trading számla jelenlegi egyenlege USD-ben.&#10;Kezdőtőke: $10 000. Minden zárt trade után frissül.&#10;&#10;Nő, ha a nyereséges pozíciók felülmúlják a veszteségeseket + díjakat.">?</button></div><span class="text-2xl font-extrabold" id="kpiEq">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">P&amp;L</span><button class="tip-btn" data-tip="Profit &amp; Loss — nyereség/veszteség összesen.&#10;&#10;Tartalmazza:&#10; • Zárt pozíciók realizált P&amp;L-jét&#10; • Nyitott pozíciók nem realizált értékét&#10;&#10;Zöld = nyereség, piros = veszteség.">?</button></div><span class="text-2xl font-extrabold" id="kpiPnl">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Sharpe</span><button class="tip-btn" data-tip="Sharpe-ráta = (átlaghozam − kockázatmentes ráta) / hozam szórása&#10;Annualizált, 252 kereskedési napra normálva.&#10;&#10;Értelmezés:&#10; > 2.0 = kiváló&#10; 1.0 – 2.0 = jó&#10; 0.0 – 1.0 = elfogadható&#10; &lt; 0.0 = az átlag alatti teljesítmény&#10;&#10;Alacsony értéknél érdemes a stop-loss-t szűkíteni.">?</button></div><span class="text-2xl font-extrabold" id="kpiSharpe">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Max DD</span><button class="tip-btn" data-tip="Maximum Drawdown: az egyenlegcsúcs óta mért legnagyobb visszaesés.&#10;&#10;Pl. 15% → a legjobb egyenlegből 15%-ot veszített el a stratégia.&#10;&#10;Értelmezés:&#10; &lt; 5% = nagyon konzervatív&#10; 5–15% = tipikus aktív kereskedés&#10; &gt; 20% = magas kockázat, érdemes átgondolni&#10;&#10;A rendszer 150 bps stop-loss-szal véd egyedi trade szinten.">?</button></div><span class="text-2xl font-extrabold" id="kpiDd">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">Win Rate</span><button class="tip-btn" data-tip="Nyertes trade-ek aránya = nyertes zárt pozíciók / összes zárt pozíció.&#10;&#10;Fontos: 50% win rate is lehet veszteséges, ha az átlagos veszteség nagyobb az átlagos nyereségnél (kedvezőtlen R/R arány).&#10;&#10;A stratégia akkor nyereséges, ha: Win Rate × avg nyereség &gt; (1 − Win Rate) × avg veszteség">?</button></div><span class="text-2xl font-extrabold" id="kpiWr">—</span></div>
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col gap-1"><div class="flex items-center justify-between"><span class="text-[10px] text-slate-500 uppercase tracking-widest">AR Pontosság</span><button class="tip-btn" data-tip="Directional Accuracy: a modell hány %-ban jelezte helyesen az ár irányát (FEL / LE) a következő N bárban.&#10;&#10;Értelmezés:&#10; 50% = véletlenszerű (érték nélküli)&#10; &gt; 51% = gyenge edge&#10; &gt; 52% = statisztikailag szignifikáns edge&#10;&#10;A KCA-Mamba célértéke: legalább 0.5%-kal veri a legjobb baseline modellt.">?</button></div><span class="text-2xl font-extrabold" id="kpiAcc">—</span></div>
   </div>
 
   <!-- Charts -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Equity görbe</h2><span class="text-xs text-slate-600" id="eqMeta">—</span></div>
+      <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Equity görbe</h2><button class="tip-btn" data-tip="A kereskedési számla egyenlegének időbeli alakulása.&#10;&#10;Minden bezárt trade után frissül. A görbe meredeksége a stratégia jövedelmezőségét mutatja.&#10;&#10;Zöld szakasz = nyereséges periódus&#10;Piros visszaesés = drawdown (csúcs utáni veszteség)&#10;&#10;Ideálisan: egyenletes emelkedés kis visszaesésekkel.">?</button></div><span class="text-xs text-slate-600" id="eqMeta">—</span></div>
       <div style="height:220px"><canvas id="cEq"></canvas></div>
     </div>
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up · jelfolyam</h2><span class="text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 font-mono text-[11px]">küszöb 0.51</span></div>
+      <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up · jelfolyam</h2><button class="tip-btn" data-tip="A modell által becsült FEL irány valószínűsége idősorozatként.&#10;&#10;Értelmezés:&#10; 0.5 = teljes bizonytalanság (random)&#10; &gt; 0.51 = vételi szignál küszöb (narancs vonal)&#10; &lt; 0.49 = eladási szignál küszöb&#10; &gt; 0.55 = erős vételi meggyőződés&#10;&#10;Ha a vonal folyamatosan 0.47–0.50 között van → a modell nem talál egyértelmű irányt. Újratanítás javasolt.">?</button></div><span class="text-xs px-2 py-0.5 rounded-full bg-amber-900/40 text-amber-400 font-mono text-[11px]">küszöb 0.51</span></div>
       <div style="height:220px"><canvas id="cProb"></canvas></div>
     </div>
   </div>
@@ -140,7 +140,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Signal strip -->
   <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelcsík — utolsó 120 Prob Up</h2>
+      <div class="flex items-center gap-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelcsík — utolsó 120 Prob Up</h2><button class="tip-btn" data-tip="Az utolsó 120 bar (≈ 10 óra 5 perces intervallumon) Prob Up értékei vizuálisan.&#10;&#10;Minden oszlop = 1 bar előrejelzése:&#10; Sötétzöld ≥ 0.55 → erős vételi szignál&#10; Halványzöld 0.51–0.55 → gyenge vétel&#10; Szürke → semleges zóna, nincs szignál&#10; Halványpiros 0.45–0.49 → gyenge eladás&#10; Sötétpiros ≤ 0.45 → erős eladási szignál&#10;&#10;Egységes szürke csík → a modell nem különböztet. Tanítási probléma.">?</button></div>
       <div class="flex gap-3 text-[11px] text-slate-500">
         <span><span class="inline-block w-2 h-2 rounded-sm bg-emerald-500 mr-1"></span>≥0.55</span>
         <span><span class="inline-block w-2 h-2 rounded-sm bg-emerald-800 mr-1"></span>0.51–0.55</span>
@@ -157,7 +157,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Positions -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Nyitott pozíciók</h2>
+      <div class="flex items-center gap-2 mb-4"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Nyitott pozíciók</h2><button class="tip-btn" data-tip="Jelenleg aktív LONG és SHORT pozíciók listája.&#10;&#10;Minden sor mutatja:&#10; • Irány: LONG (árra fogad) vagy SHORT (esésre fogad)&#10; • Nyitási ár és jelenlegi ár&#10; • Nem realizált P&amp;L (zöld/piros)&#10;&#10;Kockázatkezelési korlátok:&#10; • Max pozícióméret: 0.01 BTC&#10; • Max notional: $500&#10; • Stop-loss: 150 bps (~1.5%)">?</button></div>
       <div id="posInfo" class="text-sm text-slate-400">—</div>
       <div class="mt-4 pt-4 border-t border-slate-800">
         <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Döntések</h3>
@@ -167,13 +167,13 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Block reasons -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Blokkolási okok</h2><span class="text-xs text-slate-600" id="blockTotal">—</span></div>
+      <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Blokkolási okok</h2><button class="tip-btn" data-tip="Miért lett egy generált szignál blokkolva a kockázatkezelő által.&#10;&#10;Leggyakoribb okok:&#10; • ConfidenceRule → a Prob Up nem éri el a 0.51 küszöböt&#10; • NewsSentimentGate → erős negatív hírhangulat detected&#10; • MaxNotionalRule → pozícióméret korlát elérve&#10; • MaxAbsPositionRule → max BTC korlát elérve&#10; • SlippageGuard → becsült slippage túl magas&#10;&#10;Sok blokkolás → a modell gyenge szignálokat ad vagy a kockázati szabályok túl szigorúak.">?</button></div><span class="text-xs text-slate-600" id="blockTotal">—</span></div>
       <div style="height:190px"><canvas id="cBlock"></canvas></div>
     </div>
 
     <!-- Quick model + training -->
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Gyors áttekintés</h2>
+      <div class="flex items-center gap-2 mb-4"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Gyors áttekintés</h2><button class="tip-btn" data-tip="A modell és a tréning aktuális állapotának összefoglalója.&#10;&#10; • Verzió → az utolsó sikeres tanítás UTC időbélyege&#10; • Átlag Prob↑ → az utolsó N bar átlagos UP valószínűsége&#10; • Átlag Sigma → a modell átlagos bizonytalansága (kisebb = magabiztosabb)&#10; • AR pontosság → validációs halmazon mért directional accuracy&#10; • Brier score → valószínűség kalibrációs hiba (kisebb = jobb, 0.25 = random)&#10; • Telepíthető → megfelel-e az elvárt pontossági küszöböknek live deployhoz&#10; • Val Acc → validációs találati arány az utolsó tanítási menetből">?</button></div>
       <div class="space-y-2 text-sm">
         <div class="flex justify-between"><span class="text-slate-500">Verzió</span><span class="font-mono text-xs truncate max-w-[160px] text-right" id="qVersion">—</span></div>
         <div class="flex justify-between"><span class="text-slate-500">Átlag Prob↑</span><span class="font-mono font-bold" id="qAvgProb">—</span></div>
@@ -195,7 +195,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu vs. Realizált hozam</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu vs. Realizált hozam</h2><button class="tip-btn" data-tip="A modell várható hozambecslése (mu) és a ténylegesen bekövetkezett hozam összehasonlítása.&#10;&#10; • Kék (Mu) → a modell előrejelzett várható hozama az adott barra&#10; • Narancs (Realizált) → a tényleges ár-elmozdulás&#10;&#10;Ha a két vonal erősen korrelál → a modell jól kalibrált.&#10;Ha a Mu mindig 0 körül marad → a modell nem mer határozott becslést adni (tanítási probléma).">?</button>
         <div class="flex gap-3 text-[11px] text-slate-500">
           <span><span class="inline-block w-6 h-0.5 bg-indigo-400 mr-1 align-middle"></span>Mu</span>
           <span><span class="inline-block w-6 h-0.5 bg-orange-400 mr-1 align-middle"></span>Realizált</span>
@@ -204,7 +204,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <div style="height:160px"><canvas id="cMu"></canvas></div>
     </div>
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-      <div class="flex items-center justify-between mb-3"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma (bizonytalanság)</h2><span class="text-xs text-slate-600" id="sigAvgLbl">—</span></div>
+      <div class="flex items-center justify-between mb-3"><div class="flex items-center gap-2"><h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma (bizonytalanság)</h2><button class="tip-btn" data-tip="A modell által becsült szórás (volatilitás) minden barra.&#10;&#10;A KCA-Mamba Heteroscedastic NLL loss-szal tanul, így képes változó bizonytalanságot modellezni.&#10;&#10;Értelmezés:&#10; Alacsony sigma → a modell magabiztos az előrejelzésben&#10; Magas sigma → bizonytalan piac, kisebb megbízhatóság&#10;&#10;A kereskedési döntésnél a Prob Up és a Sigma együtt határozza meg a szignál erősségét. Nagy sigma esetén a rendszer kisebb pozíciót nyit.">?</button></div><span class="text-xs text-slate-600" id="sigAvgLbl">—</span></div>
       <div style="height:160px"><canvas id="cSigma"></canvas></div>
     </div>
   </div>
@@ -330,5 +330,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

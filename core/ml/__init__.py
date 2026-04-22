@@ -1,4 +1,4 @@
 """ML domain szolgáltatások."""
-from core.ml.kla_mamba import KLAMambaBlock
+from core.ml.kca_mamba import KCAMambaBlock
 
-__all__ = ["KLAMambaBlock"]
+__all__ = ["KCAMambaBlock"]

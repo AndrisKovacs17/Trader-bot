@@ -4,7 +4,7 @@ Long-sequence noise robustness sweep.
 Datasets : ETTm1 (15-min), Exchange (daily), Weather (10-min)
 seq_len  : 96, 192, 336, 512
 noise    : 0.0, 1.0, 3.0, 5.0
-Models   : LSTM, Fair Mamba, KLA-Mamba, ARIMA(5,1,3)
+Models   : LSTM, Fair Mamba, KCA-Mamba, ARIMA(5,1,3)
 Epochs   : 10 (more than default for better convergence at long seq_len)
 
 Results saved incrementally to sweep_results.json after every cell.
@@ -32,7 +32,7 @@ OUT_FILE   = pathlib.Path(__file__).parent / "sweep_results.json"
 MODEL_CFGS = {
     "lstm":       {"lstm_hidden": 128},
     "fair_mamba": {"fair_heads": 4, "fair_state": 32},
-    "kla_mamba":  {"kla_heads": 4,  "kla_state": 32},
+    "kca_mamba":  {"kca_heads": 4,  "kca_state": 32},
     "arima":      {"arima_p": 5, "arima_q": 3, "lstm_hidden": 256},
 }
 
@@ -110,7 +110,7 @@ def main() -> None:
     from adapters.offline_training.ltsf_benchmark import (
         _make_lstm,
         _make_fair_mamba,
-        _make_kla_mamba,
+        _make_kca_mamba,
         _make_arima_model,
         _load_dataset,
         _find_lr_fastai,
@@ -177,10 +177,10 @@ def main() -> None:
                 model = _make_fair_mamba(input_dim,
                                          int(cfg["fair_heads"]),
                                          int(cfg["fair_state"])).to(device)
-            elif mdl == "kla_mamba":
-                model = _make_kla_mamba(input_dim,
-                                        int(cfg["kla_heads"]),
-                                        int(cfg["kla_state"])).to(device)
+            elif mdl == "kca_mamba":
+                model = _make_kca_mamba(input_dim,
+                                        int(cfg["kca_heads"]),
+                                        int(cfg["kca_state"])).to(device)
             elif mdl == "arima":
                 model = _make_arima_model(input_dim,
                                           int(cfg["arima_p"]),

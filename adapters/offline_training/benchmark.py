@@ -1,4 +1,4 @@
-"""Synthetic benchmark: KLA-Mamba vs Plain Mamba on a latent-tracking task.
+"""Synthetic benchmark: KCA-Mamba vs Plain Mamba on a latent-tracking task.
 
 Runs both models on an auto-regressive latent-state tracking problem with:
   - Regime-switching AR(1) latent process
@@ -304,14 +304,14 @@ def _run_one(
     }
 
 
-# ── Standalone KLA-Mamba block (1:1 match with notebook) ─────────────────────
+# ── Standalone KCA-Mamba block (1:1 match with notebook) ─────────────────────
 
-def _make_kla_mamba(d_model: int, heads: int, d_state: int) -> "torch.nn.Module":  # type: ignore[name-defined]
+def _make_kca_mamba(d_model: int, heads: int, d_state: int) -> "torch.nn.Module":  # type: ignore[name-defined]
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
 
-    class KLAMambaBlock(nn.Module):
+    class KCAMambaBlock(nn.Module):
         def __init__(self, d_model: int, heads: int, d_state: int, kernel_size: int = 4):
             super().__init__()
             self.H, self.D, self.E = heads, d_state, heads * d_state
@@ -381,7 +381,7 @@ def _make_kla_mamba(d_model: int, heads: int, d_state: int) -> "torch.nn.Module"
             }
             return out, Q, R, debug_stats
 
-    return KLAMambaBlock(d_model, heads, d_state)
+    return KCAMambaBlock(d_model, heads, d_state)
 
 
 # ── Main runner ───────────────────────────────────────────────────────────────
@@ -404,8 +404,8 @@ def _run(cfg: dict) -> None:
     models_to_run = [
         ("plain", "Plain Mamba",
          _make_plain_mamba(c["input_dim"], c["heads"], c["state_dim"]).to(device)),
-        ("kla",   "KLA-Mamba",
-         _make_kla_mamba(c["input_dim"], c["heads"], c["state_dim"]).to(device)),
+        ("kca",   "KCA-Mamba",
+         _make_kca_mamba(c["input_dim"], c["heads"], c["state_dim"]).to(device)),
     ]
 
     partial: dict[str, Any] = {}

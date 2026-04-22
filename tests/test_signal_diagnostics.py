@@ -179,19 +179,19 @@ class TestInferenceSignalVariation:
     """Ellenőrzi hogy inference alatt prob_up és sigma tényleg változnak."""
 
     def _build_fake_predictor(self, feature_dim: int = 26, lookback: int = 32):
-        """Épít egy véletlenszerű inicializált KLAPredictor-t."""
-        from core.ml.services import KLAPredictor
-        from core.ml.kla_mamba import KLAMambaStack
+        """Épít egy véletlenszerű inicializált KCAPredictor-t."""
+        from core.ml.services import KCAPredictor
+        from core.ml.kca_mamba import KCAMambaStack
 
         hidden_dim = 48
-        pred = KLAPredictor(version="diag-test")
+        pred = KCAPredictor(version="diag-test")
 
-        kla = KLAMambaStack(feature_dim=feature_dim, hidden_dim=hidden_dim,
+        kla = KCAMambaStack(feature_dim=feature_dim, hidden_dim=hidden_dim,
                             num_layers=2, heads=4, d_state=16, slow_stride=4)
         mu_head  = nn.Sequential(nn.Linear(hidden_dim, 32), nn.SiLU(), nn.Linear(32, 1))
         up_head  = nn.Sequential(nn.Linear(hidden_dim, 32), nn.SiLU(), nn.Linear(32, 3))
         var_head = nn.Sequential(nn.Linear(hidden_dim, 32), nn.SiLU(), nn.Linear(32, 1))
-        model = nn.ModuleDict({"kla_stack": kla, "mu_head": mu_head,
+        model = nn.ModuleDict({"kca_stack": kla, "mu_head": mu_head,
                                "up_head": up_head, "var_head": var_head})
 
         # Fake scaler: unit normalization

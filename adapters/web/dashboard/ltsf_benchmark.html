@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · LSTM / Mamba összehasonlítás</title>
+  <title>KCA-Mamba · LSTM / Mamba összehasonlítás</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -81,11 +81,16 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     .btn-run { background:linear-gradient(135deg,#1d4ed8,#0e7490); color:#fff; border:none; padding:9px 22px; border-radius:10px; font-size:13px; font-weight:700; cursor:pointer; transition:opacity .15s; }
     .btn-run:hover { opacity:.85; }
     .btn-run:disabled { opacity:.4; cursor:default; }
+    .btn-preset { background:#1e293b; color:#cbd5e1; border:1px solid #334155; padding:6px 12px; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; display:inline-flex; align-items:center; gap:6px; }
+    .btn-preset:hover { background:#334155; color:#93c5fd; border-color:#475569; }
+    .btn-preset .preset-tag { font-size:9px; padding:1px 5px; border-radius:4px; background:#0f172a; color:#64748b; font-weight:700; letter-spacing:.03em; }
+    .preset-row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .preset-label { font-size:10px; text-transform:uppercase; letter-spacing:.1em; color:#475569; font-weight:700; margin-right:4px; }
     .card-lstm  { border-color:#475569; }
     .card-fair  { border-color:#1e3a5f; }
     .card-kla   { border-color:#1e3a5f; background:#0c1829; }
     .card-ar    { border-color:#78350f; background:#0c0d02; }
-    .card-dlinear { border-color:#3b1ea8; background:#0d0b1a; }
+    .card-patchtst { border-color:#3b1ea8; background:#0d0b1a; }
     .tbl { width:100%; border-collapse:collapse; font-size:12px; }
     .tbl th { color:#64748b; text-align:left; padding:4px 10px; border-bottom:1px solid #1e293b; }
     .tbl td { padding:5px 10px; border-bottom:1px solid rgba(30,41,59,.4); font-family:ui-monospace,monospace; color:#e2e8f0; }
@@ -109,7 +114,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -127,7 +132,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -146,7 +151,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="flex items-center justify-between flex-wrap gap-3">
     <div>
       <h1 class="text-xl font-extrabold text-slate-200">LSTM / Mamba összehasonlítás</h1>
-      <p class="text-xs text-slate-500 mt-1">Vanilla LSTM vs Fair Mamba vs KLA-Mamba — valós LTSF adatokon (Exchange / Weather / ECL / ETTh1 / ETTh2 / ETTm1 / ETTm2 / M4 Hourly)</p>
+      <p class="text-xs text-slate-500 mt-1">Vanilla LSTM vs Fair Mamba vs KCA-Mamba — valós LTSF adatokon (Exchange / Weather / ECL / ETTh1 / ETTh2 / ETTm1 / ETTm2 / M4 Hourly)</p>
     </div>
     <div class="flex items-center gap-3 flex-wrap">
       <span id="stageLabel" class="text-xs text-slate-500">—</span>
@@ -155,9 +160,52 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     </div>
   </div>
 
+  <!-- Preset quick-buttons -->
+  <div class="section">
+    <div class="preset-row">
+      <span class="preset-label">Előbeállítások<button class="tip-btn" data-tip="Konfigurációk, ahol a KCA-Mamba MSE értéke alacsonyabb volt MIND az LSTM-nél, MIND a Fair Mamba-nál.&#10;&#10;Forrás: sweep_results.json + stride_sweep_results.json (10 epoch, valódi mért adatok).&#10;&#10;FONTOS: a presetek 10 epoch-ot állítanak be — kevesebbel a KCA Kalman-loss-szal nem konvergál.">?</button></span>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_192_clean')" title="A legnagyobb mért előny: KCA 0.033 vs LSTM 0.105 vs Fair 0.081  (+59% vs LSTM, +59% vs Fair)">
+        <span class="preset-tag">★</span> Exchange seq=192 σ=0 (zászlóshajó +59%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_336_sigma3')" title="Hosszú szekvencia + zaj: KCA 0.736 vs LSTM 1.000 vs Fair 1.162  (+26% vs LSTM)">
+        <span class="preset-tag">★</span> Exchange seq=336 σ=3 (+26%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_336_sigma1')" title="KCA 0.502 vs LSTM 0.735 vs Fair 0.662  (+24% vs LSTM)">
+        <span class="preset-tag">★</span> Exchange seq=336 σ=1 (+24%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_512_sigma3')" title="Long-context + zaj: KCA 0.772 vs LSTM 0.989 vs Fair 2.121  (+22% vs LSTM)">
+        <span class="preset-tag">L</span> Exchange seq=512 σ=3 (+22%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_192_sigma5')" title="Erős zaj: KCA 1.153 vs LSTM 1.448 vs Fair 1.557  (+20% vs LSTM)">
+        <span class="preset-tag">N</span> Exchange seq=192 σ=5 (+20%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('exchange_512_sigma5')" title="KCA 1.074 vs LSTM 1.197 vs Fair 1.700  (+10% vs LSTM)">
+        <span class="preset-tag">N</span> Exchange seq=512 σ=5 (+10%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('ettm1_clean')" title="ETTm1 standard LTSF benchmark: KCA 0.065 vs LSTM 0.074 vs Fair 0.086  (+13% vs LSTM)">
+        <span class="preset-tag">C</span> ETTm1 seq=96 σ=0 (+13%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('ettm1_512_sigma5')" title="ETTm1 long+noisy: KCA 0.717 vs LSTM 0.796 vs Fair 1.018  (+10% vs LSTM)">
+        <span class="preset-tag">L</span> ETTm1 seq=512 σ=5 (+10%)
+      </button>
+
+      <button class="btn-preset" onclick="applyPreset('weather_336_sigma5')" title="Weather (21 dim) high-noise: KCA 0.269 vs LSTM 0.298 vs Fair 0.653  (+10% vs LSTM)">
+        <span class="preset-tag">N</span> Weather seq=336 σ=5 (+10%)
+      </button>
+    </div>
+  </div>
+
   <!-- Config panel -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Konfiguráció<button class="tip-btn" data-tip="A benchmark futtatás paraméterei (lookback, horizon, adatméret, epochok, device).&#10;Reprodukálhatóságért fontos minden érték rögzítése.">?</button></h2>
     <div class="grid grid-autofill-130 gap-3">
       <div><label>Dataset</label>
         <select id="cfgDataset">
@@ -172,9 +220,9 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
         </select></div>
       <div><label>Seq len</label><input type="number" id="cfgSeqLen" value="96" min="16" max="1024"></div>
       <div><label>Batch size</label><input type="number" id="cfgBatch" value="64" min="8" max="256"></div>
-      <div><label>Epochs</label><input type="number" id="cfgEpochs" value="5" min="1" max="50"></div>
+      <div><label>Epochs</label><input type="number" id="cfgEpochs" value="10" min="1" max="50" title="A tézis sweep 10 epoch-ot használt; KCA Kalman-loss-szal lassabban konvergál, <8 epoch gyenge"></div>
       <div><label>Ablak stride</label><input type="number" id="cfgStride" value="1" step="1" min="1" max="96" title="1 = max átfedés; nagy adathalmaznál (Weather, ECL) növelhető"></div>
-      <div><label>Zaj skála (noise)</label><input type="number" id="cfgNoise" value="0" step="0.1" min="0" max="3"></div>
+      <div><label>Zaj skála (noise)</label><input type="number" id="cfgNoise" value="0" step="0.1" min="0" max="5"></div>
     </div>
   </div>
 
@@ -223,10 +271,10 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
 
-    <!-- KLA card -->
+    <!-- KCA card -->
     <div class="section card-kla">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-blue-400">🔵 KLA-Mamba</span>
+        <span class="text-sm font-bold text-blue-400">🔵 KCA-Mamba</span>
         <span id="klaBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
@@ -271,28 +319,30 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
 
-    <!-- DLinear card -->
-    <div class="section card-dlinear">
+    <!-- PatchTST card -->
+    <div class="section card-patchtst">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-violet-400">📏 DLinear</span>
-        <span id="dlinearBadge" class="badge badge-warn hidden">...</span>
+        <span class="text-sm font-bold text-violet-400">🧩 PatchTST</span>
+        <span id="patchtstBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
-        <div><label>MA kernel</label><input type="number" id="cfgDlinearK" value="25" min="3" max="99" step="2"></div>
+        <div><label>Patch len</label><input type="number" id="cfgPatchLen" value="16" min="4" max="64" step="1"></div>
+        <div><label>Stride</label><input type="number" id="cfgPatchStride" value="16" min="1" max="64" step="1"></div>
+        <div><label>d_model</label><input type="number" id="cfgPatchDModel" value="48" min="16" max="256" step="16"></div>
       </div>
       <div class="space-y-1">
-        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="dlinearParams">—</span></div>
-        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="dlinearLr">—</span></div>
-        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="dlinearMse">—</span></div>
-        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="dlinearTime">—</span></div>
-        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="dlinearVram">—</span></div>
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="patchtstParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="patchtstLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="patchtstMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="patchtstTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="patchtstVram">—</span></div>
       </div>
     </div>
   </div>
 
   <!-- Results table -->
   <div class="section hidden" id="resultTableWrap">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló<button class="tip-btn" data-tip="LTSF (Long-term Time Series Forecasting) benchmark eredményei:&#10;LSTM, Fair Mamba, KCA-Mamba, ARIMA, PatchTST összehasonlítása.&#10;Metrikák: Test MSE, paraméterszám, tréning idő, peak VRAM.">?</button></h2>
     <div class="overflow-auto">
       <table class="tbl">
         <thead><tr>
@@ -305,7 +355,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <!-- Combined prediction chart (full width) -->
   <div class="section">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Predikció vs valós — utolsó feature (teszt minta)</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Predikció vs valós — utolsó feature (teszt minta)<button class="tip-btn" data-tip="Az utolsó feature csatorna előrejelzése vs. valós érték teszten.&#10;Tipikusan: OT (oil temperature) ETT datasetben, Close ár pénzügyi adaton.">?</button></h2>
     <p class="text-xs text-slate-600 mb-3">Ground Truth + mind az 5 modell predikciója együtt (utolsó feature, teszt minta)</p>
     <div class="h-[420px]"><canvas id="cPred"></canvas></div>
     <div class="flex flex-wrap gap-5 mt-3 text-[11px] text-slate-500">
@@ -313,29 +363,98 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span id="noisyLegendItem"><span class="leg-s" style="background:rgba(251,146,60,.6)"></span>Zajos bemenet</span>
       <span><span class="leg-s" style="background:#60a5fa"></span>LSTM <span id="lblLstmMseInline" class="text-blue-400"></span></span>
       <span><span class="leg-s" style="background:#94a3b8"></span>Fair Mamba <span id="lblFairMseInline" class="text-slate-400"></span></span>
-      <span><span class="leg-s" style="background:#4ade80"></span>KLA-Mamba <span id="lblKlaMseInline" class="text-emerald-400"></span></span>
+      <span><span class="leg-s" style="background:#4ade80"></span>KCA-Mamba <span id="lblKlaMseInline" class="text-emerald-400"></span></span>
       <span><span class="leg-s" style="background:#f59e0b"></span>ARIMA modell <span id="lblArMseInline" class="text-amber-400"></span></span>
-      <span><span class="leg-s" style="background:#a78bfa"></span>DLinear <span id="lblDlinearMseInline" class="text-violet-400"></span></span>
-      <span><span class="leg-s-dot" style="border-top:2px dotted #67e8f9"></span>KLA szűrt (μ)</span>
+      <span><span class="leg-s" style="background:#a78bfa"></span>PatchTST <span id="lblPatchMseInline" class="text-violet-400"></span></span>
+      <span><span class="leg-s-dot" style="border-top:2px dotted #67e8f9"></span>KCA szűrt (μ)</span>
     </div>
   </div>
 
   <!-- Epoch loss curve -->
   <div class="section max-w-[480px]">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tréning loss görbék (epoch)</h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tréning loss görbék (epoch)<button class="tip-btn" data-tip="Epoch-onkénti loss minden benchmark modellre egyben.&#10;Gyorsan konvergáló és alacsony plateau → jobb architektúra az adott adaton.">?</button></h2>
     <div class="h-[220px]"><canvas id="cLoss"></canvas></div>
     <div class="flex flex-wrap gap-4 mt-2 text-[11px] text-slate-500">
       <span><span class="leg-dot" style="background:#60a5fa"></span>LSTM</span>
       <span><span class="leg-dot" style="background:#94a3b8"></span>Fair Mamba</span>
-      <span><span class="leg-dot" style="background:#4ade80"></span>KLA-Mamba</span>
+      <span><span class="leg-dot" style="background:#4ade80"></span>KCA-Mamba</span>
       <span><span class="leg-dot" style="background:#f59e0b"></span>ARIMA modell</span>
-      <span><span class="leg-dot" style="background:#a78bfa"></span>DLinear</span>
+      <span><span class="leg-dot" style="background:#a78bfa"></span>PatchTST</span>
     </div>
   </div>
 
 </main>
 
 <script>
+// ── Presets ──────────────────────────────────────────────────────────────────
+// Configurations where KCA-Mamba's measured test MSE was strictly lower than
+// BOTH LSTM and Fair Mamba. Data source: sweep_results.json (48 cells) and
+// stride_sweep_results.json (24 cells) — both ran with epochs=10, batch=64,
+// and model hyperparams heads=4/state=32/LSTM-H=128. The presets keep those
+// values constant and only vary dataset / seq_len / stride / noise so the
+// dashboard run reproduces the sweep conditions 1:1.
+// FIGYELEM: a stride per-(dataset,seqLen) különbözik — a sweep nem stride=1-et használt
+// mindenhol, hanem az adathalmaz méretére szabva. Preseteknél EZT vissza KELL állítani,
+// különben stride=1-gyel 4–16× több tréning ablak → teljesen más konvergencia (LSTM nyer).
+const _KCA_COMMON = {
+  batch:64, epochs:10,
+  lstmH:128, fairHeads:4, fairState:32, klaHeads:4, klaState:32,
+};
+const PRESETS = {
+  // Exchange seq=192 σ=0 — biggest measured advantage (+68% vs LSTM, +59% vs Fair)
+  //   KCA 0.033 | LSTM 0.105 | Fair 0.081   (sweep_results.json, stride=1)
+  exchange_192_clean:  { ..._KCA_COMMON, dataset:'Exchange', seqLen:192, noise:0,   stride:1 },
+  // Exchange seq=336 σ=3 — long+noisy (+26% vs LSTM)    (sweep stride=2)
+  //   KCA 0.736 | LSTM 1.000 | Fair 1.162
+  exchange_336_sigma3: { ..._KCA_COMMON, dataset:'Exchange', seqLen:336, noise:3.0, stride:2 },
+  // Exchange seq=336 σ=1 (+32% vs LSTM)                (sweep stride=2)
+  //   KCA 0.502 | LSTM 0.735 | Fair 0.662
+  exchange_336_sigma1: { ..._KCA_COMMON, dataset:'Exchange', seqLen:336, noise:1.0, stride:2 },
+  // Exchange seq=512 σ=3 — long-context + noise (+22% vs LSTM)  (sweep stride=2)
+  //   KCA 0.772 | LSTM 0.989 | Fair 2.121
+  exchange_512_sigma3: { ..._KCA_COMMON, dataset:'Exchange', seqLen:512, noise:3.0, stride:2 },
+  // Exchange seq=192 σ=5 — high noise (+20% vs LSTM) [stride_sweep_results.json, s=1]
+  //   KCA 1.153 | LSTM 1.448 | Fair 1.557
+  exchange_192_sigma5: { ..._KCA_COMMON, dataset:'Exchange', seqLen:192, noise:5.0, stride:1 },
+  // Exchange seq=512 σ=5 (+13% vs LSTM) [stride_sweep_results.json, s=1]
+  //   KCA 1.076 | LSTM 1.233 | Fair 1.739
+  exchange_512_sigma5: { ..._KCA_COMMON, dataset:'Exchange', seqLen:512, noise:5.0, stride:1 },
+  // ETTm1 seq=96 σ=0 — standard LTSF clean benchmark (+13% vs LSTM)   (sweep stride=4)
+  //   KCA 0.065 | LSTM 0.074 | Fair 0.086
+  ettm1_clean:         { ..._KCA_COMMON, dataset:'ETTm1',    seqLen:96,  noise:0,   stride:4 },
+  // ETTm1 seq=512 σ=5 — long+noisy (+10% vs LSTM)      (sweep stride=16)
+  //   KCA 0.717 | LSTM 0.796 | Fair 1.018
+  ettm1_512_sigma5:    { ..._KCA_COMMON, dataset:'ETTm1',    seqLen:512, noise:5.0, stride:16 },
+  // Weather seq=336 σ=5 — 21-dim multivariate, high noise (+10% vs LSTM)  (sweep stride=16)
+  //   KCA 0.269 | LSTM 0.298 | Fair 0.653
+  weather_336_sigma5:  { ..._KCA_COMMON, dataset:'Weather',  seqLen:336, noise:5.0, stride:16 },
+};
+
+function applyPreset(name){
+  const p = PRESETS[name];
+  if (!p) return;
+  const set = (id, v) => { const el=document.getElementById(id); if(el) el.value=v; };
+  set('cfgDataset',   p.dataset);
+  set('cfgSeqLen',    p.seqLen);
+  set('cfgBatch',     p.batch);
+  set('cfgEpochs',    p.epochs);
+  set('cfgStride',    p.stride);
+  set('cfgNoise',     p.noise);
+  set('cfgLstmH',     p.lstmH);
+  set('cfgFairHeads', p.fairHeads);
+  set('cfgFairState', p.fairState);
+  set('cfgKlaHeads',  p.klaHeads);
+  set('cfgKlaState',  p.klaState);
+  // Visual feedback: flash the stage label briefly.
+  const lbl = document.getElementById('stageLabel');
+  if (lbl) {
+    const prev = lbl.textContent;
+    lbl.textContent = `preset betöltve: ${name}`;
+    lbl.style.color = '#60a5fa';
+    setTimeout(() => { lbl.textContent = prev; lbl.style.color = ''; }, 1800);
+  }
+}
+
 // ── Chart setup ──────────────────────────────────────────────────────────────
 const _def = {
   responsive:true, maintainAspectRatio:false,
@@ -357,9 +476,9 @@ function initCharts(){
   cLoss = mkChart('cLoss',[
     {label:'LSTM',         data:[], borderColor:'#60a5fa', borderWidth:1.5, pointRadius:0, tension:.3},
     {label:'Fair Mamba',   data:[], borderColor:'#94a3b8', borderWidth:1.5, pointRadius:0, tension:.3},
-    {label:'KLA-Mamba',    data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
+    {label:'KCA-Mamba',    data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
     {label:'ARIMA modell', data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:.3},
-    {label:'DLinear',      data:[], borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'PatchTST',     data:[], borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:.3},
   ],{scales:{x:{type:'linear',title:{display:false}},y:{type:'linear'}}});
 
   cPred = mkChart('cPred',[
@@ -367,10 +486,10 @@ function initCharts(){
     {label:'Zajos bemenet', data:[], borderColor:'rgba(251,146,60,.5)',   borderWidth:1,   pointRadius:0, tension:0},
     {label:'LSTM',          data:[], borderColor:'#60a5fa', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
     {label:'Fair Mamba',    data:[], borderColor:'#94a3b8', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
-    {label:'KLA-Mamba',     data:[], borderColor:'#4ade80', borderWidth:1, pointRadius:0, tension:0, borderDash:[2,2]},
+    {label:'KCA-Mamba',     data:[], borderColor:'#4ade80', borderWidth:1, pointRadius:0, tension:0, borderDash:[2,2]},
     {label:'ARIMA modell',  data:[], borderColor:'#f59e0b', borderWidth:1, pointRadius:0, tension:0, borderDash:[6,3]},
-    {label:'DLinear',       data:[], borderColor:'#a78bfa', borderWidth:1, pointRadius:0, tension:0, borderDash:[3,2]},
-    {label:'KLA szűrt (μ)', data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
+    {label:'PatchTST',      data:[], borderColor:'#a78bfa', borderWidth:1, pointRadius:0, tension:0, borderDash:[3,2]},
+    {label:'KCA szűrt (μ)', data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
   ],{scales:{x:{type:'linear'},y:{type:'linear'}}});
 }
 initCharts();
@@ -396,7 +515,7 @@ function setCard(prefix, m){
 
 function updateLoss(models){
   if(!cLoss || !models) return;
-  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
   keys.forEach((k,i)=>{
     const m = models[k];
     if(!m || !m.epoch_losses) return;
@@ -407,7 +526,7 @@ function updateLoss(models){
 
 function updatePred(models){
   if(!cPred || !models) return;
-  const anyModel = models.lstm || models.fair_mamba || models.kla_mamba || models.ar_model;
+  const anyModel = models.lstm || models.fair_mamba || models.kca_mamba || models.ar_model;
   const base  = anyModel?.sample?.true;
   const noisy = anyModel?.sample?.noisy;
   if(!base) return;
@@ -420,19 +539,19 @@ function updatePred(models){
   // Hide noisy legend item when noise=0 (noisy == clean)
   const noisyLegend = document.getElementById('noisyLegendItem');
   if(noisyLegend){ if(noisy && noisy.length) noisyLegend.classList.remove('hidden'); else noisyLegend.classList.add('hidden'); }
-  const predsMap = [models.lstm, models.fair_mamba, models.kla_mamba, models.ar_model, models.dlinear];
+  const predsMap = [models.lstm, models.fair_mamba, models.kca_mamba, models.ar_model, models.patchtst];
   predsMap.forEach((m,i)=>{
     if(m && m.sample && m.sample.pred)
       cPred.data.datasets[i+2].data = m.sample.pred.map((v,j)=>({x:j,y:v}));
   });
-  // KLA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[7]
-  const klaFilt = models.kla_mamba?.sample?.kla_filtered;
+  // KCA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[7]
+  const klaFilt = models.kca_mamba?.sample?.kla_filtered;
   cPred.data.datasets[7].data = (klaFilt && klaFilt.length)
     ? klaFilt.map((v,i)=>({x:i,y:v})) : [];
   cPred.options.scales.x.min = 0;
   cPred.options.scales.x.max = base.length - 1;
-  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblDlinearMseInline'];
-  const keyMap = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblPatchMseInline'];
+  const keyMap = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
   keyMap.forEach((k,i)=>{
     const mse = models[k]?.test_mse;
     const el = document.getElementById(idMap[i]);
@@ -444,7 +563,7 @@ function updatePred(models){
 function buildTable(models){
   if(!models) return;
   $('resultTableWrap').classList.remove('hidden');
-  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
   const mseMins = keys.map(k=>models[k]?.test_mse ?? Infinity);
   const minMse  = Math.min(...mseMins);
   const rows    = keys.map((k,i)=>{
@@ -464,7 +583,7 @@ function buildTable(models){
 
 function buildVerdict(models){
   if(!models) return;
-  const keys = ['lstm','fair_mamba','kla_mamba','ar_model','dlinear'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
   const entries = keys.map(k=>({k,m:models[k]})).filter(x=>x.m&&x.m.test_mse!=null);
   if(entries.length < 2) return;
   entries.sort((a,b)=>a.m.test_mse - b.m.test_mse);
@@ -495,7 +614,7 @@ async function poll(){
     badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
     badge.textContent='● Fut...';
     $('stageLabel').textContent = d.stage || '...';
-    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kla_mamba); setCard('ar', d.models.ar_model); setCard('dlinear', d.models.dlinear); updateLoss(d.models); }
+    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); setCard('patchtst', d.models.patchtst); updateLoss(d.models); }
     setTimeout(poll, 1500);
   } else if(d.status==='done'){
     if(_hasRun){
@@ -510,9 +629,9 @@ async function poll(){
     $('btnRun').disabled=false;
     $('stageLabel').textContent = '';
     if(d.models){
-      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kla_mamba); setCard('ar', d.models.ar_model); setCard('dlinear', d.models.dlinear);
-      // KLA Kálmán stats
-      const ks = d.models.kla_mamba?.kalman_stats;
+      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); setCard('patchtst', d.models.patchtst);
+      // KCA Kálmán stats
+      const ks = d.models.kca_mamba?.kalman_stats;
       if(ks && Object.keys(ks).length){
         $('klaKalman').classList.remove('hidden');
         $('klaKmean').textContent = ks.K_mean?.toFixed(4) ?? '—';
@@ -542,7 +661,7 @@ async function poll(){
 
 async function startRun(){
   // Reset model card badges and results
-  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge'],['dlinear','dlinearBadge']].forEach(([,bid])=>{
+  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge'],['patchtst','patchtstBadge']].forEach(([,bid])=>{
     const b=$(bid); if(b){b.textContent='...'; b.className='badge badge-warn'; b.classList.add('hidden');}
   });
   $('klaKalman').classList.add('hidden');
@@ -551,9 +670,9 @@ async function startRun(){
    ['fair','Params'],['fair','Mse'],['fair','Time'],['fair','Vram'],['fair','Lr'],
    ['kla','Params'],['kla','Mse'],['kla','Time'],['kla','Vram'],['kla','Lr'],
    ['ar','Params'],['ar','Mse'],['ar','Time'],['ar','Vram'],['ar','Lr'],
-   ['dlinear','Params'],['dlinear','Mse'],['dlinear','Time'],['dlinear','Vram'],['dlinear','Lr']
+   ['patchtst','Params'],['patchtst','Mse'],['patchtst','Time'],['patchtst','Vram'],['patchtst','Lr']
   ].forEach(([p,f])=>{ const el=$(p+f); if(el) el.textContent='—'; });
-  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblDlinearMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
+  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblPatchMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
   if(cLoss){ cLoss.data.datasets.forEach(ds=>ds.data=[]); cLoss.update('none'); }
   if(cPred){ cPred.data.datasets.forEach(ds=>ds.data=[]); cPred.update('none'); }
   const cfg = {
@@ -566,11 +685,13 @@ async function startRun(){
     lstm_hidden:    +$('cfgLstmH').value,
     fair_heads:     +$('cfgFairHeads').value,
     fair_state:     +$('cfgFairState').value,
-    kla_heads:      +$('cfgKlaHeads').value,
-    kla_state:      +$('cfgKlaState').value,
+    kca_heads:      +$('cfgKlaHeads').value,
+    kca_state:      +$('cfgKlaState').value,
     arima_p:        +$('cfgArimaP').value,
     arima_q:        +$('cfgArimaQ').value,
-    dlinear_kernel: +$('cfgDlinearK').value,
+    patchtst_patch_len: +$('cfgPatchLen').value,
+    patchtst_stride:    +$('cfgPatchStride').value,
+    patchtst_d_model:   +$('cfgPatchDModel').value,
   };
   $('btnRun').disabled=true;
   $('runBadge').classList.add('hidden');
@@ -586,5 +707,6 @@ poll();
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

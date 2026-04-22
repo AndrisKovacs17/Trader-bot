@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Modell komplexitás térkép</title>
+  <title>KCA-Mamba · Modell komplexitás térkép</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -91,9 +91,9 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 <!-- NAV -->
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
-      <button class="nav-a active">KLA elemzés ▾</button>
+      <button class="nav-a active">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a active">Modell komplexitás térkép</a>
@@ -145,20 +145,20 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <div class="section">
       <div class="flex items-center justify-between mb-1">
         <div>
-          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméterszám vs. Test MSE</h2>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméterszám vs. Test MSE<button class="tip-btn" data-tip="Modellméret (paraméterszám) és tesztbeli hiba összefüggése.&#10;&#10;Bal-alsó sarok = kevés paraméter + alacsony hiba = ideális (Pareto-front).&#10;Jobb-felső = nagy modell de rossz általánosítás = túlparametrizált.">?</button></h2>
           <p class="text-[11px] text-slate-600 mt-0.5">Bal-lent = kevés paraméter + alacsony hiba = legjobb hatékonyság</p>
         </div>
         <span class="pareto-badge hidden" id="paretoScatterLabel">Pareto-domináns</span>
       </div>
       <div class="h-[340px]"><canvas id="cScatterParams"></canvas></div>
-      <p class="text-[11px] text-slate-600 mt-2 text-center">Körméret = tanítási idő (másodperc). KLA jelölve kiemelve.</p>
+      <p class="text-[11px] text-slate-600 mt-2 text-center">Körméret = tanítási idő (másodperc). KCA jelölve kiemelve.</p>
     </div>
 
     <!-- Scatter: tanítási idő vs MSE -->
     <div class="section">
       <div class="flex items-center justify-between mb-1">
         <div>
-          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tanítási idő vs. Test MSE</h2>
+          <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Tanítási idő vs. Test MSE<button class="tip-btn" data-tip="A tréning futási ideje és a tesztbeli hiba.&#10;&#10;Gyorsan tanuló és jó modell → hatékony architektúra.">?</button></h2>
           <p class="text-[11px] text-slate-600 mt-0.5">Bal-lent = gyors tanítás + alacsony hiba = legjobb időhatékonyság</p>
         </div>
       </div>
@@ -171,7 +171,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="section">
     <div class="flex items-center justify-between mb-1">
       <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Normált összehasonlítás (alacsonyabb = jobb)</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Normált összehasonlítás (alacsonyabb = jobb)<button class="tip-btn" data-tip="Összes metrika [0,1]-re normálva, alacsonyabb jobb.&#10;Egyetlen tekintetben rendezhető az összes modell 'összhasznossága'.">?</button></h2>
         <p class="text-[11px] text-slate-600 mt-0.5">Minden dimenzió 0–1 skálán normálva (legrosszabb = 1.0), majd csoportonként megjelenítve</p>
       </div>
     </div>
@@ -179,9 +179,9 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <div class="flex flex-wrap gap-4 mt-3 text-[11px] text-slate-500">
       <span><span style="display:inline-block;width:12px;height:3px;background:#60a5fa;margin-right:5px;vertical-align:middle"></span>LSTM</span>
       <span><span style="display:inline-block;width:12px;height:3px;background:#94a3b8;margin-right:5px;vertical-align:middle"></span>Fair Mamba</span>
-      <span><span style="display:inline-block;width:12px;height:3px;background:#4ade80;margin-right:5px;vertical-align:middle"></span>KLA-Mamba</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#4ade80;margin-right:5px;vertical-align:middle"></span>KCA-Mamba</span>
       <span><span style="display:inline-block;width:12px;height:3px;background:#f59e0b;margin-right:5px;vertical-align:middle"></span>ARIMA</span>
-      <span><span style="display:inline-block;width:12px;height:3px;background:#a78bfa;margin-right:5px;vertical-align:middle"></span>DLinear</span>
+      <span><span style="display:inline-block;width:12px;height:3px;background:#a78bfa;margin-right:5px;vertical-align:middle"></span>PatchTST</span>
     </div>
   </div>
 
@@ -189,7 +189,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Részletes eredménytábla</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Részletes eredménytábla<button class="tip-btn" data-tip="Minden model minden metrikája számszerűen: MSE, MAE, R², paraméter, idő, memória.">?</button></h2>
       <div class="overflow-auto">
         <table class="tbl">
           <thead>
@@ -208,8 +208,8 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     </div>
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hatékonysági rangsor</h2>
-      <p class="text-xs text-slate-500 mb-3">Score = MSE_norm + Params_norm + Time_norm, alacsonyabb jobb. A KLA célja: kisebb score mint LSTM ugyanolyan vagy jobb MSE mellett.</p>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Hatékonysági rangsor<button class="tip-btn" data-tip="Modellek sorrendje hatékonyság szerint (test_mse × params × time kombinált pont).">?</button></h2>
+      <p class="text-xs text-slate-500 mb-3">Score = MSE_norm + Params_norm + Time_norm, alacsonyabb jobb. A KCA célja: kisebb score mint LSTM ugyanolyan vagy jobb MSE mellett.</p>
       <div id="efficiencyRankList" class="space-y-1"></div>
     </div>
   </div>
@@ -218,7 +218,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="section">
     <div class="flex items-center justify-between mb-3">
       <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Test MSE összehasonlítás</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Test MSE összehasonlítás<button class="tip-btn" data-tip="Oszlopdiagram a teszt MSE-ről minden modellre — a legfontosabb minőségi mérőszám.">?</button></h2>
         <p class="text-[11px] text-slate-600 mt-0.5">Abszolút MSE értékek — alacsonyabb jobb</p>
       </div>
     </div>
@@ -229,13 +229,13 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Paraméterszám összehasonlítás</h2>
-      <p class="text-[11px] text-slate-600 mb-3">Logaritmikus skéla — KLA-nál a kis méretnél is jó predikció a cél</p>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Paraméterszám összehasonlítás<button class="tip-btn" data-tip="Oszlopdiagram a paraméterszámról — a modell méretét mutatja.">?</button></h2>
+      <p class="text-[11px] text-slate-600 mb-3">Logaritmikus skéla — KCA-nál a kis méretnél is jó predikció a cél</p>
       <div class="h-[220px]"><canvas id="cParamsBar"></canvas></div>
     </div>
 
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tanítási idő összehasonlítás</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Tanítási idő összehasonlítás<button class="tip-btn" data-tip="Oszlopdiagram a tréning idejéről másodpercben / percben.">?</button></h2>
       <p class="text-[11px] text-slate-600 mb-3">Másodpercben — egy epoch×batch iteráció teljes tréning ciklusa</p>
       <div class="h-[220px]"><canvas id="cTimeBar"></canvas></div>
     </div>
@@ -245,10 +245,10 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="section">
     <div class="flex items-center justify-between mb-1">
       <div>
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméter-hatékonyság (alacsonyabb = hatékonyabb)</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Paraméter-hatékonyság (alacsonyabb = hatékonyabb)<button class="tip-btn" data-tip="params / (1 / MSE) → mennyi paraméter kell egy egység hibajavuláshoz.&#10;Alacsonyabb = hatékonyabb modell.">?</button></h2>
         <p class="text-[11px] text-slate-600 mt-0.5">MSE × 10⁶ / paraméterszám — egy paraméter mennyi MSE-t "ér". A legalacsonyabb a leghatékonyabb modell.</p>
       </div>
-      <span class="badge badge-ok hidden" id="paramEffBadge">KLA a leghatékonyabb</span>
+      <span class="badge badge-ok hidden" id="paramEffBadge">KCA a leghatékonyabb</span>
     </div>
     <div class="h-[220px]"><canvas id="cParamEff"></canvas></div>
   </div>
@@ -262,11 +262,11 @@ const $ = id => document.getElementById(id);
 const MODEL_COLORS = {
   lstm:       { border: '#60a5fa', bg: 'rgba(96,165,250,.35)',  label: 'LSTM'        },
   fair_mamba: { border: '#94a3b8', bg: 'rgba(148,163,184,.35)', label: 'Fair Mamba'  },
-  kla_mamba:  { border: '#4ade80', bg: 'rgba(74,222,128,.35)',  label: 'KLA-Mamba'   },
+  kca_mamba:  { border: '#4ade80', bg: 'rgba(74,222,128,.35)',  label: 'KCA-Mamba'   },
   ar_model:   { border: '#f59e0b', bg: 'rgba(245,158,11,.35)',  label: 'ARIMA'       },
-  dlinear:    { border: '#a78bfa', bg: 'rgba(167,139,250,.35)', label: 'DLinear'     },
+  patchtst:   { border: '#a78bfa', bg: 'rgba(167,139,250,.35)', label: 'PatchTST'    },
 };
-const MODEL_KEYS = ['lstm', 'fair_mamba', 'kla_mamba', 'ar_model', 'dlinear'];
+const MODEL_KEYS = ['lstm', 'fair_mamba', 'kca_mamba', 'ar_model', 'patchtst'];
 
 // ── Chart helpers ─────────────────────────────────────────────────────────────
 const baseOpts = (log = false) => ({
@@ -429,9 +429,9 @@ function updateUI(models) {
   if (paretoModels.length) {
     $('paretoBanner').classList.remove('hidden');
     const names = paretoModels.map(m => m.label).join(', ');
-    const klaIn = paretoModels.some(m => m.key === 'kla_mamba');
+    const klaIn = paretoModels.some(m => m.key === 'kca_mamba');
     $('paretoText').innerHTML = klaIn
-      ? `KLA-Mamba Pareto-hatékony: ${names} modell(ek) alkotják a Pareto-határt — egyik sem javítható egyik dimenzióban sem a többi rovására.`
+      ? `KCA-Mamba Pareto-hatékony: ${names} modell(ek) alkotják a Pareto-határt — egyik sem javítható egyik dimenzióban sem a többi rovására.`
       : `Pareto-határ: ${names} — ezek a modellek dominálnak egymás kompromisszuma nélkül.`;
     if (klaIn) {
       $('paretoScatterLabel').classList.remove('hidden');
@@ -452,7 +452,7 @@ function updateUI(models) {
   const maxTime = Math.max(...times.filter(Boolean));
   cScatterParams.data.datasets = entries.map((e, i) => {
     const radiusVal = times[i] != null ? 6 + (times[i] / maxTime) * 18 : 8;
-    const isKla = e.key === 'kla_mamba';
+    const isKla = e.key === 'kca_mamba';
     return {
       label: e.label,
       data: [{ x: params[i], y: mses[i], r: radiusVal, label: e.label, r_orig: times[i] }],
@@ -467,7 +467,7 @@ function updateUI(models) {
   const maxParams = Math.max(...params.filter(Boolean));
   cScatterTime.data.datasets = entries.map((e, i) => {
     const radiusVal = params[i] != null ? 6 + (params[i] / maxParams) * 18 : 8;
-    const isKla = e.key === 'kla_mamba';
+    const isKla = e.key === 'kca_mamba';
     return {
       label: e.label,
       data: [{ x: times[i], y: mses[i], r: radiusVal, label: e.label, r_orig: params[i] }],
@@ -521,8 +521,8 @@ function updateUI(models) {
     .sort((a, b) => a.effScore - b.effScore);
 
   $('efficiencyRankList').innerHTML = ranked.map((e, rank) => `
-    <div class="kv" style="${e.key === 'kla_mamba' ? 'background:rgba(74,222,128,.05);border-radius:6px;padding:6px 4px' : ''}">
-      <span class="lbl" style="color:${e.border};font-weight:${e.key==='kla_mamba'?'700':'400'}">
+    <div class="kv" style="${e.key === 'kca_mamba' ? 'background:rgba(74,222,128,.05);border-radius:6px;padding:6px 4px' : ''}">
+      <span class="lbl" style="color:${e.border};font-weight:${e.key==='kca_mamba'?'700':'400'}">
         ${rank + 1}. ${e.label}${e.paretoFront ? ' <span class="pareto-badge" style="font-size:10px;padding:1px 7px">Pareto</span>' : ''}
       </span>
       <span>${stars(e.effScore, maxScore)}</span>
@@ -533,7 +533,7 @@ function updateUI(models) {
   const minMse = Math.min(...mses.filter(Boolean));
   $('compTbody').innerHTML = entries.map((e, i) => {
     const isBest = mses[i] === minMse;
-    const isKla  = e.key === 'kla_mamba';
+    const isKla  = e.key === 'kca_mamba';
     const effPct = effScores[i] < Infinity
       ? (((maxScore - effScores[i]) / maxScore) * 100).toFixed(0) + '%' : '—';
     return `<tr class="${isKla ? 'kla-row' : ''}">
@@ -580,5 +580,6 @@ document.addEventListener('click', function(e) {
 });
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>KLA-Mamba · Jelek</title>
+  <title>KCA-Mamba · Jelek</title>
   <style id="tw">
 *,::before,::after{box-sizing:border-box;border-width:0;border-style:solid;border-color:#1e293b}
 html{line-height:1.5;-webkit-text-size-adjust:100%;font-family:ui-sans-serif,system-ui,sans-serif}
@@ -84,7 +84,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <nav class="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur">
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
-    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KLA-Mamba</span>
+    <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
       <button class="nav-a active">Pénzügyi ▾</button>
       <div class="nav-drop">
@@ -102,7 +102,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
     <div class="nav-dropdown">
-      <button class="nav-a">KLA elemzés ▾</button>
+      <button class="nav-a">KCA elemzés ▾</button>
       <div class="nav-drop">
         <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
         <a href="/complexity.html" class="drop-a">Modell komplexitás térkép</a>
@@ -158,7 +158,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Signal strip (colored bars) -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelszalag (utolsó 300 tick) — zöld:BUY szándék, piros:SELL, sárga:semleges</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelszalag (utolsó 300 tick) — zöld:BUY szándék, piros:SELL, sárga:semleges<button class="tip-btn" data-tip="Az utolsó 300 tick vizuális összegzése.&#10;&#10; • Zöld → BUY szándék (prob_up &gt; threshold)&#10; • Piros → SELL szándék (prob_up &lt; 1−threshold)&#10; • Sárga → semleges, nincs pozícióváltás&#10;&#10;Sok sárga sáv → a modell bizonytalan a küszöb környékén.">?</button></h2>
       <span id="sigStripMeta" class="text-xs text-slate-600">—</span>
     </div>
     <canvas id="cStrip" height="44"></canvas>
@@ -168,14 +168,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up idősor</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Prob Up idősor<button class="tip-btn" data-tip="A modell által becsült UP valószínűségek folyamatos görbéje.&#10;&#10;Küszöbvonalak: 0.51 BUY, 0.49 SELL.&#10;Ha a görbe folyton e két vonal közé szorul → nincs szignál.">?</button></h2>
         <span id="pmeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:220px"><canvas id="cProb"></canvas></div>
     </div>
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma idősor (bizonytalanság)</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Sigma idősor (bizonytalanság)<button class="tip-btn" data-tip="A predikciós bizonytalanság időbeli változása.&#10;&#10;A pozícióméret fordítottan arányos σ-val: magas σ → kisebb méret.">?</button></h2>
         <span id="smeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:220px"><canvas id="cSig"></canvas></div>
@@ -185,14 +185,14 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu idősor (hozam-előrejelzés)</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Mu idősor (hozam-előrejelzés)<button class="tip-btn" data-tip="A várt hozam (μ) folyamatos becslése.&#10;&#10;Ha μ folyton 0 körül → a modell semlegesen jósol — nem hoz irányított szignált.">?</button></h2>
         <span id="mmeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:220px"><canvas id="cMu"></canvas></div>
     </div>
     <div class="section">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Confirm score idősor</h2>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Confirm score idősor<button class="tip-btn" data-tip="A konfirmációs pontszám: több indikátor egybecsengésétől függ.&#10;&#10;Magas → több jel együtt egyezik meg az iránnyal (pl. prob_up + trend + RSI).&#10;Alacsony → ellentmondásos jelek, a rendszer kihagyja a trade-et.">?</button></h2>
         <span id="cmeta" class="text-xs text-slate-600">—</span>
       </div>
       <div style="height:220px"><canvas id="cConf"></canvas></div>
@@ -202,7 +202,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Pred error vs realized -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pred error vs Realizált hozam</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pred error vs Realizált hozam<button class="tip-btn" data-tip="Scatter: X = predikciós hiba, Y = realizált hozam.&#10;&#10;Véletlenszerű felhő → a hiba nem informatív.&#10;Tendenciózus ferdeség → van egy szisztematikus torzítás a modellben.">?</button></h2>
       <span class="text-xs text-slate-600">Ideális: error közel realizált, nem konstans</span>
     </div>
     <div style="height:200px"><canvas id="cErrReal"></canvas></div>
@@ -211,21 +211,21 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Correlation diagnostics -->
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Jel statisztikák</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Jel statisztikák<button class="tip-btn" data-tip="Összesített szignál-metrikák: db, BUY/SELL arány, átlag prob_up, idősoros sűrűség.">?</button></h2>
       <div class="kv"><span class="lbl">Prob↑ átlag</span><span class="val" id="sAvgP">—</span></div>
       <div class="kv"><span class="lbl">Prob↑ szórás</span><span class="val" id="sStdP">—</span></div>
       <div class="kv"><span class="lbl">Prob↑ min</span><span class="val" id="sMinP">—</span></div>
       <div class="kv"><span class="lbl">Prob↑ max</span><span class="val" id="sMaxP">—</span></div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Sigma statisztikák</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Sigma statisztikák<button class="tip-btn" data-tip="σ eloszlás kvantilisek: 10%, 50%, 90% — a modell bizonytalanságának dinamikatartománya.">?</button></h2>
       <div class="kv"><span class="lbl">Sigma átlag</span><span class="val" id="sAvgS">—</span></div>
       <div class="kv"><span class="lbl">Sigma szórás</span><span class="val" id="sStdS">—</span></div>
       <div class="kv"><span class="lbl">Sigma min</span><span class="val" id="sMinS">—</span></div>
       <div class="kv"><span class="lbl">Sigma max</span><span class="val" id="sMaxS">—</span></div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mu statisztikák</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Mu statisztikák<button class="tip-btn" data-tip="μ eloszlás kvantilisek. A 10%/90% értékek abszolút értéke azt mutatja, milyen markánsan mer a modell jósolni.">?</button></h2>
       <div class="kv"><span class="lbl">Mu átlag</span><span class="val" id="sAvgM">—</span></div>
       <div class="kv"><span class="lbl">Mu szórás</span><span class="val" id="sStdM">—</span></div>
       <div class="kv"><span class="lbl">Mu min</span><span class="val" id="sMinM">—</span></div>
@@ -236,11 +236,11 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Distributions -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Prob Up eloszlás (hisztogram)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Prob Up eloszlás (hisztogram)<button class="tip-btn" data-tip="Hisztogram: hányszor volt a prob_up egy-egy tartományban.&#10;&#10;Normál eloszlás 0.5 körül → kalibrált, de nem differenciáló.&#10;Két csúcs 0.4 és 0.6 környékén → a modell magabiztosan szétválaszt két regime-et.">?</button></h2>
       <div style="height:200px"><canvas id="cProbHist"></canvas></div>
     </div>
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Pred error eloszlás (hisztogram)</h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Pred error eloszlás (hisztogram)<button class="tip-btn" data-tip="Predikciós hibák hisztogramja.&#10;&#10;Közel gauss, 0 átlaggal → jó illeszkedés.&#10;Ferde (skewed) → szisztematikus torzítás (egyik irányt túl- / alul-jósol).">?</button></h2>
       <div style="height:200px"><canvas id="cErrHist"></canvas></div>
     </div>
   </div>
@@ -382,5 +382,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 document.addEventListener('click',function(e){var dd=e.target.closest('.nav-dropdown');document.querySelectorAll('.nav-dropdown').forEach(function(d){if(d!==dd)d.classList.remove('open');});if(dd)dd.classList.toggle('open');});
 </script>
 <script src="/help.js" defer></script>
+<script src="/tooltip.js" defer></script>
 </body>
 </html>

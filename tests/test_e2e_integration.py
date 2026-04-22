@@ -39,7 +39,7 @@ from core.domain.risk import (
     SlippageGuardRule,
 )
 from core.domain.strategy import ThresholdStrategy
-from core.ml.services import EstimatedState, KLAStateEstimator, Prediction
+from core.ml.services import EstimatedState, KCAStateEstimator, Prediction
 from adapters.testing.broker import MockBrokerGateway
 from adapters.testing.time_source import SimulatedTimeSource
 
@@ -137,7 +137,7 @@ def engine(bus, config):
     now = datetime(2026, 1, 1, tzinfo=timezone.utc)
     time_source = SimulatedTimeSource(now)
 
-    estimator = KLAStateEstimator()
+    estimator = KCAStateEstimator()
     predictor = ForcedPredictor()
     strategy = ThresholdStrategy(config)
     risk_policy = RiskPolicy(
