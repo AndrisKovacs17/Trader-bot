@@ -74,8 +74,7 @@ Ez elindít:
 * a webes dashboardot a `http://127.0.0.1:8080/` címen.
 
 Leállítás: **Ctrl+C**. A program ilyenkor szabályosan lezárja a WebSocketet,
-kiüríti az eseménypuffert, leállítja a HTTP-szervert és kiírja a végleges
-pozíció-összegzést.
+leállítja a HTTP-szervert és kiírja a végleges pozíció-összegzést.
 
 ### 5.2 Tesztek futtatása
 
@@ -130,12 +129,12 @@ naplózható.
 ## 9. Megszakíthatóság
 
 A program hosszú műveletei (tréning, benchmark sweep, live stream) **Ctrl+C**-vel
-bármikor biztonságosan leállíthatók. A shutdown-ág garantálja, hogy:
+bármikor leállíthatók **Ctrl+C**-vel. Leállításkor:
 
 * a WebSocket kapcsolat lezárul,
-* az in-memory esemény-pufferek flush-olódnak a tárolóba,
+* az esemény-pufferek tartalma kiürül,
 * a HTTP-szerver lezárja az aktív kapcsolatokat,
-* a végleges állapot kiírásra kerül a konzolra.
+* a végleges állapot megjelenik a konzolon.
 
 ## 10. A KCA-Mamba modell architektúrája
 
@@ -153,8 +152,6 @@ $Q$ folyamatzaj- és $R$ mérési zajtermet, ezekből klasszikus Kalman-erősít
 ebből állítja elő. Zajos bemenetkor $R \gg Q \Rightarrow K \approx 0 \Rightarrow A \approx 1$
 (hosszú memória, kicsi frissítés); tiszta jelnél $Q \approx R \Rightarrow K \approx 0.5$
 (gyors követés).
-
----
 
 ### 10.2 KCAMambaBlock — egyetlen réteg felépítése
 
@@ -203,8 +200,6 @@ A `q_scale` / `r_scale` inicializálással $K_\text{base} \approx 0.07$, vagyis
 $A \approx 0.93$: a modell körülbelül 14 lépés memóriával indul, majd tanítás
 közben a feladathoz alkalmazkodik.
 
----
-
 ### 10.3 Parallel scan
 
 A párhuzamos prefix-scan az asszociativitást kihasználva $O(T)$ szekvenciális
@@ -224,8 +219,6 @@ Iteráció 2 (step=2):
 Fontos: a $B$-frissítésnél mindig az *eredeti* (frissítés előtti) $A$-értéket
 kell használni, különben minden korábbi hozzájárulás kétszeresen lecsengne.
 
----
-
 ### 10.4 KCAMambaStack — több réteg + multi-timescale figyelés
 
 ```
@@ -244,11 +237,9 @@ x [B, T, feature_dim]
        attn_out → residuális hozzáadás az utolsó pozícióhoz
 ```
 
-A `slow_stride` (alapértelmezett: 12) azt szimulálja, mintha a modell egy
-durvább időléptékű ("slow") kontextust is látna: 1 perces gyertyáknál
-`stride=12` kb. 12 perces összefoglalót nyújt az utolsó tokennek.
-
----
+A `slow_stride` (alapértelmezett: 12) egy durvább időléptékű kontextust nyújt
+az utolsó tokennek: 1 perces gyertyáknál `stride=12` kb. 12 perces ablakot
+jelent.
 
 ### 10.5 A teljes rendszer felépítése (hexagonális architektúra)
 
@@ -277,11 +268,9 @@ durvább időléptékű ("slow") kontextust is látna: 1 perces gyertyáknál
 ```
 
 A `core/` réteg egyetlen infrastrukturális importot sem tartalmaz — az összes
-külső függőség az `adapters/` rétegen keresztül, portinterfészeken átívelve
-kapcsolódik be. Ez lehetővé teszi, hogy a teljes kereskedési pipeline
-szintetikus adatokon is futtatható legyen (lásd `tests/`).
-
----
+külső függőség az `adapters/` rétegen keresztül, port-interfészeken át
+csatlakozik. Így a teljes kereskedési pipeline szintetikus adatokon is
+futtatható (lásd `tests/`).
 
 **Verzió**: 1.0 (2026-04-23) · **Licenc**: az ELTE szakdolgozatra vonatkozó szabályzat szerint
 
