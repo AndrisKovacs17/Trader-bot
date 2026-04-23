@@ -12,7 +12,7 @@ az alábbi következtetések vonhatók le:
 
 \begin{enumerate}
     \item Zajrobusztusság: $\sigma=0 \to \sigma=5$ zajszint-növelésnél
-          a KCMamba átlagos MSE-degrádációja $+1\,528\%$, a Fair Mambáé $+28\,234\%$,
+          a KCMamba átlagos MSE-degradációja $+1\,528\%$, a Fair Mambáé $+28\,234\%$,
           ami $18{,}5\times$-os különbség. Exchange/$s=16$-nál
           a különbség öt nagyságrend: $+66\%$ vs $+152\,350\%$.
     \item Hosszú szekvencia (\ref{sec:longseq}.~fejezet): az új mérések
@@ -20,11 +20,11 @@ az alábbi következtetések vonhatók le:
           erősségét hosszabb kontextusnál is igazolják.
           \begin{itemize}
               \item $T=336$, $\sigma=1$: KCMamba MSE $0{,}502$ vs LSTM $0{,}735$
-                    ($\mathbf{-31{,}7\%}$, a legnagyobb LSTM-el szemben arány). 
+                    ($\mathbf{-31{,}7\%}$, a legnagyobb LSTM-mel szembeni arány). 
               \item $T=512$, $\sigma=3$ (Exchange): KCMamba $0{,}773$,
                     Fair Mamba $2{,}121$ ($\mathbf{-63{,}6\%}$, a legnagyobb
                     Fair Mambával szembeni arány).
-              \item ETTm1-en $\sigma=3$-nál a KCMamba MSE-je egyeduli
+              \item ETTm1-en $\sigma=3$-nál a KCMamba MSE-je egyedüli
                     modellként monoton csökken a szekvenciahossz növekedésével
                     ($0{,}673 \to 0{,}466$, $-31\%$, $T{:}\,96 \to 512$).
           \end{itemize}
@@ -32,9 +32,9 @@ az alábbi következtetések vonhatók le:
           az Exchange adatkészleten $s \in \{1,16\}$ és $T \in \{192,336,512\}$
           kombinációkban mérve két mintázat rajzolódott ki.
           $s{=}1$, $\sigma{=}3$-nál a KCMamba előnye az LSTM-mel szemben
-          monoton nő a szekvenciahossszal ($T{=}512$-nél $+35\%$: $0{,}836$
+          monoton nő a szekvenciahosszal ($T{=}512$-nél $+35\%$: $0{,}836$
           vs $1{,}292$). $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba
-          katasztrofálisan összeoml ($8{,}1$--$8{,}5$ MSE), ami $7$--$9\times$-es
+          katasztrofálisan összeomlik ($8{,}1$--$8{,}5$ MSE), ami $7$--$9\times$-es
           stabilitásbeli különbség a KCMamba-hoz képest, amely $1{,}1$--$1{,}3$
           között marad.
     \item Kalman-gain adaptáció: a modell által az adatokból
@@ -58,11 +58,11 @@ több olyan egyszerűsítést tartalmaz, amelyek a következtetések
     \item Zajtalan, kis stride esetén ($\sigma=0$, $s=16$) a Fair Mamba
           szinte memorizál, és itt az MSE-je sokkal jobb. Ez arra utal,
           hogy az explicit Kalman-struktúra zajtalan környezetben
-          felesleges overheadet jelent: a mindig jelen lévő szűrési tag
-          enyhe alulilleszkedést okoz, és a struktúra nem képes teljesen
+          felesleges terhet jelent: a mindig jelen lévő szűrési tag
+          enyhe aláilleszkedést okoz, és a struktúra nem képes teljesen
           kikapcsolni a szűrést.
 
-    \item ETTh1/$s=1$-nél az LSTM a legjobb, mivel a gating mechanizmus
+    \item ETTh1/$s=1$-nél az LSTM a legjobb, mivel a kapuzási mechanizmus
           kihasználja a nagy adatmennyiséget. Az LSTM forget/input gate
           párosa hasonló adaptív szűrést valósít meg, de rugalmasabb, mert
           nem köti meg a $K = Q/(Q+R)$ struktúra. Ez nem a KCMamba
@@ -71,7 +71,7 @@ több olyan egyszerűsítést tartalmaz, amelyek a következtetések
 
     \item Mindössze 5 epoch futott, és minden konfigurációt csak egyetlen
           magon (seed) futtattam. Ez sem a konvergált állapotot, sem a
-          statisztikai szignifikanciát nem garantálja: a bemutatott
+          statisztikai szignifikanciát nem garantálja, így a bemutatott
           eredmények pontbecslések, konfidencia-intervallum nélkül.
           Publikációérett tanulmány legalább három ismétlést és korai
           leállítást igényelne.

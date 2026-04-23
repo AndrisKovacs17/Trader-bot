@@ -126,7 +126,7 @@ Az \emph{input gate} $i_t = \sigma(W_i [h_{t-1}, x_t] + b_i)$ határozza
 meg az új információ beáramlásának mértékét. Ez a kapuzási mechanizmus
 adaptív szűrést valósít meg, ami funkcionálisan rokon a Kalman-gain
 szerepével, azzal a különbséggel, hogy az LSTM-ben nincs explicit
-zajmodell. Kísérleteinkben az LSTM erős baseline, különösen sok adat és
+zajmodell. Kísérleteinkben az LSTM erős referenciamodell, különösen sok adat és
 magas zaj esetén.
 
 \subsubsection*{ARIMA}
@@ -150,7 +150,7 @@ a jelet és a zajt.
           Az ETTh1 erősen periodikus, az ETTh2 zajosabb.
     \item \textbf{Weather}: 21 meteorológiai változó (hőmérséklet, páratartalom,
           légnyomás stb.) 10 perces mintavételezéssel, összesen 52\,696 lépés.
-          A magas dimenzió és a változók közötti erős korreláció tesztel
+          A magas dimenzió és a változók közötti erős korreláció teszteli
           a modellek többváltozós kezelőképességét.
     \item \textbf{ECL} (Electricity Consuming Load): 321 ügyfél óránkénti
           villamosenergia-fogyasztása, 26\,304 lépés. A sok csatorna

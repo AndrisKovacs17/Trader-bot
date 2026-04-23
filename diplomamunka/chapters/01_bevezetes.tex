@@ -8,7 +8,7 @@ Az idősor-előrejelzés a gépi tanulás egyik kiterjedten kutatott
 részterülete, amelynek gyakorlati jelentőségét a valós adatok szinte
 kivétel nélkül jelen lévő zajossága adja. Szenzorkiesések, aggregációs
 torzítások és piaci mikrostruktúra-zaj egyaránt rontják a jel/zaj arányt,
-amelyre a kurrens modellek érzékenynek bizonyulnak.
+amelyre a jelenlegi modellek érzékenynek bizonyulnak.
 A hosszú távú idősor-előrejelzés (LTSF) feladata ennél is nehezebb.
 Adott $L$ hosszúságú előzmény alapján kell becsülni a következő $H$ lépést,
 ahol $H$ nagyságrendileg elérheti vagy meghaladhatja $L$-et.
@@ -17,11 +17,11 @@ ahol $H$ nagyságrendileg elérheti vagy meghaladhatja $L$-et.
 
 A modern szekvencia-model-családok, a Mamba-alapú szelektív állapottér-modellek
 ~\cite{gu2021s4,gu2023mamba} és a klasszikus rekurrens hálózatok~\cite{hochreiter1997lstm}
-az adatminőségi problémát implicit általánosítás révén kezelik: a zaj- és
+az adatminőségi problémát közvetett általánosítás révén kezelik, vagyis a zaj- és
 jelkomponens szétválasztását kizárólag az adatvezérelt reprezentációtanulásra
 bízzák.
 Zajmentes adatokon ez az eljárás kielégítően teljesít, ám a megnövelt
-zajszintre való általánosítóképesség empirikusan nem garantált.
+zajszintre való általánosítóképesség a mérések alapján nem garantált.
 
 A Kalman-szűrő~\cite{kalman1960new} ezzel szemben \emph{explicit}
 statisztikai modellt állít fel a folyamatzajra ($Q$) és a mérési zajra ($R$),
@@ -73,14 +73,14 @@ Három konkrét kérdést vizsgálunk:
           $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik
           (a KCMamba $1{,}1$--$1{,}3$ között marad), ami $7$--$9\times$-es
           stabilitásbeli különbséget jelent.
-    \item Nyílt forráskódú implementáció (Python/PyTorch/CUDA) és egy
-          aszinkron kereskedési rendszer a modell deployálásához.
+    \item Nyílt forráskódú megvalósítás (Python/PyTorch/CUDA) és egy
+          aszinkron kereskedési rendszer a modell éles környezetbe helyezéséhez.
 \end{itemize}
 
 \section{Dolgozat felépítése}
 
 A~\ref{ch:irodalom}. fejezet összefoglalja a Kalman-szűrő, az SSM-ek és
-az LTSF-kutatás releváns irodalmát.
+az LTSF-kutatás idevágó irodalmát.
 A~\ref{ch:architektura}. fejezet ismerteti a KCMamba architektúrát
 és matematikai hátterét.
 A~\ref{ch:kiserletek}. fejezetben a kísérleti beállítás és az eredmények

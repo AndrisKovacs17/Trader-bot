@@ -7,7 +7,7 @@
 \section{Áttekintés}
 
 A KCMamba (Kalman Core-Attention Mamba) egy hibrid neurális
-architektúra, amely a Mamba SSM~\cite{gu2023mamba} rekurráns dinamikájába
+architektúra, amely a Mamba SSM~\cite{gu2023mamba} rekurrens dinamikájába
 egy differenciálható, tartalomfüggő Kalman-szűrő réteget integrál.
 A modell nem rögzített $A$ felejtési faktorral dolgozik, hanem egy, a
 bemenetből tanult $K$-gainből származtatott $A = 1-K$ együtthatót
@@ -20,7 +20,7 @@ A modell két szintből épül fel: az alap feldolgozó egység a
 fölötte a \texttt{KCMambaStack}: $N$ egymás utáni KC-blokk
 cross-attention réteggel a végén.
 A cross-attention réteg szerepe, hogy ellensúlyozza a Mamba SSM
-rekurráns dinamikájából adódó, az utolsó időlépések irányába mutató
+rekurrens dinamikájából adódó, az utolsó időlépések irányába mutató
 reprezentációs torzítást, így a végső predikcióba a lassabb időskálájú
 (hosszú távú) trendek is bevonhatók.
 
@@ -49,7 +49,7 @@ majd SiLU aktivációs kapuzást alkalmazunk:
     \text{gate} &= \mathrm{SiLU}(x_\text{gate}),
 \end{align}
 ahol $W_\text{in} \in \mathbb{R}^{2d_\text{inner} \times d}$ a bemeneti projekciós
-mátrix ($d_\text{inner}$ a belső csatornadimenzio), $x_\text{cw}$ a
+mátrix ($d_\text{inner}$ a belső csatornadimenzió), $x_\text{cw}$ a
 Kalman-szűrési ághoz, $x_\text{gate}$ a kapuzáshoz továbbított csatorna,
 és $\mathrm{SiLU}(z) = z \cdot \sigma(z)$ a Sigmoid Linear Unit aktiváció
 ($\sigma(z) = 1/(1+e^{-z})$ a logisztikus szigmoid).
@@ -99,7 +99,7 @@ alhálózat biztosít:
 ahol $\sigma_\text{sig}(\cdot) = 1/(1+e^{-(\cdot)})$ a logisztikus szigmoid
 függvény (értéke $(0,1)$-ben van), a $-0.5$ eltolás nullára centrálja
 a korrekciót, és a $0.3$ szorzó $(-0{,}15, +0{,}15)$-re korlátozza hatókörét.
-A végeredmény numerikusan stabil marad a fizikailag érvelmes tartományban,
+A végeredmény numerikusan stabil marad a fizikailag értelmes tartományban,
 ezért szoftveresen (a felhasználói kódban) nem kell külön beavatkozni.
 
 \subsection{Állapotfrissítés párhuzamos scan-nel}
@@ -167,7 +167,7 @@ amelyek megakadályozzák az aktivációs skála sodródását.
 
 A verem végére egy \emph{multi-scale cross-attention} réteget illesztünk.
 Ennek oka, hogy a Mamba rekurrens dinamikája a rejtett állapotba a közelmúlt
-lépéseit súlyozottán erősebben kódolja, mint a régmúlt szegmenseket.
+lépéseit súlyozottan erősebben kódolja, mint a régmúlt szegmenseket.
 Egy hosszú-horizontú
 előrejelzéshez azonban a lassú trendeket is hozzá kell férni.
 A cross-attention a jelenlegi állapotot (lekérdezést) összeveti a szekvencia
