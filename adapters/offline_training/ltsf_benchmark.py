@@ -34,15 +34,6 @@ _DEFAULTS: dict[str, Any] = {
     "noise_scale": 0.0,   # extra Gaussian noise added to train (0 = off)
     "arima_p":      5,    # AR order for the ARIMA baseline
     "arima_q":      3,    # MA order for the ARIMA baseline
-    # PatchTST (Nie et al., ICLR 2023): channel-independent patching + Transformer encoder
-    # Per-patch linear head (see _make_patchtst) keeps parameter count roughly
-    # independent of seq_len. Defaults aim for ~60k params across all seq_len.
-    # NOTE: stride is auto-set to patch_len internally (non-overlapping).
-    "patchtst_patch_len": 16,
-    "patchtst_stride":    16,
-    "patchtst_d_model":   48,
-    "patchtst_heads":      4,
-    "patchtst_layers":     2,
 }
 
 _URLS: dict[str, str] = {
@@ -313,8 +304,6 @@ def _make_kca_mamba(d_model: int, heads: int, d_state: int):
             Q = (F.softplus(self.Q_net(xc)) * F.softplus(self.q_scale)).unsqueeze(-1)
             R = (F.softplus(self.R_net(xc)) * F.softplus(self.r_scale)).unsqueeze(-1)
             Kb  = Q / (Q + R + 1e-6)
-            # Korrekció: production kca_mamba.py-val szinkron sigmoid-alapú delta
-            # (régi: 0.5*(tanh+1) init=0.5 → K=0.7*Kb+0.15 ≈ 3×K_base, memória ~5 lépés)
             Kd  = 0.3 * (torch.sigmoid(self.K_net(xc).unsqueeze(-1).to(dtype)) - 0.5)
             K   = torch.clamp(Kb + Kd, 1e-4, 0.999)
             mu  = self.parallel_scan(
@@ -509,103 +498,6 @@ def _find_lr_fastai(
     return float(lrs_t[idx])
 
 
-def _make_patchtst(input_dim: int, seq_len: int = 96,
-                   patch_len: int = 16, stride: int = 16,
-                   d_model: int = 48, n_heads: int = 4, n_layers: int = 2):
-    """PatchTST: A Time Series is Worth 64 Words (Nie et al., ICLR 2023).
-
-    Channel-independent subsequence patching + Transformer encoder + per-patch
-    linear head. Each feature channel is processed as an independent univariate
-    series (shared weights). Patches of length P are extracted with step S.
-
-    Head design (deviation from the original paper): instead of a flattened
-    Linear(N·d_model → T) head whose size grows quadratically with seq_len,
-    we use a per-patch Linear(d_model → P) predictor. This keeps the total
-    parameter count essentially independent of seq_len, which is what we want
-    for a thesis-scale benchmark. To guarantee the output matches T exactly,
-    this head requires stride == patch_len (non-overlapping patches).
-    If a different stride is passed, we auto-correct to stride=patch_len and
-    emit nothing (the change is transparent from the caller's perspective).
-
-    **Causality**: the benchmark task is 1-step-ahead autoregressive
-    (target = input shifted by 1). A naive non-causal PatchTST would leak the
-    future through self-attention (output_t can attend to the patch containing
-    x_{t+1}). We therefore use a causal attention mask AND predict one patch
-    ahead: head(token_i) forecasts patch_{i+1} from patches 0..i. The first
-    patch is predicted from a learned "start" token, so no target leakage.
-
-    **No RevIN**: the original PatchTST paper normalizes per-window using the
-    full input's mu/std. In their task (target is *after* the input window)
-    that is lossless. In our shifted-by-1 task the input and target overlap,
-    so global window stats leak aggregate target info (empirically PatchTST
-    with RevIN-lite matches a window-mean baseline on noisy data). We drop
-    RevIN to keep the comparison honest and consistent with the other
-    benchmark baselines (LSTM / Fair-Mamba / KCA-Mamba also don't normalize).
-
-    Same I/O contract as the other benchmark models: [B, T, D] → [B, T, D].
-    """
-    import torch
-    import torch.nn as nn
-
-    # Guard: non-overlapping patches so the per-patch head lines up with T.
-    P = max(1, min(int(patch_len), int(seq_len)))
-    S = P                                         # enforce non-overlapping
-    # pad the sequence length up to a multiple of P if needed (handled in forward)
-    N = (seq_len + P - 1) // P                    # number of patches after padding
-
-    class PatchTSTModel(nn.Module):
-        def __init__(self, T: int, P: int, S: int,
-                     d_m: int, heads: int, layers: int, N: int):
-            super().__init__()
-            self.T, self.P, self.S, self.N = T, P, S, N
-            self.patch_embed = nn.Linear(P, d_m)
-            self.pos_embed   = nn.Parameter(torch.randn(1, N, d_m) * 0.02)
-            # Learned "start" token used to predict the first patch without
-            # having seen any real input (prevents target leakage at t=0).
-            self.start_token = nn.Parameter(torch.randn(1, 1, d_m) * 0.02)
-            enc_layer = nn.TransformerEncoderLayer(
-                d_model=d_m, nhead=heads, dim_feedforward=d_m * 4,
-                dropout=0.1, activation="gelu",
-                batch_first=True, norm_first=True,
-            )
-            self.encoder = nn.TransformerEncoder(enc_layer, num_layers=layers)
-            # Per-patch head: predict the NEXT patch's P values from each token
-            self.head = nn.Linear(d_m, P)
-            # Causal mask (upper-triangular = -inf), size N+1 for [start,p0..p_{N-1}]
-            mask = torch.triu(torch.full((N + 1, N + 1), float("-inf")), diagonal=1)
-            self.register_buffer("causal_mask", mask, persistent=False)
-
-        def forward(self, x: "torch.Tensor") -> "torch.Tensor":  # [B, T, D]
-            B, T, D = x.shape
-            # Channel independence: each feature becomes its own series
-            xi = x.permute(0, 2, 1).reshape(B * D, T)                # [B*D, T]
-            # NOTE: intentionally NO RevIN normalization here — see class
-            # docstring. Global mu/sd over the input window would leak aggregate
-            # target info in a shifted-by-1 task where input and target overlap.
-            xn = xi
-            # Pad up to a multiple of P (right-pad with the last value) so the
-            # non-overlapping patching + per-patch head reconstruct exactly T.
-            pad = self.N * self.P - T
-            if pad > 0:
-                xn = torch.cat([xn, xn[:, -1:].expand(-1, pad)], dim=1)
-            # Reshape into non-overlapping patches
-            patches = xn.view(B * D, self.N, self.P)                 # [B*D, N, P]
-            tok = self.patch_embed(patches) + self.pos_embed         # [B*D, N, d_m]
-            # Prepend the start token so token_i (i=0..N) forecasts patch_i
-            # from earlier patches only (strict causality, no self-loop).
-            start = self.start_token.expand(B * D, -1, -1)           # [B*D, 1, d_m]
-            tok = torch.cat([start, tok], dim=1)                     # [B*D, N+1, d_m]
-            h = self.encoder(tok, mask=self.causal_mask, is_causal=True)
-            # Drop the last token (it forecasts patch_N which is outside T)
-            y = self.head(h[:, :-1, :])                              # [B*D, N, P]
-            y = y.reshape(B * D, self.N * self.P)                    # [B*D, N*P]
-            if pad > 0:
-                y = y[:, :T]                                         # drop padding
-            return y.reshape(B, D, T).permute(0, 2, 1)               # [B, T, D]
-
-    return PatchTSTModel(seq_len, P, S, d_model, n_heads, n_layers, N)
-
-
 # ── Training loop for one model ───────────────────────────────────────────────
 
 def _train_one(model, name: str, train_loader, test_loader, c: dict, device) -> dict:
@@ -748,13 +640,6 @@ def _run(cfg: dict) -> None:
         ("ar_model",  f"ARIMA({int(c['arima_p'])},1,{int(c['arima_q'])})",
             _make_arima_model(input_dim, int(c["arima_p"]), int(c["arima_q"]),
                               int(c.get("lstm_hidden", 128)) * 2).to(device)),
-        ("patchtst",  "PatchTST",
-            _make_patchtst(input_dim, int(c["seq_len"]),
-                           patch_len=int(c.get("patchtst_patch_len", 16)),
-                           stride=int(c.get("patchtst_stride", 8)),
-                           d_model=int(c.get("patchtst_d_model", 64)),
-                           n_heads=int(c.get("patchtst_heads", 4)),
-                           n_layers=int(c.get("patchtst_layers", 2))).to(device)),
     ]
 
     partial: dict[str, Any] = {}

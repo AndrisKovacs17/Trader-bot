@@ -377,11 +377,11 @@ function initCharts() {
   if (ctx('cMemDepth')) cMemDepth = new Chart(ctx('cMemDepth'), {
     type: 'bar',
     data: {
-      labels: ['LSTM (seq_len)', 'Fixed ARIMA (p)', 'PatchTST (patch_len)', 'KCA-Mamba (adaptív 1/(1−A))'],
+      labels: ['LSTM (seq_len)', 'Fixed ARIMA (p)', 'KCA-Mamba (adaptív 1/(1−A))'],
       datasets: [{
-        data: [96, 5, 16, 10],
-        backgroundColor: ['rgba(96,165,250,.35)', 'rgba(245,158,11,.35)', 'rgba(167,139,250,.35)', 'rgba(34,211,238,.55)'],
-        borderColor:      ['#60a5fa',              '#f59e0b',              '#a78bfa',              '#22d3ee'],
+        data: [96, 5, 10],
+        backgroundColor: ['rgba(96,165,250,.35)', 'rgba(245,158,11,.35)', 'rgba(34,211,238,.55)'],
+        borderColor:      ['#60a5fa',              '#f59e0b',              '#22d3ee'],
         borderWidth: 1.5,
       }]
     },
@@ -479,7 +479,7 @@ function interpretKalman(ks) {
 }
 
 // ── Update UI ─────────────────────────────────────────────────────────────────
-function updateUI(ks, sample, seqLen, arimaP, patchLen) {
+function updateUI(ks, sample, seqLen, arimaP) {
   if (!ks || Object.keys(ks).length === 0) {
     $('noDataBanner').classList.remove('hidden');
     return;
@@ -596,8 +596,7 @@ function updateUI(ks, sample, seqLen, arimaP, patchLen) {
   if (cMemDepth) {
     const seqLenVal    = seqLen    || 96;
     const arimaPVal    = arimaP    || 5;
-    const patchLenVal  = patchLen  || 16;
-    cMemDepth.data.datasets[0].data = [seqLenVal, arimaPVal, patchLenVal, Math.round(memDepth)];
+    cMemDepth.data.datasets[0].data = [seqLenVal, arimaPVal, Math.round(memDepth)];
     cMemDepth.update('none');
   }
 }
@@ -618,8 +617,7 @@ async function loadData() {
     const sample = d.models.kca_mamba?.sample;
     const seqLen = d.config?.seq_len ?? d.input_dim ?? 96;
     const arimaP = d.config?.arima_p ?? 5;
-    const patchLen = d.config?.patchtst_patch_len ?? 16;
-    updateUI(ks, sample, seqLen, arimaP, patchLen);
+    updateUI(ks, sample, seqLen, arimaP);
   } else if (d.status === 'running') {
     badge.className = 'px-3 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
     badge.textContent = '● Fut...';

@@ -181,7 +181,6 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span><span style="display:inline-block;width:12px;height:3px;background:#94a3b8;margin-right:5px;vertical-align:middle"></span>Fair Mamba</span>
       <span><span style="display:inline-block;width:12px;height:3px;background:#4ade80;margin-right:5px;vertical-align:middle"></span>KCA-Mamba</span>
       <span><span style="display:inline-block;width:12px;height:3px;background:#f59e0b;margin-right:5px;vertical-align:middle"></span>ARIMA</span>
-      <span><span style="display:inline-block;width:12px;height:3px;background:#a78bfa;margin-right:5px;vertical-align:middle"></span>PatchTST</span>
     </div>
   </div>
 
@@ -264,9 +263,8 @@ const MODEL_COLORS = {
   fair_mamba: { border: '#94a3b8', bg: 'rgba(148,163,184,.35)', label: 'Fair Mamba'  },
   kca_mamba:  { border: '#4ade80', bg: 'rgba(74,222,128,.35)',  label: 'KCA-Mamba'   },
   ar_model:   { border: '#f59e0b', bg: 'rgba(245,158,11,.35)',  label: 'ARIMA'       },
-  patchtst:   { border: '#a78bfa', bg: 'rgba(167,139,250,.35)', label: 'PatchTST'    },
 };
-const MODEL_KEYS = ['lstm', 'fair_mamba', 'kca_mamba', 'ar_model', 'patchtst'];
+const MODEL_KEYS = ['lstm', 'fair_mamba', 'kca_mamba', 'ar_model'];
 
 // ── Chart helpers ─────────────────────────────────────────────────────────────
 const baseOpts = (log = false) => ({

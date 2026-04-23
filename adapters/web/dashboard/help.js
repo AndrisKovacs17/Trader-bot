@@ -85,7 +85,7 @@
       body: [
         "Long-term time series forecasting adatokon (Exchange, ETTh,",
         "ETTm, ECL, Weather, M4) méri az LSTM, Fair Mamba, KCMamba,",
-        "ARIMA és PatchTST modelleket.",
+        "ARIMA modelleket.",
         "",
         " • Stride: az ablakok közti lépés (1=nagy átfedés, 32=független).",
         " • Méret: small / medium / large paraméterszám-tartomány.",

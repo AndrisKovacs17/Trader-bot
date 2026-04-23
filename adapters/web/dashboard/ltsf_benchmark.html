@@ -90,7 +90,6 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     .card-fair  { border-color:#1e3a5f; }
     .card-kla   { border-color:#1e3a5f; background:#0c1829; }
     .card-ar    { border-color:#78350f; background:#0c0d02; }
-    .card-patchtst { border-color:#3b1ea8; background:#0d0b1a; }
     .tbl { width:100%; border-collapse:collapse; font-size:12px; }
     .tbl th { color:#64748b; text-align:left; padding:4px 10px; border-bottom:1px solid #1e293b; }
     .tbl td { padding:5px 10px; border-bottom:1px solid rgba(30,41,59,.4); font-family:ui-monospace,monospace; color:#e2e8f0; }
@@ -319,30 +318,9 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
 
-    <!-- PatchTST card -->
-    <div class="section card-patchtst">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-violet-400">🧩 PatchTST</span>
-        <span id="patchtstBadge" class="badge badge-warn hidden">...</span>
-      </div>
-      <div class="card-cfg">
-        <div><label>Patch len</label><input type="number" id="cfgPatchLen" value="16" min="4" max="64" step="1"></div>
-        <div><label>Stride</label><input type="number" id="cfgPatchStride" value="16" min="1" max="64" step="1"></div>
-        <div><label>d_model</label><input type="number" id="cfgPatchDModel" value="48" min="16" max="256" step="16"></div>
-      </div>
-      <div class="space-y-1">
-        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="patchtstParams">—</span></div>
-        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="patchtstLr">—</span></div>
-        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="patchtstMse">—</span></div>
-        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="patchtstTime">—</span></div>
-        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="patchtstVram">—</span></div>
-      </div>
-    </div>
-  </div>
-
   <!-- Results table -->
   <div class="section hidden" id="resultTableWrap">
-    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló<button class="tip-btn" data-tip="LTSF (Long-term Time Series Forecasting) benchmark eredményei:&#10;LSTM, Fair Mamba, KCA-Mamba, ARIMA, PatchTST összehasonlítása.&#10;Metrikák: Test MSE, paraméterszám, tréning idő, peak VRAM.">?</button></h2>
+    <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló<button class="tip-btn" data-tip="LTSF (Long-term Time Series Forecasting) benchmark eredményei:&#10;LSTM, Fair Mamba, KCA-Mamba, ARIMA összehasonlítása.&#10;Metrikák: Test MSE, paraméteraszám, tréning idő, peak VRAM.">?</button></h2>
     <div class="overflow-auto">
       <table class="tbl">
         <thead><tr>
@@ -365,7 +343,6 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span><span class="leg-s" style="background:#94a3b8"></span>Fair Mamba <span id="lblFairMseInline" class="text-slate-400"></span></span>
       <span><span class="leg-s" style="background:#4ade80"></span>KCA-Mamba <span id="lblKlaMseInline" class="text-emerald-400"></span></span>
       <span><span class="leg-s" style="background:#f59e0b"></span>ARIMA modell <span id="lblArMseInline" class="text-amber-400"></span></span>
-      <span><span class="leg-s" style="background:#a78bfa"></span>PatchTST <span id="lblPatchMseInline" class="text-violet-400"></span></span>
       <span><span class="leg-s-dot" style="border-top:2px dotted #67e8f9"></span>KCA szűrt (μ)</span>
     </div>
   </div>
@@ -379,7 +356,6 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span><span class="leg-dot" style="background:#94a3b8"></span>Fair Mamba</span>
       <span><span class="leg-dot" style="background:#4ade80"></span>KCA-Mamba</span>
       <span><span class="leg-dot" style="background:#f59e0b"></span>ARIMA modell</span>
-      <span><span class="leg-dot" style="background:#a78bfa"></span>PatchTST</span>
     </div>
   </div>
 
@@ -478,7 +454,6 @@ function initCharts(){
     {label:'Fair Mamba',   data:[], borderColor:'#94a3b8', borderWidth:1.5, pointRadius:0, tension:.3},
     {label:'KCA-Mamba',    data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
     {label:'ARIMA modell', data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:.3},
-    {label:'PatchTST',     data:[], borderColor:'#a78bfa', borderWidth:1.5, pointRadius:0, tension:.3},
   ],{scales:{x:{type:'linear',title:{display:false}},y:{type:'linear'}}});
 
   cPred = mkChart('cPred',[
@@ -488,7 +463,6 @@ function initCharts(){
     {label:'Fair Mamba',    data:[], borderColor:'#94a3b8', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
     {label:'KCA-Mamba',     data:[], borderColor:'#4ade80', borderWidth:1, pointRadius:0, tension:0, borderDash:[2,2]},
     {label:'ARIMA modell',  data:[], borderColor:'#f59e0b', borderWidth:1, pointRadius:0, tension:0, borderDash:[6,3]},
-    {label:'PatchTST',      data:[], borderColor:'#a78bfa', borderWidth:1, pointRadius:0, tension:0, borderDash:[3,2]},
     {label:'KCA szűrt (μ)', data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
   ],{scales:{x:{type:'linear'},y:{type:'linear'}}});
 }
@@ -515,7 +489,7 @@ function setCard(prefix, m){
 
 function updateLoss(models){
   if(!cLoss || !models) return;
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
   keys.forEach((k,i)=>{
     const m = models[k];
     if(!m || !m.epoch_losses) return;
@@ -539,19 +513,19 @@ function updatePred(models){
   // Hide noisy legend item when noise=0 (noisy == clean)
   const noisyLegend = document.getElementById('noisyLegendItem');
   if(noisyLegend){ if(noisy && noisy.length) noisyLegend.classList.remove('hidden'); else noisyLegend.classList.add('hidden'); }
-  const predsMap = [models.lstm, models.fair_mamba, models.kca_mamba, models.ar_model, models.patchtst];
+  const predsMap = [models.lstm, models.fair_mamba, models.kca_mamba, models.ar_model];
   predsMap.forEach((m,i)=>{
     if(m && m.sample && m.sample.pred)
       cPred.data.datasets[i+2].data = m.sample.pred.map((v,j)=>({x:j,y:v}));
   });
-  // KCA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[7]
+  // KCA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[6]
   const klaFilt = models.kca_mamba?.sample?.kla_filtered;
-  cPred.data.datasets[7].data = (klaFilt && klaFilt.length)
+  cPred.data.datasets[6].data = (klaFilt && klaFilt.length)
     ? klaFilt.map((v,i)=>({x:i,y:v})) : [];
   cPred.options.scales.x.min = 0;
   cPred.options.scales.x.max = base.length - 1;
-  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblPatchMseInline'];
-  const keyMap = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
+  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'];
+  const keyMap = ['lstm','fair_mamba','kca_mamba','ar_model'];
   keyMap.forEach((k,i)=>{
     const mse = models[k]?.test_mse;
     const el = document.getElementById(idMap[i]);
@@ -563,7 +537,7 @@ function updatePred(models){
 function buildTable(models){
   if(!models) return;
   $('resultTableWrap').classList.remove('hidden');
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
   const mseMins = keys.map(k=>models[k]?.test_mse ?? Infinity);
   const minMse  = Math.min(...mseMins);
   const rows    = keys.map((k,i)=>{
@@ -583,7 +557,7 @@ function buildTable(models){
 
 function buildVerdict(models){
   if(!models) return;
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model','patchtst'];
+  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
   const entries = keys.map(k=>({k,m:models[k]})).filter(x=>x.m&&x.m.test_mse!=null);
   if(entries.length < 2) return;
   entries.sort((a,b)=>a.m.test_mse - b.m.test_mse);
@@ -614,7 +588,7 @@ async function poll(){
     badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
     badge.textContent='● Fut...';
     $('stageLabel').textContent = d.stage || '...';
-    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); setCard('patchtst', d.models.patchtst); updateLoss(d.models); }
+    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); updateLoss(d.models); }
     setTimeout(poll, 1500);
   } else if(d.status==='done'){
     if(_hasRun){
@@ -629,7 +603,7 @@ async function poll(){
     $('btnRun').disabled=false;
     $('stageLabel').textContent = '';
     if(d.models){
-      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); setCard('patchtst', d.models.patchtst);
+      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model);
       // KCA Kálmán stats
       const ks = d.models.kca_mamba?.kalman_stats;
       if(ks && Object.keys(ks).length){
@@ -661,7 +635,7 @@ async function poll(){
 
 async function startRun(){
   // Reset model card badges and results
-  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge'],['patchtst','patchtstBadge']].forEach(([,bid])=>{
+  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge']].forEach(([,bid])=>{
     const b=$(bid); if(b){b.textContent='...'; b.className='badge badge-warn'; b.classList.add('hidden');}
   });
   $('klaKalman').classList.add('hidden');
@@ -669,10 +643,9 @@ async function startRun(){
   [['lstm','Params'],['lstm','Mse'],['lstm','Time'],['lstm','Vram'],['lstm','Lr'],
    ['fair','Params'],['fair','Mse'],['fair','Time'],['fair','Vram'],['fair','Lr'],
    ['kla','Params'],['kla','Mse'],['kla','Time'],['kla','Vram'],['kla','Lr'],
-   ['ar','Params'],['ar','Mse'],['ar','Time'],['ar','Vram'],['ar','Lr'],
-   ['patchtst','Params'],['patchtst','Mse'],['patchtst','Time'],['patchtst','Vram'],['patchtst','Lr']
+   ['ar','Params'],['ar','Mse'],['ar','Time'],['ar','Vram'],['ar','Lr']
   ].forEach(([p,f])=>{ const el=$(p+f); if(el) el.textContent='—'; });
-  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline','lblPatchMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
+  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
   if(cLoss){ cLoss.data.datasets.forEach(ds=>ds.data=[]); cLoss.update('none'); }
   if(cPred){ cPred.data.datasets.forEach(ds=>ds.data=[]); cPred.update('none'); }
   const cfg = {
@@ -689,9 +662,6 @@ async function startRun(){
     kca_state:      +$('cfgKlaState').value,
     arima_p:        +$('cfgArimaP').value,
     arima_q:        +$('cfgArimaQ').value,
-    patchtst_patch_len: +$('cfgPatchLen').value,
-    patchtst_stride:    +$('cfgPatchStride').value,
-    patchtst_d_model:   +$('cfgPatchDModel').value,
   };
   $('btnRun').disabled=true;
   $('runBadge').classList.add('hidden');
