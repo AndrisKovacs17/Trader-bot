@@ -93,13 +93,6 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="max-w-screen-2xl mx-auto px-5 h-12 flex items-center gap-1">
     <span class="font-extrabold mr-4 text-base bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">KCA-Mamba</span>
     <div class="nav-dropdown">
-      <button class="nav-a active">KCA elemzés ▾</button>
-      <div class="nav-drop">
-        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
-        <a href="/complexity.html" class="drop-a active">Modell komplexitás térkép</a>
-      </div>
-    </div>
-    <div class="nav-dropdown">
       <button class="nav-a">Pénzügyi ▾</button>
       <div class="nav-drop">
         <a href="/" class="drop-a">Áttekintés</a>
@@ -115,6 +108,13 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
         <a href="/ltsf_benchmark.html" class="drop-a">LSTM / Mamba összehasonlítás</a>
       </div>
     </div>
+    <div class="nav-dropdown">
+      <button class="nav-a active">KCA elemzés ▾</button>
+      <div class="nav-drop">
+        <a href="/kla_kalman.html" class="drop-a">Kalman-szűrő diagnosztika</a>
+        <a href="/complexity.html" class="drop-a active">Modell komplexitás térkép</a>
+      </div>
+    </div>
     <div class="ml-auto flex items-center gap-4">
       <span id="statusBadge" class="px-3 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">● ...</span>
       <span class="text-xs text-slate-600" id="navTime">—</span>
@@ -128,7 +128,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="flex items-start justify-between flex-wrap gap-3">
     <div>
       <h1 class="text-xl font-extrabold text-slate-200">Modell komplexitás térkép</h1>
-      <p class="text-xs text-slate-500 mt-1">Paraméterszám vs. pontosság (MSE) vs. tanítási idő — Pareto-hatékonyság elemzése az 5 modell között</p>
+      <p class="text-xs text-slate-500 mt-1">Paraméteraszám vs. pontosság (MSE) vs. tanítási idő — Pareto-hatékonyság elemzése a 4 modell között</p>
     </div>
     <div id="noDataBanner" class="badge badge-warn">Futtasd le az LSTM / Mamba összehasonlítást az adatokhoz</div>
   </div>

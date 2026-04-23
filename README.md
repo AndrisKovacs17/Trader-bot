@@ -1,4 +1,4 @@
-# KLA-Mamba kereskedési rendszer — Felhasználói útmutató
+# KCA-Mamba kereskedési rendszer — Felhasználói útmutató
 
 Ez a dokumentum a [diplomamunka](diplomamunka/main.pdf) kiegészítő felhasználói
 leírása. A fejlesztői dokumentáció a dolgozatban (4–5. fejezet) található.
@@ -9,7 +9,7 @@ A program egy kriptovaluta-kereskedési rendszer demóalkalmazása, amely a
 Binance tőzsde nyilvános adatait használja. A rendszer:
 
 * Valós idejű piaci adatokat vesz át a Binance WebSocket API-n keresztül,
-* Egy saját fejlesztésű Kalman-szűrővel bővített Mamba (KCMamba) modellel
+* Egy saját fejlesztésű Kalman-szűrővel bővített Mamba (KCA-Mamba) modellel
   rövidtávú ár-előrejelzést készít,
 * Kockázati szabályokkal szűrt, paper trading üzemmódú kereskedési
   szignálokat generál,
@@ -97,8 +97,8 @@ A dashboard magyar nyelvű, a felső navigációs sávban kategorizált menükke
 | Pénzügyi | Tréning (`/training.html`) | Offline tréningfolyamat előrehaladása |
 | Benchmark | Szintetikus teszt (`/benchmark.html`) | Kontrollált zajszintű szintetikus teszt eredménye |
 | Benchmark | LSTM / Mamba összehasonlítás (`/ltsf_benchmark.html`) | LTSF adaton mért eredmények |
-| KLA elemzés | Kalman-szűrő diagnosztika (`/kla_kalman.html`) | K, A, R mátrixok időbeli alakulása |
-| KLA elemzés | Modell komplexitás térkép (`/complexity.html`) | Paraméterszám × teljesítmény |
+| KCA elemzés | Kalman-szűrő diagnosztika (`/kla_kalman.html`) | K, A, R mátrixok időbeli alakulása |
+| KCA elemzés | Modell komplexitás térkép (`/complexity.html`) | Paraméterszám × teljesítmény |
 
 **Súgó a dashboardon**: a jobb alsó sarokban megjelenő `?` gombra kattintva
 oldal-specifikus súgóablak nyílik, amely elmagyarázza az adott képernyő

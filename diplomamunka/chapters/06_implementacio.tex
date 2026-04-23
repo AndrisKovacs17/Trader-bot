@@ -179,7 +179,7 @@ megjelenítve az előre jelzett és a tényleges értékeket.
 \label{subsec:dash_kalman}
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 
-A Kalman-diagnosztikai nézet (\texttt{kcmamba\_kalman.html}) a modell belső
+A Kalman-diagnosztikai nézet (\texttt{kla\_kalman.html}) a modell belső
 állapotát mutatja: az adaptív $K$-gain, az $A$ felejtési faktor és a $R$
 zajbecslő időbeli alakulása.  Ez a nézet hasznos annak ellenőrzésekor,
 hogy a modell valóban reagál-e a piaci volatilitás változásaira.
@@ -188,7 +188,7 @@ hogy a modell valóban reagál-e a piaci volatilitás változásaira.
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Képernyőkép: Kalman-szűrő diagnosztika, \texttt{kcmamba\_kalman.html}]}\\[4pt]
+    \textit{[Képernyőkép: Kalman-szűrő diagnosztika, \texttt{kla\_kalman.html}]}\\[4pt]
     \small A $K$-gain, $A$-faktor és $R$-zajbecslő időbeli változása
     közepes és magas volatilitású piaci periódusban.
   \end{minipage}}
@@ -459,8 +459,8 @@ kategóriába rendezve:
     Pénzügyi  & \texttt{/training.html} & Offline tanítás előrehaladása, loss-görbe \\
     Benchmark & \texttt{/benchmark.html}     & Szintetikus zajos teszt eredménye \\
     Benchmark & \texttt{/ltsf\_benchmark.html}& LTSF (Exchange, ETTh) benchmark-eredmények \\
-    KLA       & \texttt{/kla\_kalman.html}   & Kalman-paraméterek ($K$, $A$, $R$) valós idejű görbéi \\
-    KLA       & \texttt{/complexity.html}    & Paraméterszám $\times$ teljesítmény heatmap \\
+    KCA elemzés & \texttt{/kla\_kalman.html}   & Kalman-paraméterek ($K$, $A$, $R$) valós idejű görbéi \\
+    KCA elemzés & \texttt{/complexity.html}    & Paraméterszám $\times$ teljesítmény heatmap \\
     \hline
   \end{tabular}
   \caption{Az irányítópult nézeteinek szerepköre.}

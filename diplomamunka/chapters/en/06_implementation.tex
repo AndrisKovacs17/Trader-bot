@@ -171,7 +171,7 @@ actual values.
 \label{subsec:dash_kalman}
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 
-The Kalman diagnostics view (\texttt{kla\_kalman.html}) shows the model's
+The Kalman diagnostics view (\texttt{kla\_kalman.html}) shows the KCMamba model's
 internal state: the adaptive $K$-gain, forgetting factor $A$, and noise
 estimate $R$ over time. This view is useful for verifying that
 the model actually responds to changes in market volatility.
@@ -444,8 +444,8 @@ The top navigation bar exposes eight views grouped into three categories:
     Financial & \texttt{/training.html} & Offline training progress, loss curves \\
     Benchmark & \texttt{/benchmark.html}     & Synthetic noisy benchmark results \\
     Benchmark & \texttt{/ltsf\_benchmark.html}& LTSF (Exchange, ETTh) benchmark results \\
-    KLA       & \texttt{/kla\_kalman.html}   & Live Kalman parameter ($K$, $A$, $R$) traces \\
-    KLA       & \texttt{/complexity.html}    & Parameter count $\times$ performance heatmap \\
+    KCA analysis & \texttt{/kla\_kalman.html}   & Live Kalman parameter ($K$, $A$, $R$) traces \\
+    KCA analysis & \texttt{/complexity.html}    & Parameter count $\times$ performance heatmap \\
     \hline
   \end{tabular}
   \caption{Role of each dashboard view.}

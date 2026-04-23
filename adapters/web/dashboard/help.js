@@ -1,4 +1,4 @@
-// Context-sensitive help overlay for the KLA-Mamba dashboard.
+// Context-sensitive help overlay for the KCA-Mamba dashboard.
 //
 // Shared across every dashboard page. Adds a floating "?" button
 // in the bottom-right corner; clicking it opens a modal with the
@@ -31,7 +31,7 @@
     "/model.html": {
       title: "Modell diagnosztika",
       body: [
-        "A KCMamba modell aktuális állapotát mutatja.",
+        "A KCA-Mamba modell aktuális állapotát mutatja.",
         "",
         " • Modellverzió: a jelenleg aktív súlyok azonosítója.",
         " • Kalibráció: az előrejelzett valószínűségek illeszkedése.",
@@ -84,19 +84,19 @@
       title: "LTSF összehasonlítás",
       body: [
         "Long-term time series forecasting adatokon (Exchange, ETTh,",
-        "ETTm, ECL, Weather, M4) méri az LSTM, Fair Mamba, KCMamba,",
+        "ETTm, ECL, Weather, M4) méri az LSTM, Fair Mamba, KCA-Mamba,",
         "ARIMA modelleket.",
         "",
         " • Stride: az ablakok közti lépés (1=nagy átfedés, 32=független).",
         " • Méret: small / medium / large paraméterszám-tartomány.",
-        " • KCMamba vs Fair Mamba oszlop: azonos paraméterszám mellett",
+        " • KCA-Mamba vs Fair Mamba oszlop: azonos paraméterszám mellett",
         "   melyik modell adott alacsonyabb MSE-t."
       ].join("\n")
     },
     "/kla_kalman.html": {
       title: "Kalman-szűrő diagnosztika",
       body: [
-        "A KCMamba Kalman-elemének belső állapotait mutatja.",
+        "A KCA-Mamba Kalman-elemének belső állapotait mutatja.",
         "",
         " • K (Kalman gain) mean: az átlagos súlyozás a megfigyelés",
         "   és a predikció között. Magas = megfigyeléseket követi,",
@@ -118,14 +118,14 @@
   };
 
   var DEFAULT_HELP = {
-    title: "KLA-Mamba dashboard — Súgó",
+    title: "KCA-Mamba dashboard — Súgó",
     body: [
-      "Helyzet-érzékeny súgó minden oldalon a jobb alsó '?' gombbal.",
+      "Helyzet-érzekeny súgó minden oldalon a jobb alsó '?' gombbal.",
       "",
       "Menü:",
       " • Pénzügyi — Áttekintés, modell, szignálok, tréning.",
       " • Benchmark — szintetikus és valódi datasetek.",
-      " • KLA elemzés — Kalman-szűrő belső állapotai, komplexitás.",
+      " • KCA elemzés — Kalman-szűrő belső állapotai, komplexitás.",
       "",
       "Leállítás: a konzolon Ctrl+C."
     ].join("\n")

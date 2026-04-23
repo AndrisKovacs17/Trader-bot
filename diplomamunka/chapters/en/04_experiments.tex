@@ -80,11 +80,11 @@ for every position; $s=16$ produces roughly sixteen times fewer windows.
         \hline\hline
         \multirow{2}{*}{$s=1$}
             & Fair  & 0.02 & \textbf{0.38} & 0.98 & 1.76 & +7\,833\% \\
-            & KLA   & \textbf{0.02} & 0.50 & \textbf{0.86} & \textbf{1.23} & \cellcolor{green!20}+5\,505\% \\
+            & KCMamba   & \textbf{0.02} & 0.50 & \textbf{0.86} & \textbf{1.23} & \cellcolor{green!20}+5\,505\% \\
         \hline
         \multirow{2}{*}{$s=16$}
             & Fair  & \textbf{0.00} & 1.33 & 3.25 & 5.95 & \cellcolor{red!20}+152\,350\% \\
-            & KLA   & 0.79 & \textbf{0.75} & \textbf{1.26} & \textbf{1.31} & \cellcolor{green!20}+66\% \\
+            & KCMamba   & 0.79 & \textbf{0.75} & \textbf{1.26} & \textbf{1.31} & \cellcolor{green!20}+66\% \\
         \hline
     \end{tabular}
     \caption{MSE on the Exchange-Rate dataset at different noise levels.
@@ -95,7 +95,7 @@ for every position; $s=16$ produces roughly sixteen times fewer windows.
 
 The $s=16$ case is the most striking: Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$)
 but degrades $1\,487\times$ ($+152\,350\%$) by $\sigma=5$.
-KLA moves only $+66\%$, a multi-order-of-magnitude spread.
+KCMamba moves only $+66\%$, a multi-order-of-magnitude spread.
 
 The $K$-gain explains this: at $\sigma=0$, $K=0.706$; at $\sigma=5$,
 $K=0.073$ and $A=0.926$.
@@ -127,20 +127,20 @@ filtering out the noisy measurement.
         \hline\hline
         \multirow{2}{*}{$s=1$}
             & Fair  & 0.29 & \textbf{0.53} & \textbf{0.93} & \textbf{1.27} & \textbf{+339\%} \\
-            & KLA   & \textbf{0.18} & 0.56 & 1.09 & 1.36 & +658\% \\
+            & KCMamba   & \textbf{0.18} & 0.56 & 1.09 & 1.36 & +658\% \\
         \hline
         \multirow{2}{*}{$s=16$}
             & Fair  & \textbf{0.18} & 0.52 & 1.70 & 3.47 & +1\,817\% \\
-            & KLA   & 0.19 & \textbf{0.45} & \textbf{0.86} & \textbf{1.12} & \textbf{+492\%} \\
+            & KCMamba   & 0.19 & \textbf{0.45} & \textbf{0.86} & \textbf{1.12} & \textbf{+492\%} \\
         \hline
     \end{tabular}
-    \caption{MSE on ETTh1. At $s=16$ KLA shows significantly better noise robustness.}
+    \caption{MSE on ETTh1. At $s=16$ KCMamba shows significantly better noise robustness.}
     \label{tab:etth1}
 \end{table}
 
 At ETTh1, $s=1$, Fair Mamba leads at higher noise ($\sigma \ge 1$) with a narrow
-margin, while KLA wins at $\sigma=0$. At $s=16$ Fair
-Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
+margin, while KCMamba wins at $\sigma=0$. At $s=16$ Fair
+Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%$.
 
 \subsection{ETTh2 Dataset}
 
@@ -154,14 +154,14 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
         \hline\hline
         \multirow{2}{*}{$s=1$}
             & Fair  & 0.08 & \textbf{0.17} & \textbf{0.48} & \textbf{0.81} & \textbf{+919\%} \\
-            & KLA   & \textbf{0.06} & 0.21 & 0.51 & 0.87 & +1\,463\% \\
+            & KCMamba   & \textbf{0.06} & 0.21 & 0.51 & 0.87 & +1\,463\% \\
         \hline
         \multirow{2}{*}{$s=16$}
             & Fair  & 0.05 & 0.35 & 1.24 & 3.11 & \cellcolor{red!20}+6\,145\% \\
-            & KLA   & \textbf{0.05} & \textbf{0.23} & \textbf{0.46} & \textbf{0.59} & \textbf{+982\%} \\
+            & KCMamba   & \textbf{0.05} & \textbf{0.23} & \textbf{0.46} & \textbf{0.59} & \textbf{+982\%} \\
         \hline
     \end{tabular}
-    \caption{MSE on ETTh2. KLA wins all $s=16$ noise levels (MSE 0.05--0.59 vs.\ Fair 0.05--3.11).}
+    \caption{MSE on ETTh2. KCMamba wins all $s=16$ noise levels (MSE 0.05--0.59 vs.\ Fair 0.05--3.11).}
     \label{tab:etth2}
 \end{table}
 
@@ -171,12 +171,12 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KLA stays at $+492\%$.
     \centering
     \begin{tabular}{|l|c|c|c|}
         \hline
-        \textbf{Noise level} & \textbf{KC wins} & \textbf{Fair wins} & \textbf{Avg.\ diff (KLA$-$Fair)} \\
+        \textbf{Noise level} & \textbf{KC wins} & \textbf{Fair wins} & \textbf{Avg.\ diff (KCMamba$-$Fair)} \\
         \hline\hline
-        $\sigma = 0$ & 4/6 & 2/6 & $\approx{-}11\%$ (KLA slightly better) \\
-        $\sigma = 1$ & 3/6 & 3/6 & $-6.4\%$    (KLA slightly better) \\
-        $\sigma = 3$ & 4/6 & 2/6 & $-26.8\%$   (KLA better) \\
-        $\sigma = 5$ & 4/6 & 2/6 & $-40.2\%$   (KLA better) \\
+        $\sigma = 0$ & 4/6 & 2/6 & $\approx{-}11\%$ (KCMamba slightly better) \\
+        $\sigma = 1$ & 3/6 & 3/6 & $-6.4\%$    (KCMamba slightly better) \\
+        $\sigma = 3$ & 4/6 & 2/6 & $-26.8\%$   (KCMamba better) \\
+        $\sigma = 5$ & 4/6 & 2/6 & $-40.2\%$   (KCMamba better) \\
         \hline
     \end{tabular}
     \caption{KCMamba vs.\ Fair Mamba win statistics across all 24 configurations.
@@ -280,8 +280,8 @@ explicitly programmed to do so.
            $T=96$ lookback, $H=96$ horizon).
            Black = ground truth; green = KCMamba; orange = Fair Mamba;
            blue = LSTM.
-           \textbf{Left:} At $\sigma=0$ both Fair Mamba and KLA track accurately.
-           \textbf{Centre/Right:} As noise increases KLA stays smooth, Fair Mamba
+           \textbf{Left:} At $\sigma=0$ both Fair Mamba and KCMamba track accurately.
+           \textbf{Centre/Right:} As noise increases KCMamba stays smooth, Fair Mamba
            becomes unstable, and LSTM converges slowly.}
   \label{fig:forecast_viz}
 \end{figure}
@@ -293,7 +293,7 @@ explicitly programmed to do so.
            KCMamba has both the smallest parameter count and the best MSE,
            placing it at an optimal Pareto position.
            \textbf{Right:} Epoch training times (seconds). The PyTorch
-           implementation makes KLA $\approx 40\%$ slower, but with a Triton
+           implementation makes KCMamba $\approx 40\%$ slower, but with a Triton
            kernel it becomes faster than LSTM.}
   \label{fig:efficiency}
 \end{figure}
@@ -320,10 +320,10 @@ $\approx 1.08\times$ LSTM throughput. This is consistent with the
 literature: at $T=96$ the scan has only $\log_2 96 \approx 7$
 synchronisation stages, so the parallel-scan advantage has little room
 to amortise the kernel launch overhead. The interesting property for
-forecasting workloads is that the KLA wall-time stays flat in $T$ (the
+forecasting workloads is that the KCMamba wall-time stays flat in $T$ (the
 inner loop is GPU-parallel), while LSTM wall-time grows linearly --- so
 at thesis-scale horizons the two are comparable, and at production
-horizons ($T \ge 2000$) KLA is expected to dominate.
+horizons ($T \ge 2000$) KCMamba is expected to dominate.
 
 \begin{figure}[H]
   \centering
@@ -331,7 +331,7 @@ horizons ($T \ge 2000$) KLA is expected to dominate.
   \caption{\textbf{Left:} Throughput (samples/s) at $T=96$, batch$=32$ on
            a single RTX~3060. A cuDNN-optimised LSTM is the reference;
            the naive PyTorch selective scan is $3.4\times$ slower; a
-           Triton-kernel KLA matches LSTM throughput.
+           Triton-kernel KCMamba matches LSTM throughput.
            \textbf{Right:} Relative speed normalised to LSTM. The Triton
            kernel is a necessary but not sufficient optimisation at
            short sequences --- at $T \ge 2000$ the scan's
@@ -349,7 +349,7 @@ structure and noise. This works at low noise. Under high noise the gradient
 pushes $\Delta$ to ignore the input ($A \to 0$), which then catastrophically
 degrades clean-data predictions, since the model no longer tracks anything.
 
-\subsubsection*{Why does KLA generalise better with scarce data?}
+\subsubsection*{Why does KCMamba generalise better with scarce data?}
 At $s=16$ roughly $16\times$ fewer training windows are available.
 The explicit $Q/R$ decomposition acts as a strong prior: the model does not
 need to learn a noise model from data because it is baked into the architecture.
@@ -358,7 +358,7 @@ need to learn a noise model from data because it is baked into the architecture.
 \label{sec:longseq}
 
 The experiments above used a fixed sequence length $T=96$.
-To verify that KLA's adaptive $A$-mechanism provides a benefit at longer memory
+To verify that KCMamba's adaptive $A$-mechanism provides a benefit at longer memory
 windows, complementary measurements were run with $T \in \{96, 192, 336, 512\}$
 on ETTm1 (15-minute sampling, 17\,420 steps) and Exchange, using 10 training
 epochs and the FastAI learning-rate finder.
@@ -373,24 +373,24 @@ epochs and the FastAI learning-rate finder.
         \hline\hline
         \multirow{2}{*}{96}
             & Fair      & 0.09 & 0.20 & 0.89 & \textbf{0.80} \\
-            & KLA       & \textbf{0.07} & \textbf{0.20} & \textbf{0.67} & 0.89 \\
+            & KCMamba       & \textbf{0.07} & \textbf{0.20} & \textbf{0.67} & 0.89 \\
         \hline
         \multirow{2}{*}{192}
             & Fair      & 0.07 & 0.20 & 0.84 & \textbf{0.83} \\
-            & KLA       & \textbf{0.06} & \textbf{0.19} & \textbf{0.52} & 0.92 \\
+            & KCMamba       & \textbf{0.06} & \textbf{0.19} & \textbf{0.52} & 0.92 \\
         \hline
         \multirow{2}{*}{336}
             & Fair      & 0.07 & 0.20 & 0.79 & \textbf{0.82} \\
-            & KLA       & \textbf{0.06} & \textbf{0.18} & \textbf{0.51} & 0.87 \\
+            & KCMamba       & \textbf{0.06} & \textbf{0.18} & \textbf{0.51} & 0.87 \\
         \hline
         \multirow{2}{*}{512}
             & Fair      & 0.07 & 0.20 & 0.94 & 1.02 \\
-            & KLA       & \textbf{0.07} & \textbf{0.18} & \textbf{0.47} & \textbf{0.72} \\
+            & KCMamba       & \textbf{0.07} & \textbf{0.18} & \textbf{0.47} & \textbf{0.72} \\
         \hline
     \end{tabular}
     \caption{MSE on the ETTm1 dataset across four sequence lengths.
              Bold: lowest MSE per noise level.
-             KLA is the only model whose MSE monotonically decreases
+             KCMamba is the only model whose MSE monotonically decreases
              with sequence length at $\sigma{=}3$ ($0.673 \to 0.466$, $-31\%$);
              Fair Mamba becomes unstable.}
     \label{tab:longseq_ettm1}
@@ -400,10 +400,10 @@ Three patterns emerge from Table~\ref{tab:longseq_ettm1} and
 Figure~\ref{fig:longseq}:
 
 \begin{itemize}
-    \item \textbf{KLA}: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$
+    \item \textbf{KCMamba}: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$
           as $T$ grows from 96 to 512 ($-31\%$). With longer context the model
           estimates the signal-to-noise ratio more accurately and sets $K$
-          optimally. On Exchange ($T{=}512$, $\sigma{=}3$) KLA achieves MSE
+          optimally. On Exchange ($T{=}512$, $\sigma{=}3$) KCMamba achieves MSE
           $0.773$ vs.\ Fair Mamba $2.121$ ($+174\%$ advantage).
     \item \textbf{Fair Mamba}: becomes unstable at
           $\sigma \geq 3$, $T \geq 336$.
@@ -415,7 +415,7 @@ Figure~\ref{fig:longseq}:
   \caption{MSE vs.\ sequence length ($T$) at $\sigma{=}3$ (left column)
            and $\sigma{=}5$ (right column), on ETTm1 (top row) and Exchange
            (bottom row).
-           KLA is the only model showing a consistently improving trend
+           KCMamba is the only model showing a consistently improving trend
            with longer sequences on both datasets and both noise levels.}
   \label{fig:longseq}
 \end{figure}
@@ -424,7 +424,7 @@ Figure~\ref{fig:longseq}:
 \label{sec:stride_longseq}
 
 The previous section used dense windows ($s{=}1$). The key question is whether
-KLA's advantage survives when the training set is also sparse ($s{=}16$).
+KCMamba's advantage survives when the training set is also sparse ($s{=}16$).
 Complementary experiments were run with $T \in \{192, 336, 512\}$ and
 $s \in \{1, 16\}$ on the Exchange dataset (10 epochs, FastAI LR finder).
 The $T{=}96$ reference values come from the original ltsf\_benchmark run.
@@ -441,26 +441,26 @@ The $T{=}96$ reference values come from the original ltsf\_benchmark run.
         \hline
         \multirow{2}{*}{$s=1$}
             & Fair  & 2.12 & 1.26 & 1.15 & 1.01 \\
-            & KLA   & \textbf{0.90} & \textbf{0.82} & \textbf{0.89} & \textbf{0.84} \\
+            & KCMamba   & \textbf{0.90} & \textbf{0.82} & \textbf{0.89} & \textbf{0.84} \\
         \hline
         \multirow{2}{*}{$s=16$}
             & Fair  & 3.25 & 8.16 & 8.50 & 8.46 \\
-            & KLA   & \textbf{1.26} & \textbf{1.19} & \textbf{1.09} & \textbf{1.23} \\
+            & KCMamba   & \textbf{1.26} & \textbf{1.19} & \textbf{1.09} & \textbf{1.23} \\
         \hline\hline
         \multicolumn{6}{|c|}{$\sigma{=}5$} \\
         \hline
         \multirow{2}{*}{$s=1$}
             & Fair  & 2.84 & 1.56 & 1.53 & 1.74 \\
-            & KLA   & \textbf{1.49} & \textbf{1.15} & \textbf{1.32} & \textbf{1.08} \\
+            & KCMamba   & \textbf{1.49} & \textbf{1.15} & \textbf{1.32} & \textbf{1.08} \\
         \hline
         \multirow{2}{*}{$s=16$}
             & Fair  & 5.95 & 3.63 & 3.60 & 5.87 \\
-            & KLA   & \textbf{1.31} & \textbf{1.37} & \textbf{1.90} & \textbf{1.73} \\
+            & KCMamba   & \textbf{1.31} & \textbf{1.37} & \textbf{1.90} & \textbf{1.73} \\
         \hline
     \end{tabular}
     \caption{MSE on Exchange in a stride $\times$ sequence-length factorial experiment.
              Bold: lowest MSE per configuration.
-             KLA wins in every configuration;
+             KCMamba wins in every configuration;
              with $s{=}16$, Fair Mamba catastrophically collapses ($>8$).}
     \label{tab:stride_longseq}
 \end{table}
@@ -469,15 +469,15 @@ Two patterns emerge from Table~\ref{tab:stride_longseq} and
 Figure~\ref{fig:stride_longseq}:
 
 \begin{itemize}
-    \item \textbf{$s{=}1$, $\sigma{=}3$}: KLA wins consistently from $T{=}96$
+    \item \textbf{$s{=}1$, $\sigma{=}3$}: KCMamba wins consistently from $T{=}96$
           to $T{=}512$ ($0.895 \to 0.836$). This directly supports the adaptive-$K$
           hypothesis: given sufficient training data and longer context,
-          KLA's noise model becomes progressively more accurate.
+          KCMamba's noise model becomes progressively more accurate.
 
     \item \textbf{$s{=}16$, $\sigma{\geq}3$}: Fair Mamba completely collapses
-          (MSE $8.1$--$8.5$, roughly $7$--$9\times$ worse than KLA). The extreme scarcity scenario
+          (MSE $8.1$--$8.5$, roughly $7$--$9\times$ worse than KCMamba). The extreme scarcity scenario
           ($s{=}16$, $T{=}512$) provides only $\sim{}10$ training windows ---
-          KLA is the only architecture that does not catastrophically collapse.
+          KCMamba is the only architecture that does not catastrophically collapse.
 \end{itemize}
 
 \begin{figure}[H]
@@ -488,7 +488,7 @@ Figure~\ref{fig:stride_longseq}:
            $\sigma{=}5$ (right) noise levels on Exchange.
            The $s{=}16$ panels are y-clipped at $4.0$ (Fair Mamba reaches
            $8.1$--$8.5$).
-           KLA is stable in every configuration; Fair Mamba catastrophically
+           KCMamba is stable in every configuration; Fair Mamba catastrophically
            collapses at $s{=}16$, $\sigma{\geq}3$.}
   \label{fig:stride_longseq}
 \end{figure}
