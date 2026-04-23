@@ -12,9 +12,7 @@ if TYPE_CHECKING:
     from core.application.stores import RunContext
 
 
-# =====================================================
 # EVENT HANDLING PORTS
-# =====================================================
 
 # Event handler port.
 class IEventHandlerPort(Protocol):
@@ -40,9 +38,7 @@ class IEventBusPort(Protocol):
         ...
 
 
-# =====================================================
 # STORAGE PORTS (Hexagonal boundary)
-# =====================================================
 
 # State repository port: Persists estimated state
 class IStateRepository(Protocol):
@@ -68,9 +64,7 @@ class IEventStorePort(Protocol):
         ...
 
 
-# =====================================================
 # TRADING INFRASTRUCTURE PORTS
-# =====================================================
 
 # Broker gateway port.
 class IBrokerGatewayPort(Protocol):
@@ -93,9 +87,7 @@ class ITimeSource(Protocol):
         ...
 
 
-# =====================================================
 # USE CASE PORTS (Application layer)
-# =====================================================
 
 # Execution use-case port.
 class IExecutionUseCase(Protocol):

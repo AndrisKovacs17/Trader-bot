@@ -1,5 +1,5 @@
 % ============================================================
-%  Chapter 4 — Experiments and Evaluation
+%  Chapter 4, Experiments and Evaluation
 % ============================================================
 \chapter{Experiments and Evaluation}
 \label{ch:kiserletek}
@@ -18,11 +18,11 @@ CUDA~12, float32 precision.
 Three datasets are used (see also Sec.~\ref{sec:datasets} in Chapter~2):
 
 \begin{itemize}
-    \item \textbf{Exchange-Rate} --- 8 currency exchange rates, 1990--2016
+    \item \textbf{Exchange-Rate}: 8 currency exchange rates, 1990--2016
           (7\,588 days, 8 variables)~\cite{lai2018modeling}.
-    \item \textbf{ETTh1} --- Chinese transformer-station hourly load and
+    \item \textbf{ETTh1}: Chinese transformer-station hourly load and
           temperature (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
-    \item \textbf{ETTh2} --- same station, different channel sequence
+    \item \textbf{ETTh2}: same station, different channel sequence
           (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
 \end{itemize}
 
@@ -48,10 +48,10 @@ so this is uniform data-quality degradation, not a domain-shift scenario.
         Sequence length     & 96     & 96     & 96 \\
         Forecast horizon    & 96     & 96     & 96 \\
         Hidden dim ($d$)    & 128    & 128    & 128 \\
-        Heads ($H$)         & ---    & 4      & 4 \\
-        State size ($D$)    & ---    & 32     & 32 \\
+        Heads ($H$)         & n.a.   & 4      & 4 \\
+        State size ($D$)    & n.a.   & 32     & 32 \\
         Layers              & 1      & 2      & 2 \\
-        Kernel              & ---    & 4      & 4 \\
+        Kernel              & n.a.   & 4      & 4 \\
         \hline
         Parameters          & 71{.}0k & 53{.}2k & 46{.}1k \\
         \hline
@@ -63,7 +63,7 @@ so this is uniform data-quality degradation, not a domain-shift scenario.
 \end{table}
 
 The stride ($s$) is the window-shift step: $s=1$ yields a training example
-for every position; $s=16$ produces roughly sixteen times fewer windows.
+for every position, whereas $s=16$ produces roughly sixteen times fewer windows.
 
 \section{Results}
 \label{sec:results}
@@ -97,7 +97,7 @@ The $s=16$ case is the most striking: Fair Mamba leads at $\sigma=0$ (MSE~$= 0.0
 but degrades $1\,487\times$ ($+152\,350\%$) by $\sigma=5$.
 KCMamba moves only $+66\%$, a multi-order-of-magnitude spread.
 
-The $K$-gain explains this: at $\sigma=0$, $K=0.706$; at $\sigma=5$,
+The $K$-gain explains this: at $\sigma=0$, $K=0.706$, and at $\sigma=5$,
 $K=0.073$ and $A=0.926$.
 Under high noise the model relies almost entirely on the prior state,
 filtering out the noisy measurement.
@@ -205,7 +205,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
   \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_en.png}
   \caption{MSE heatmap for all four models (ARIMA, LSTM, Fair Mamba, KCMamba)
            across all configurations and noise levels. Dark red cells indicate
-           catastrophic failure (MSE $>4$); ARIMA and Fair Mamba collapse
+           catastrophic failure (MSE $>4$). ARIMA and Fair Mamba collapse
            completely at $s{=}16$, $\sigma{\geq}3$, while KCMamba remains
            stable throughout.}
   \label{fig:mse_heatmap}
@@ -216,7 +216,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
   \includegraphics[width=\textwidth]{images/fig03_degradation_en.png}
   \caption{MSE degradation on a log scale ($\sigma=0 \to \sigma=5$) across all
            configurations. Fair Mamba exhibits catastrophic collapse in three
-           cases (orange, $>10\,000\%$); KCMamba (green) and LSTM (blue) are
+           cases (orange, $>10\,000\%$), whereas KCMamba (green) and LSTM (blue) are
            substantially more stable. The highlighted box marks the Exchange/$s=16$
            case.}
   \label{fig:degradation}
@@ -231,8 +231,8 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
   \caption{Noise robustness comparison across all four models: MSE vs.\
            noise level $\sigma$ on a logarithmic scale.
            ARIMA (orange dashed) collapses catastrophically at $s{=}16$
-           ($\text{MSE}>15$ at $\sigma{=}5$); Fair Mamba also becomes
-           unstable at $s{=}16$; KCMamba and LSTM remain in a manageable
+           ($\text{MSE}>15$ at $\sigma{=}5$). Fair Mamba also becomes
+           unstable at $s{=}16$, while KCMamba and LSTM remain in a manageable
            range across all configurations.}
   \label{fig:all_noise_curves}
 \end{figure}
@@ -264,7 +264,7 @@ The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$
   \caption{Radar chart comparing models across five dimensions: clean-data
            performance, noise robustness, data efficiency ($s=16$ regime),
            parameter efficiency, and convergence speed. KCMamba excels on
-           the noise robustness and data efficiency axes; Fair Mamba leads on
+           the noise robustness and data efficiency axes, whereas Fair Mamba leads on
            clean-data performance.}
   \label{fig:radar}
 \end{figure}
@@ -278,7 +278,7 @@ explicitly programmed to do so.
   \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_en.png}
   \caption{Forecast visualisation at three noise levels (ETTh-type signal,
            $T=96$ lookback, $H=96$ horizon).
-           Black = ground truth; green = KCMamba; orange = Fair Mamba;
+           Black = ground truth, green = KCMamba, orange = Fair Mamba,
            blue = LSTM.
            \textbf{Left:} At $\sigma=0$ both Fair Mamba and KCMamba track accurately.
            \textbf{Centre/Right:} As noise increases KCMamba stays smooth, Fair Mamba
@@ -321,7 +321,7 @@ literature: at $T=96$ the scan has only $\log_2 96 \approx 7$
 synchronisation stages, so the parallel-scan advantage has little room
 to amortise the kernel launch overhead. The interesting property for
 forecasting workloads is that the KCMamba wall-time stays flat in $T$ (the
-inner loop is GPU-parallel), while LSTM wall-time grows linearly --- so
+inner loop is GPU-parallel), while LSTM wall-time grows linearly, so
 at thesis-scale horizons the two are comparable, and at production
 horizons ($T \ge 2000$) KCMamba is expected to dominate.
 
@@ -329,12 +329,12 @@ horizons ($T \ge 2000$) KCMamba is expected to dominate.
   \centering
   \includegraphics[width=\textwidth]{images/fig12_speed_triton_en.png}
   \caption{\textbf{Left:} Throughput (samples/s) at $T=96$, batch$=32$ on
-           a single RTX~3060. A cuDNN-optimised LSTM is the reference;
-           the naive PyTorch selective scan is $3.4\times$ slower; a
+           a single RTX~3060. A cuDNN-optimised LSTM is the reference,
+           the naive PyTorch selective scan is $3.4\times$ slower, and a
            Triton-kernel KCMamba matches LSTM throughput.
            \textbf{Right:} Relative speed normalised to LSTM. The Triton
            kernel is a necessary but not sufficient optimisation at
-           short sequences --- at $T \ge 2000$ the scan's
+           short sequences. At $T \ge 2000$ the scan's
            $O(\log T)$ depth is expected to yield the $2$--$10\times$
            advantage reported in the literature for selective
            SSMs~\cite{gu2023mamba}.}
@@ -391,8 +391,8 @@ epochs and the FastAI learning-rate finder.
     \caption{MSE on the ETTm1 dataset across four sequence lengths.
              Bold: lowest MSE per noise level.
              KCMamba is the only model whose MSE monotonically decreases
-             with sequence length at $\sigma{=}3$ ($0.673 \to 0.466$, $-31\%$);
-             Fair Mamba becomes unstable.}
+             with sequence length at $\sigma{=}3$ ($0.673 \to 0.466$, $-31\%$),
+             whereas Fair Mamba becomes unstable.}
     \label{tab:longseq_ettm1}
 \end{table}
 
@@ -460,8 +460,8 @@ The $T{=}96$ reference values come from the original ltsf\_benchmark run.
     \end{tabular}
     \caption{MSE on Exchange in a stride $\times$ sequence-length factorial experiment.
              Bold: lowest MSE per configuration.
-             KCMamba wins in every configuration;
-             with $s{=}16$, Fair Mamba catastrophically collapses ($>8$).}
+             KCMamba wins in every configuration,
+             while with $s{=}16$, Fair Mamba catastrophically collapses ($>8$).}
     \label{tab:stride_longseq}
 \end{table}
 
@@ -476,7 +476,7 @@ Figure~\ref{fig:stride_longseq}:
 
     \item \textbf{$s{=}16$, $\sigma{\geq}3$}: Fair Mamba completely collapses
           (MSE $8.1$--$8.5$, roughly $7$--$9\times$ worse than KCMamba). The extreme scarcity scenario
-          ($s{=}16$, $T{=}512$) provides only $\sim{}10$ training windows ---
+          ($s{=}16$, $T{=}512$) provides only $\sim{}10$ training windows.
           KCMamba is the only architecture that does not catastrophically collapse.
 \end{itemize}
 
@@ -488,7 +488,7 @@ Figure~\ref{fig:stride_longseq}:
            $\sigma{=}5$ (right) noise levels on Exchange.
            The $s{=}16$ panels are y-clipped at $4.0$ (Fair Mamba reaches
            $8.1$--$8.5$).
-           KCMamba is stable in every configuration; Fair Mamba catastrophically
+           KCMamba is stable in every configuration, whereas Fair Mamba catastrophically
            collapses at $s{=}16$, $\sigma{\geq}3$.}
   \label{fig:stride_longseq}
 \end{figure}

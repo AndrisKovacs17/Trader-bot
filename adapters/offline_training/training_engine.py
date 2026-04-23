@@ -41,8 +41,8 @@ class TrainedModelArtifact:
 class TrainingEngine:
     """
     Offline training adapter for model development and refinement.
-    
-    ⚠️ IMPORTANT: This is an OFFLINE training adapter, NOT the production predictor.
+
+    This is an offline training adapter, not the production predictor.
     The production predictor receives trained KLA weights via push_model().
     
     Known ports (imports):
@@ -1168,7 +1168,7 @@ class TrainingEngine:
         
         This format is consumed by KCAPredictor.request_model_update()
         
-        ⚠️ Production Risk: pickle is not secure and not language-agnostic.
+        Note: pickle is not secure and not language-agnostic.
         For production systems, consider:
         - torch.save() for PyTorch models
         - joblib for scikit-learn

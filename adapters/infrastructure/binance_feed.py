@@ -252,10 +252,7 @@ def to_price_points(trades_df: pd.DataFrame) -> list[tuple[datetime, float]]:
     return list(zip(trades_df["T"].tolist(), trades_df["p"].tolist(), strict=False))
 
 
-# =====================================================
 # BINANCE WEBSOCKET STREAM (REAL-TIME)
-# =====================================================
-
 class BinanceWebSocketStream:
     """
     Binance WebSocket stream for real-time market data.
@@ -334,7 +331,7 @@ class BinanceWebSocketStream:
                 
                 # Start streaming
                 async with socket as stream:
-                    logger.info("[WebSocket] ✓ Connected! Streaming %s %s", self.symbol, self.stream_type)
+                    logger.info("[WebSocket] Connected. Streaming %s %s", self.symbol, self.stream_type)
                     reconnect_count = 0  # Reset on successful connect
                     backoff_seconds = 1   # Reset backoff
                     
@@ -356,7 +353,7 @@ class BinanceWebSocketStream:
                             # No message for 60s - check if still connected
                             elapsed = asyncio.get_running_loop().time() - stream_start
                             logger.warning(
-                                "[WebSocket] ⚠ Timeout (no message for 60s). Uptime: %.1fs, Messages: %s",
+                                "[WebSocket] Timeout (no message for 60s). Uptime: %.1fs, Messages: %s",
                                 elapsed,
                                 message_count,
                             )
@@ -373,7 +370,7 @@ class BinanceWebSocketStream:
                 error_type = type(stream_error).__name__
                 
                 reconnect_count += 1
-                logger.error("[WebSocket] ✗ Stream error after %.1fs (%s msgs)", elapsed, message_count)
+                logger.error("[WebSocket] Stream error after %.1fs (%s msgs)", elapsed, message_count)
                 logger.error("[WebSocket]   Error type: %s", error_type)
                 logger.error("[WebSocket]   Error message: %s", stream_error)
                 

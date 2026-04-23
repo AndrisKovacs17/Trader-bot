@@ -165,15 +165,15 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <span class="preset-label">Előbeállítások<button class="tip-btn" data-tip="Konfigurációk, ahol a KCA-Mamba MSE értéke alacsonyabb volt MIND az LSTM-nél, MIND a Fair Mamba-nál.&#10;&#10;Forrás: sweep_results.json + stride_sweep_results.json (10 epoch, valódi mért adatok).&#10;&#10;FONTOS: a presetek 10 epoch-ot állítanak be — kevesebbel a KCA Kalman-loss-szal nem konvergál.">?</button></span>
 
       <button class="btn-preset" onclick="applyPreset('exchange_192_clean')" title="A legnagyobb mért előny: KCA 0.033 vs LSTM 0.105 vs Fair 0.081  (+59% vs LSTM, +59% vs Fair)">
-        <span class="preset-tag">★</span> Exchange seq=192 σ=0 (zászlóshajó +59%)
+        <span class="preset-tag">*</span> Exchange seq=192 σ=0 (zászólóshajó +59%)
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_336_sigma3')" title="Hosszú szekvencia + zaj: KCA 0.736 vs LSTM 1.000 vs Fair 1.162  (+26% vs LSTM)">
-        <span class="preset-tag">★</span> Exchange seq=336 σ=3 (+26%)
+        <span class="preset-tag">*</span> Exchange seq=336 σ=3 (+26%)
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_336_sigma1')" title="KCA 0.502 vs LSTM 0.735 vs Fair 0.662  (+24% vs LSTM)">
-        <span class="preset-tag">★</span> Exchange seq=336 σ=1 (+24%)
+        <span class="preset-tag">*</span> Exchange seq=336 σ=1 (+24%)
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_512_sigma3')" title="Long-context + zaj: KCA 0.772 vs LSTM 0.989 vs Fair 2.121  (+22% vs LSTM)">
@@ -236,7 +236,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <!-- LSTM card -->
     <div class="section card-lstm">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-slate-200">🔷 Vanilla LSTM</span>
+        <span class="text-sm font-bold text-slate-200">Vanilla LSTM</span>
         <span id="lstmBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
@@ -273,7 +273,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <!-- KCA card -->
     <div class="section card-kla">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-blue-400">🔵 KCA-Mamba</span>
+        <span class="text-sm font-bold text-blue-400">KCA-Mamba</span>
         <span id="klaBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
@@ -302,7 +302,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <!-- AR / ARIMA card -->
     <div class="section card-ar">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-amber-400">📐 ARIMA modell</span>
+        <span class="text-sm font-bold text-amber-400">ARIMA modell</span>
         <span id="arBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
@@ -484,7 +484,7 @@ function setCard(prefix, m){
   const lrEl = $(prefix+'Lr');
   if(lrEl) lrEl.textContent = m.found_lr != null ? m.found_lr.toExponential(2) : '—';
   const b = $(prefix+'Badge');
-  if(b){ b.textContent = m.error ? '✗ Hiba' : '✓ Kész'; b.className = m.error ? 'badge badge-err' : 'badge badge-ok'; b.classList.remove('hidden'); }
+  if(b){ b.textContent = m.error ? 'Hiba' : 'Kész'; b.className = m.error ? 'badge badge-err' : 'badge badge-ok'; b.classList.remove('hidden'); }
 }
 
 function updateLoss(models){
@@ -566,7 +566,7 @@ function buildVerdict(models){
   const pct = ((second.m.test_mse - win.m.test_mse) / second.m.test_mse * 100).toFixed(1);
   $('verdictBanner').classList.remove('hidden');
   $('verdictText').innerHTML =
-    `🏆 Legjobb: <span style="color:#4ade80">${win.m.name}</span> — Test MSE: <strong>${fmt2(win.m.test_mse)}</strong> (${pct}% jobb mint ${second.m.name})`;
+    `Legjobb: <span style="color:#4ade80">${win.m.name}</span>, Test MSE: <strong>${fmt2(win.m.test_mse)}</strong> (${pct}% jobb mint ${second.m.name})`;
 }
 
 // ── Polling ───────────────────────────────────────────────────────────────────

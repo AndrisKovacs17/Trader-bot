@@ -1,5 +1,5 @@
 % ============================================================
-%  Chapter 2 — Related Work
+%  Chapter 2, Related Work
 % ============================================================
 \chapter{Related Work}
 \label{ch:irodalom}
@@ -21,14 +21,14 @@ covariance:
 \end{equation}
 When $R \to \infty$, $K \to 0$: the filter distrusts the measurement.
 When $R \to 0$, $K \to 1$: the measurement nearly overwrites the state.
-This simple rule is the core intuition behind KCMamba.
+KCMamba is built on this same ratio.
 
 \subsection{Learned Kalman Filters}
 
 In the neural Kalman literature, the matrices $F, H, Q, R$ are parameterised
 by networks~\cite{krishnan2015deep,fraccaro2017disentangled}.
 The \emph{Deep Kalman Filter}~\cite{krishnan2015deep} allows non-linear
-transitions; the \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
+transitions, and the \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
 learns disentangled representations of latent states.
 KCMamba builds on these ideas but operates as a sequence forecaster rather
 than as an autoencoder.
@@ -49,7 +49,7 @@ where $\bar{A} = e^{\Delta A}$.
 
 \subsection{Mamba}
 
-The key innovation of Mamba~\cite{gu2023mamba} is input-dependent selectivity:
+Mamba~\cite{gu2023mamba} introduces input-dependent selectivity:
 $B$, $C$, and $\Delta$ depend on the input $u_t$. This lets the model decide
 what to remember and what to forget. A hardware-efficient parallel scan achieves
 $O(T)$ memory and time complexity.
@@ -80,8 +80,8 @@ by minimising normalised MSE.
           auto-correlation-based attention~\cite{wu2021autoformer}.
     \item \emph{DLinear} achieves surprisingly strong results with a
           plain linear projection, questioning the necessity of complex
-          architectures~\cite{zeng2023transformers} --- a reminder that a
-          simpler model is not always worse.
+          architectures~\cite{zeng2023transformers}. Simpler models are
+          not always worse.
 \end{itemize}
 
 \subsection{Datasets}
@@ -92,8 +92,8 @@ by minimising normalised MSE.
           rates, 7\,588 daily samples. Its near-unit-root dynamics make the
           Kalman structure particularly effective.
     \item \textbf{ETTh1 / ETTh2}~\cite{zhou2021informer}: Hourly transformer-station
-          electricity data ($d=7$, 17\,420 steps). ETTh1 is strongly periodic;
-          ETTh2 is noisier.
+          electricity data ($d=7$, 17\,420 steps). ETTh1 is strongly periodic,
+          whereas ETTh2 is noisier.
     \item \textbf{Weather, ECL}: Not included in our experiments but are
           standard benchmarks in the LTSF literature.
 \end{itemize}

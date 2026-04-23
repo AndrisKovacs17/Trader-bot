@@ -1,6 +1,6 @@
 % ============================================================
 %  KCMamba: Kalman-Guided State-Space Model for Time Series Forecasting
-%  ELTE Faculty of Informatics — BSc Thesis (English version)
+%  ELTE Faculty of Informatics, BSc Thesis (English version)
 %  Template: mcserep/elteikthesis v2.4  (MIT Licence)
 % ============================================================
 \documentclass[
@@ -12,9 +12,7 @@
     % final,
 ]{elteikthesis}[2024/04/26]
 
-% ------------------------------------------------------------
 % Document metadata
-% ------------------------------------------------------------
 \title{KCMamba: Kalman-Guided Selective State-Space Model\\
        for Robust Time Series Forecasting}
 \date{2026}
@@ -44,7 +42,7 @@
 
 \maketitle
 
-% ---- Declaration -------------------------------------------
+% Declaration
 \chapter*{Declaration}
 \addcontentsline{toc}{chapter}{Declaration}
 \thispagestyle{empty}
@@ -66,7 +64,7 @@ student
 
 \cleardoublepage
 
-% ---- Abstract ----------------------------------------------
+% Abstract
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
@@ -75,7 +73,7 @@ a hybrid neural architecture that integrates a differentiable Kalman filtering
 mechanism into the Mamba selective state-space model (SSM) for noise-robust
 time series forecasting. The proposed architecture employs learned
 $Q_\text{net}$, $R_\text{net}$, and $K_\text{net}$ subnetworks that adaptively
-regulate the ratio of process and measurement noise --- enabling the model to
+regulate the ratio of process and measurement noise, enabling the model to
 behave as a passive predictor on clean data and as an active filter under noisy
 conditions.
 
@@ -84,7 +82,7 @@ We conduct empirical evaluation on three public LTSF benchmarks
 ($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
 (stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
 MSE degradation of $+1\,528\%$ as noise increases from $\sigma\!=\!0$ to
-$\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba --- a
+$\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba, a
 $18{.}5\times$ robustness advantage.
 
 The thesis also describes the complete production software system: an
@@ -94,7 +92,7 @@ trading adapter.
 
 \cleardoublepage
 
-% ---- Table of Contents -------------------------------------
+% Table of Contents
 \tableofcontents
 \cleardoublepage
 
@@ -120,7 +118,7 @@ trading adapter.
 \input{chapters/en/05_conclusion}
 \cleardoublepage
 
-% ---- Acknowledgements --------------------------------------
+% Acknowledgements
 \chapter*{Acknowledgements}
 \addcontentsline{toc}{chapter}{Acknowledgements}
 The author thanks the supervisor for professional guidance and the
@@ -134,7 +132,7 @@ would not have been possible.
 % ============================================================
 \appendix
 
-% ---- Bibliography ------------------------------------------
+% Bibliography
 \phantomsection
 \addcontentsline{toc}{chapter}{\biblabel}
 \printbibliography[title=\biblabel]

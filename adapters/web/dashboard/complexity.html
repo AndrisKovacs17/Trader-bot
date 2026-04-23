@@ -405,8 +405,8 @@ function stars(score, maxScore) {
   const n = Math.round((1 - score / maxScore) * 5);
   const clamped = Math.max(0, Math.min(5, n));
   return '<span class="star-rating">' +
-    '<span class="star-on">' + '★'.repeat(clamped) + '</span>' +
-    '<span class="star-off">' + '★'.repeat(5 - clamped) + '</span>' +
+    '<span class="star-on">' + '*'.repeat(clamped) + '</span>' +
+    '<span class="star-off">' + '*'.repeat(5 - clamped) + '</span>' +
     '</span>';
 }
 
@@ -535,7 +535,7 @@ function updateUI(models) {
     const effPct = effScores[i] < Infinity
       ? (((maxScore - effScores[i]) / maxScore) * 100).toFixed(0) + '%' : '—';
     return `<tr class="${isKla ? 'kla-row' : ''}">
-      <td style="color:${e.border};font-weight:${isKla?'700':'400'}">${e.label}${e.paretoFront ? ' ✦' : ''}</td>
+      <td style="color:${e.border};font-weight:${isKla?'700':'400'}">${e.label}${e.paretoFront ? ' (Pareto)' : ''}</td>
       <td class="${isBest ? 'best' : ''}">${mses[i]?.toFixed(6) ?? '—'}</td>
       <td>${params[i]?.toLocaleString() ?? '—'}</td>
       <td>${times[i]?.toFixed(1) ?? '—'}</td>

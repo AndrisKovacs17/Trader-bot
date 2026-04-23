@@ -21,16 +21,16 @@ fölötte a \texttt{KCMambaStack}: $N$ egymás utáni KC-blokk
 cross-attention réteggel a végén.
 A cross-attention réteg szerepe, hogy ellensúlyozza a Mamba SSM
 rekurráns dinamikájából adódó, az utolsó időlépések irányába mutató
-reprezentációs torzítást; így a végső predikcióba a lassabb időskálájú
+reprezentációs torzítást, így a végső predikcióba a lassabb időskálájú
 (hosszú távú) trendek is bevonhatók.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\textwidth]{images/fig08_architecture.png}
   \caption{A KCMamba blokk teljes adatfolyam-diagramja. A sárga blokkok
-           ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) tanítják a Kalman-statisztikákat;
+           ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) tanítják a Kalman-statisztikákat,
            a lila blokkban történik a párhuzamos prefix-scan GPU-n $O(\log T)$
-           szinkronizációval; a zöld blokkok a bemeneti/kimeneti projekciókat jelölik.}
+           szinkronizációval. A zöld blokkok a bemeneti és kimeneti projekciókat jelölik.}
   \label{fig:arch_overview}
 \end{figure}
 
@@ -122,8 +122,8 @@ algoritmussal~\cite{blelloch1990prefix} valósul meg:
     B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
 \end{align}
 ahol $A[t]$ és $B[t]$ a prefixek asszociatív páros eleme ($(a_t, b_t)$, ahol
-$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg;
-ezek \emph{nem} azonosak az SSM $A$, $B$ mátrixaival),
+$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg,
+ami \emph{nem} azonos az SSM $A$, $B$ mátrixaival),
 és a lépésköz $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ duplázódik.
 A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
 
@@ -132,7 +132,7 @@ A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
   \includegraphics[width=\textwidth]{images/fig09_parallel_scan.png}
   \caption{A Blelloch-féle párhuzamos prefix-scan vizualizációja 8 elemű
            szekvencián. Minden lépésben a $step$-nyi távolságú két elem
-           kombinálódik;
+           kombinálódik.
            $\log_2 T = 3$ lépés után minden $h_t$ tartalmazza az előzmény-összesítést.
            Ez teszi lehetővé a szekvenciális állapotfrissítés hatékony GPU-s
            párhuzamosítását.}
@@ -162,12 +162,13 @@ alaphelyzetben az SSM-ágat részesíti előnyben.
 \section{KCMamba verem}
 \label{sec:kc_stack}
 
-A verem $N$ rétegből áll; köztük LayerNorm rétegek (pre-norm stílus)
-akadályozzák az aktivációs skála sodródását.
+A verem $N$ rétegből áll, köztük LayerNorm rétegekkel (pre-norm stílus),
+amelyek megakadályozzák az aktivációs skála sodródását.
 
 A verem végére egy \emph{multi-scale cross-attention} réteget illesztünk.
 Ennek oka, hogy a Mamba rekurrens dinamikája a rejtett állapotba a közelmúlt
-lépéseit súlyozottán erősebben kódolja, mint a régmúltat; egy hosszú-horizontú
+lépéseit súlyozottán erősebben kódolja, mint a régmúlt szegmenseket.
+Egy hosszú-horizontú
 előrejelzéshez azonban a lassú trendeket is hozzá kell férni.
 A cross-attention a jelenlegi állapotot (lekérdezést) összeveti a szekvencia
 $s$-edik alminta (key/value) halmazával, így rövid és hosszú időskálákat egyaránt
@@ -183,9 +184,9 @@ cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram.png}
-  \caption{A KCMamba verem (stack) felépítése. Bemenettől kimenetig:
+  \caption{A KCMamba verem (stack) felépítése. A bemenettől a kimenetig az
            input projekció, 2 KC-blokk LayerNorm rétegekkel, output
-           normalizáció, majd cross-attention réteg a lassú ($s=4$)
+           normalizáció, majd cross-attention réteg követi egymást a lassú ($s=4$)
            időskála integrálásához.}
   \label{fig:stack_diagram}
 \end{figure}
@@ -195,8 +196,8 @@ cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
   \caption{Szintetikus jel szűrése: \textbf{vanilla SSM} (standard Mamba, rögzített $A$)
            vs.\ \textbf{KCMamba} (adaptív $K$-gain) közepes ($\sigma=2$) és erős
            ($\sigma=5$) zajnál.
-           \textit{Felső sorok:} az előrejelzett jel a valódihoz képest;
-           a KCMamba szorosabban követ zajban is.
+           \textit{Felső sorok:} az előrejelzett jel a valódihoz képest.
+           A KCMamba szorosabban követ zajban is.
            \textit{Alsó sorok:} a tanult $K$-értékek időbeli változása.
            A vanilla SSM $A$-ja rögzített, a KCMamba $A$-ja adaptívan nő zajjal.}
   \label{fig:synth_mamba}
@@ -256,8 +257,8 @@ erős memóriát tart fenn, és kiszűri a zajos méréseket
 Alacsony zaj mellett ($\sigma=0$) $K = 0.706$, és a modell az aktuális
 megfigyelést követi (\emph{innovációs mód}).
 
-Ezt a szintetikus teszten a \ref{fig:synth_mamba}.\ ábra demonstrálja:
-a standard SSM rögzített $A=0.88$ értékkel dolgozik mindkét zajszinten,
+Ezt a szintetikus teszten a \ref{fig:synth_mamba}.\ ábra demonstrálja.
+A standard SSM rögzített $A=0.88$ értékkel dolgozik mindkét zajszinten,
 míg a KCMamba $A$-ja a zajszinttel arányosan módosul (\ref{fig:memory_retention}.\ ábra).
 
 \newpage
@@ -286,7 +287,7 @@ A \ref{fig:system_arch}.\ ábra a főbb komponenseket mutatja:
 % ─────────────────────────────────────────────────────────────────────────────
 
 A forráskód négy fő csomagra oszlik. A \texttt{core/} nem hivatkozik
-egyetlen adapterre sem; az \texttt{adapters/} kód kizárólag a
+egyetlen adapterre sem. Az \texttt{adapters/} kód kizárólag a
 \texttt{ports.py} interfészeken keresztül éri el.
 
 \begin{table}[H]
@@ -307,7 +308,7 @@ egyetlen adapterre sem; az \texttt{adapters/} kód kizárólag a
                                   \texttt{SignalEvent}, \texttt{FillEvent} \\
     \hline
     \multirow{5}{*}{\texttt{core/application/}}
-      & \texttt{engine.py}      & \texttt{TradingEngine}: fő pipeline-orkesztrálő;
+      & \texttt{engine.py}      & \texttt{TradingEngine}: fő pipeline-orkesztrálő,
                                   belső állapotgép a kereskedési ciklushoz \\
       & \texttt{execution.py}   & Megbízás-összeállítás, méretszámítás és
                                   \texttt{IBrokerGatewayPort}-ra küldés \\
@@ -344,8 +345,8 @@ egyetlen adapterre sem; az \texttt{adapters/} kód kizárólag a
     \hline
   \end{tabular}
   \caption{A rendszer modul- és osztályszerkezete. Minden osztály kizárólag a
-           saját csomagjának adattípusaira és interfészeire támaszkodik;
-           a keresztirányú függőségeket a \texttt{ports.py} absztrakciói
+           saját csomagjának adattípusaira és interfészeire támaszkodik.
+           A keresztirányú függőségeket a \texttt{ports.py} absztrakciói
            közvetítik.}
   \label{tab:module_structure}
 \end{table}

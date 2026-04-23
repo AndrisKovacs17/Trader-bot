@@ -36,7 +36,7 @@ def test_equity_calculation():
     
     # Expected: 10000 + (-(1 * 50000) - 100) = 10000 - 50100 = -40100
     assert tracker.equity_curve[-1] == -40100, f"BUY equity wrong: {tracker.equity_curve[-1]}"
-    print("✓ BUY equity calculated correctly")
+    print("[OK] BUY equity calculated correctly")
     
     # SELL 0.5 BTC @ 60000 with fee 50
     # NEW: PnL = (qty * price) - fee = (0.5 * 60000) - 50 = 29950
@@ -53,7 +53,7 @@ def test_equity_calculation():
     
     # Expected: -40100 + ((0.5 * 60000) - 50) = -10150
     assert tracker.equity_curve[-1] == -10150, f"SELL equity wrong: {tracker.equity_curve[-1]}"
-    print("✓ SELL equity calculated correctly")
+    print("[OK] SELL equity calculated correctly")
     
     # Snapshot should reflect current equity and cash
     snap = tracker.snapshot()
@@ -63,7 +63,7 @@ def test_equity_calculation():
     assert "cash" in snap.positions, "Snapshot missing cash"
     
     print("\n" + "=" * 60)
-    print("✓ All equity calculation tests PASSED!")
+    print("[OK] All equity calculation tests PASSED!")
     print("=" * 60)
 
 if __name__ == "__main__":

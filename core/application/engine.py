@@ -33,10 +33,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-# =====================================================
 # TRADING ENGINE (Facade / Orchestrator)
-# =====================================================
-
 class TradingEngine(IEventHandlerPort):
     """
     Main trading orchestrator (facade pattern).

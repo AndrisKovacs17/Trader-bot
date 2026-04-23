@@ -1,5 +1,5 @@
 % ============================================================
-%  Chapter 5 — Conclusion
+%  Chapter 5, Conclusion
 % ============================================================
 \chapter{Conclusion}
 \label{ch:osszegzes}
@@ -64,7 +64,7 @@ generalisability of our conclusions.
           always-present filtering term causes mild underfitting, and the
           architecture cannot fully switch the filter off.
 
-    \item On ETTh1/$s=1$ LSTM is the best; its gating mechanism exploits
+    \item On ETTh1/$s=1$ LSTM is the best, since its gating mechanism exploits
           the large data volume. The forget/input gate pair realises a
           similar adaptive filter, but more flexibly, because it is not
           tied to the $K = Q/(Q+R)$ structure. This is not a KCMamba
@@ -80,11 +80,11 @@ generalisability of our conclusions.
     \item Only $L = H = 96$ was evaluated. At 336, 720 and 960-step
           horizons, Mamba's $O(T)$ complexity may yield a substantive
           advantage over $O(T^2)$ Transformers, and LSTM's memory
-          limitations also begin to dominate; the conclusions here thus
+          limitations also begin to dominate, and the conclusions here thus
           formally apply only to short horizons.
 
     \item The noise model is exclusively isotropic Gaussian
-          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$); in real
+          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$). In real
           applications noise is typically heteroscedastic, temporally
           correlated, sometimes non-Gaussian, and often structural
           (sensor dropouts, missing values). Robustness measured here
@@ -96,17 +96,17 @@ generalisability of our conclusions.
           noticeably larger parameter count.
 
     \item Two benchmarks (Weather, ECL) were excluded from this round
-          because of training-time scaling; dimensional sensitivity
+          because of training-time scaling, so dimensional sensitivity
           (7 vs.\ 21 vs.\ 321 channels) is therefore not \emph{a priori}
           substantiated.
 
     \item A broader hyperparameter-sensitivity study (hidden dimension,
           number of heads, layers, kernel size, learning rate) was not
-          performed; the configuration presented is a reasonable default
+          performed. The configuration presented is a reasonable default
           that is not guaranteed to be Pareto-optimal.
 
     \item On the trading side (Chapter~\ref{ch:implementacio}) the
-          system is validated in backtests; live-market effects,
+          system is validated in backtests. Live-market effects,
           slippage variance, outages and partial-fill ordering lie
           outside the scope of this thesis.
 \end{itemize}

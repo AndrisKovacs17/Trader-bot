@@ -4,10 +4,10 @@
 \chapter{A megvalósított rendszer}
 \label{ch:implementacio}
 
-A fejezet a KCMamba modell köré épített szoftvert tárgyalja:
-a kereskedési motort, az irányítópultot, a visszatesztelő infrastruktúrát
+A fejezet a KCMamba modell köré épített szoftvert tárgyalja,
+azaz a kereskedési motort, az irányítópultot, a visszatesztelő infrastruktúrát
 és a Binance-adaptert. A rendszer hexagonális architektúrában (\emph{Ports \& Adapters})
-készült; az elveket a~\ref{sec:system_arch}. alfejezet ismertette,
+készült. Az elveket a~\ref{sec:system_arch}. alfejezet ismertette,
 itt az egyes adapterek konkrét megvalósítására fókuszálok.
 
 % ─────────────────────────────────────────────────────────────────────────────
@@ -39,8 +39,8 @@ A főbb felhasznált könyvtárak és technológiák:
   \label{tab:tech_stack}
 \end{table}
 
-A frontend szándékosan nem használ React-et vagy Vue-t:
-minden oldal önálló, statikus HTML-fájl, amelyet az \texttt{aiohttp}
+A frontend szándékosan nem használ React-et vagy Vue-t.
+Minden oldal önálló, statikus HTML-fájl, amelyet az \texttt{aiohttp}
 szerver közvetlenül kiszolgál. Nincs \texttt{npm} build-lépés,
 Chart.js-sel mégis interaktív vizualizáció valósul meg.
 
@@ -49,7 +49,7 @@ Chart.js-sel mégis interaktív vizualizáció valósul meg.
 \label{sec:component_plan}
 % ─────────────────────────────────────────────────────────────────────────────
 
-A rendszer egyetlen Python-folyamatban fut; a komponensek
+A rendszer egyetlen Python-folyamatban fut. A komponensek
 az alábbiak szerint kapcsolódnak egymáshoz:
 
 \noindent\textbf{Fő folyamat} (\texttt{main.py})\\
@@ -64,7 +64,7 @@ fogad \texttt{PriceEvent}-eket, sorban futtatja a pipeline-lépéseket
 
 \noindent\textbf{aiohttp webes szerver} (\texttt{adapters/web/dashboard.py})\\
 Ugyanabban az \texttt{asyncio} event-loopban fut a kereskedési hurokkal.
-1~Hz-es \texttt{asyncio.Task}-ként WebSocket-streamet küld a böngészőknek;
+1~Hz-es \texttt{asyncio.Task}-ként WebSocket-streamet küld a böngészőknek.
 REST végpontokon (\texttt{/api/signals}, \texttt{/api/equity} stb.)
 keresztül is lekérdezhető az állapot.
 
@@ -75,7 +75,7 @@ Hálózati megszakadás esetén automatikus újracsatlakozás.
 
 \noindent\textbf{Fájlrendszer}\\
 Modellsúlyok (\texttt{*.pt}), naplófájlok, CSV-exportok és a
-\texttt{.env} konfigurációs fájl. Adatbázist a rendszer nem használ;
+\texttt{.env} konfigurációs fájl. Adatbázist a rendszer nem használ,
 minden futásidei állapot in-memory adatstruktúrákban él.
 
 \begin{table}[H]
@@ -101,7 +101,7 @@ minden futásidei állapot in-memory adatstruktúrákban él.
 \label{sec:dashboard}
 % ─────────────────────────────────────────────────────────────────────────────
 
-Az irányítópult hat nézetből áll; ezek a bal oldali navigációs sávon
+Az irányítópult hat nézetből áll, amelyek a bal oldali navigációs sávon
 keresztül érhetők el. A backend 1~Hz-es WebSocket-streammel frissíti
 az egyes paneleket.
 
@@ -110,9 +110,9 @@ az egyes paneleket.
 \label{subsec:dash_overview}
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 
-A főoldal (\texttt{index.html}) a legfontosabb információkat sűríti össze:
-tőke-görbe (equity curve), nyitott pozíciók, legutóbbi kereskedési jelzések
-és a modell aktuális Kalman-gain értéke.
+A főoldal (\texttt{index.html}) a legfontosabb információkat sűríti össze,
+nevezetesen a tőke-görbét (equity curve), a nyitott pozíciókat, a legutóbbi kereskedési jelzéseket
+és a modell aktuális Kalman-gain értékét.
 
 \begin{figure}[H]
   \centering
@@ -298,7 +298,7 @@ elegendő bizalommal rendel előrejelzéshez az aktuális adatminőség alapján
     jelzések, stop-loss eseménysorozat, napi veszteség-progress sáv.
   \end{minipage}}
   \caption{A kockázatkezelési modul áttekintő nézete. Piros sor jelzi
-           az elutasított jelzéseket; zöld a végrehajtottakat.}
+           az elutasított jelzéseket, zöld a végrehajtottakat.}
   \label{fig:risk_panel}
 \end{figure}
 
@@ -309,8 +309,8 @@ elegendő bizalommal rendel előrejelzéshez az aktuális adatminőség alapján
 
 Az éles kereskedési adapter (\texttt{adapters/infrastructure/binance\_broker.py})
 a Binance Futures REST és WebSocket végpontjait használja. Az árfolyam-frissítések
-az \texttt{IEventBusPort}-on keresztül jutnak el a \texttt{TradingEngine}-hez;
-az üzleti logika nem tud a Binance-specifikus adatformátumról; az adapter cserélhető.
+az \texttt{IEventBusPort}-on keresztül jutnak el a \texttt{TradingEngine}-hez,
+az üzleti logika nem tud a Binance-specifikus adatformátumról, az adapter cserélhető.
 
 \begin{figure}[H]
   \centering
@@ -321,13 +321,13 @@ az üzleti logika nem tud a Binance-specifikus adatformátumról; az adapter cse
     tőke-frissítések valós időben.
   \end{minipage}}
   \caption{Az élő Binance-kereskedési nézet. A panel szinkronban van a
-           Binance számlával; az egyenleg és a pozíciók másodpercenként
+           Binance számlával, az egyenleg és a pozíciók másodpercenként
            frissülnek.}
   \label{fig:live_trading}
 \end{figure}
 
-A rendszer papírkereskedési (\emph{paper trading}) módban is futtatható:
-ebben az esetben a Binance-adapter le van cserélve a
+A rendszer papírkereskedelmi (\emph{paper trading}) módban is futtatható.
+Ebben az esetben a Binance-adapter le van cserélve a
 \texttt{adapters/testing/broker.py} szimulált végrehajtójára, így az algoritmus
 valódi tőke kockáztatása nélkül tesztelhető éles piaci adaton.
 
@@ -362,7 +362,7 @@ kerülnek a forráskódba.
     \small A konzolkimenet a rendszerindítás során: modelltöltés, WebSocket
     csatlakozás megerősítése, eseményhurok indulása.
   \end{minipage}}
-  \caption{A rendszer indítási naplója. Az egyes adapterek sorban inicializálódnak;
+  \caption{A rendszer indítási naplója. Az egyes adapterek sorban inicializálódnak,
            hiba esetén a rendszer részletes hibaüzenetet és stack trace-t ír ki.}
   \label{fig:startup_log}
 \end{figure}
@@ -469,7 +469,7 @@ kategóriába rendezve:
 
 A jobb alsó sarokban elhelyezett \texttt{?} gombra kattintva oldal-specifikus
 súgóablak nyílik, amely röviden elmagyarázza az adott nézetet. A lapok közti
-átjárás a felső menüsávból történik; a böngésző \emph{vissza}-gombja is
+átjárás a felső menüsávból történik, a böngésző \emph{vissza}-gombja is
 használható.
 
 \subsubsection*{Használati minták}
@@ -477,7 +477,7 @@ használható.
 A rendszer négy tipikus forgatókönyvben futtatható. A paper-trading demó
 (alapértelmezett) Binance-adaton szimulált végrehajtással dolgozik. A
 visszateszt-mód ugyanazt a pipeline-t futtatja historikus adatokon, Binance
-kapcsolat nélkül, \texttt{adapters/testing/backtest.py} segítségével;
+kapcsolat nélkül, \texttt{adapters/testing/backtest.py} segítségével. Az
 eredményeit a konzolra és CSV-be írja. Az offline tanítás a teljes dataset-et
 (alapértelmezetten 3 nap BTCUSDT 5 perces gyertyái) egy menetben dolgozza fel,
 majd a súlyokat \texttt{*.pt} fájlba menti. A \emph{csak-dashboard} mód végül
@@ -508,7 +508,7 @@ A demó alapértelmezés szerint \emph{paper-trading} módban fut, valódi
 Binance-rendelést nem küld. Ha mégis éles kulcs kerül a \texttt{.env} fájlba,
 a Binance-oldalon ajánlott (a) csak olvasási és Futures-kereskedési
 jogosultságot adni, és (b) IP-whitelisttel megszorítani a kulcs használatát.
-Az irányítópult alapértelmezetten a \texttt{0.0.0.0:8080} címen hallgat;
+Az irányítópult alapértelmezetten a \texttt{0.0.0.0:8080} címen hallgat.
 nyilvános IP-n csak külső \texttt{reverse proxy} (nginx, traefik) mögött
 ajánlott közzétenni.
 
@@ -524,7 +524,7 @@ IP-whitelist beállításait a Binance kereskedési felületén.
 
 \noindent\textbf{WebSocket kapcsolódási hiba}\\
 A tűzfal blokkolhatja a Binance \texttt{wss://}
-végpontját ($9443$ port); szükség esetén proxyt kell beállítani.
+végpontját ($9443$ port). Szükség esetén proxyt kell beállítani.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Tesztelés}
@@ -534,7 +534,7 @@ végpontját ($9443$ port); szükség esetén proxyt kell beállítani.
 \subsection{Tesztelési stratégia}
 
 A tesztkészlet a \textbf{pytest} keretrendszert használja. A core logikát
-egységtesztek fedik le; a Binance és aiohttp adapterek \texttt{unittest.mock}-kal
+egységtesztek fedik le. A Binance és aiohttp adapterek \texttt{unittest.mock}-kal
 vannak kiváltva, tehát hálózat nélkül, determinisztikusan futnak.
 
 \begin{table}[H]

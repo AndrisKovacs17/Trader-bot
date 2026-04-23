@@ -603,7 +603,7 @@
       setTxt('trainValAcc',  tr.val_directional_accuracy != null ? pct(tr.val_directional_accuracy) : '—');
       setTxt('trainEpoch',   tr.best_epoch != null ? String(tr.best_epoch) : '—');
       setTxt('trainDataset', tr.dataset_size != null ? Number(tr.dataset_size).toLocaleString() : '—');
-      setTxt('trainDeploy',  tr.deployable != null ? (tr.deployable ? 'Igen ✓' : 'Nem ✗') : '—',
+      setTxt('trainDeploy',  tr.deployable != null ? (tr.deployable ? 'Igen' : 'Nem') : '—',
         tr.deployable ? 'font-bold text-emerald-400' : 'font-bold text-red-400');
       setTxt('trainReason', tr.deploy_reason || '—', tr.deployable ? 'text-emerald-400' : 'text-orange-400');
 

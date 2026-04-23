@@ -12,9 +12,7 @@ from collections import deque
 
 import pytest
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 
 def _make_bars(n: int, seed: int = 42, trend: float = 0.0) -> list[dict]:
@@ -49,9 +47,7 @@ def _make_bars(n: int, seed: int = 42, trend: float = 0.0) -> list[dict]:
     return rows
 
 
-# ---------------------------------------------------------------------------
-# Test 1 – Feature engineering variáció
-# ---------------------------------------------------------------------------
+# Test 1, Feature engineering variáció
 
 
 class TestFeatureVariation:
@@ -109,9 +105,7 @@ class TestFeatureVariation:
     # funding_rate_z removed from features (always 0.0 in spot data → pure noise)
 
 
-# ---------------------------------------------------------------------------
-# Test 2 – Training engine átadja-e a taker/funding-ot
-# ---------------------------------------------------------------------------
+# Test 2, Training engine átadja-e a taker/funding-ot
 
 
 class TestTrainingEngineFeaturePassthrough:
@@ -161,9 +155,7 @@ class TestTrainingEngineFeaturePassthrough:
         assert taker_new_std > 0.01, "Új módszerrel taker kell hogy változzon"
 
 
-# ---------------------------------------------------------------------------
-# Test 3 – Inference prob_up és sigma variáció
-# ---------------------------------------------------------------------------
+# Test 3, Inference prob_up és sigma variáció
 
 
 try:
@@ -364,9 +356,7 @@ class TestInferenceSignalVariation:
             f"sigma teljesen halott: global range = {global_range:.8f}"
 
 
-# ---------------------------------------------------------------------------
-# Test 4 – Prior debias 3-class safety check
-# ---------------------------------------------------------------------------
+# Test 4, Prior debias 3-class safety check
 
 
 @pytest.mark.skipif(not HAS_TORCH, reason="PyTorch szükséges")
@@ -435,9 +425,7 @@ class TestPriorDebias3Class:
         )
 
 
-# ---------------------------------------------------------------------------
-# Test 5 – mu_implied_prob blend hatása lapos prob_up-ra
-# ---------------------------------------------------------------------------
+# Test 5, mu_implied_prob blend hatása lapos prob_up-ra
 
 
 @pytest.mark.skipif(not HAS_TORCH, reason="PyTorch szükséges")

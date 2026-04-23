@@ -32,7 +32,7 @@ async def test_buy_fill():
     print(f"BUY után: cash={wallet.cash}")
     expected = 1000.0 - (1.0 * 50000.0 + 100.0)  # = -49100 (tönkrement)
     assert wallet.cash == expected, f"BUY fail: {wallet.cash} != {expected}"
-    print("✓ BUY test passed")
+    print("[OK] BUY test passed")
 
 @pytest.mark.asyncio
 async def test_sell_fill():
@@ -54,7 +54,7 @@ async def test_sell_fill():
     print(f"SELL után: cash={wallet.cash}")
     expected = 0.0 + (1.0 * 50000.0 - 100.0)  # = 49900
     assert wallet.cash == expected, f"SELL fail: {wallet.cash} != {expected}"
-    print("✓ SELL test passed")
+    print("[OK] SELL test passed")
 
 @pytest.mark.asyncio
 async def test_position_store_fill():
@@ -90,7 +90,7 @@ async def test_position_store_fill():
     # Az avg_price az aktuális formula alapján átlagolódik
     # ((40000 * 2) + (50000 * -1)) / 1 = 30000
     # Ez nem ideális, de a jelenlegi implementáció ezt csinálja
-    print("✓ Position store test passed")
+    print("[OK] Position store test passed")
 
 async def main():
     """Run all tests."""
@@ -103,7 +103,7 @@ async def main():
     await test_position_store_fill()
     
     print("\n" + "=" * 60)
-    print("✓ Összes test passou!")
+    print("[OK] Osszes test passou!")
     print("=" * 60)
 
 if __name__ == "__main__":

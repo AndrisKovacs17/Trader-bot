@@ -1,5 +1,5 @@
 % ============================================================
-%  Chapter 3 — KCMamba Architecture
+%  Chapter 3, KCMamba Architecture
 % ============================================================
 \chapter{The KCMamba Architecture}
 \label{ch:architektura}
@@ -9,7 +9,7 @@
 KCMamba (Kalman Core-Attention Mamba) is a hybrid neural time-series
 model that embeds a differentiable, content-dependent Kalman filter layer into
 the Mamba SSM~\cite{gu2023mamba}.
-The key idea is that rather than using a fixed forgetting factor $A$, the model
+Instead of using a fixed forgetting factor $A$, the model
 learns a gain $K$ from the current input and uses it to decide how much to trust
 the new measurement versus the prior state.
 
@@ -23,8 +23,8 @@ cross-attention layer at the top.
   \includegraphics[width=\textwidth]{images/fig08_architecture_en.png}
   \caption{Full data-flow diagram of the KCMamba block. Yellow blocks
            ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) learn the Kalman
-           statistics; the purple block performs the parallel prefix-scan on GPU
-           in $O(\log T)$ synchronisation steps; green blocks denote
+           statistics. The purple block performs the parallel prefix-scan on GPU
+           in $O(\log T)$ synchronisation steps, and green blocks denote
            input/output projections.}
   \label{fig:arch_overview}
 \end{figure}
@@ -100,7 +100,7 @@ The recurrence can be parallelised on GPU in $O(\log T)$ synchronisation steps.
   \centering
   \includegraphics[width=\textwidth]{images/fig09_parallel_scan_en.png}
   \caption{Blelloch parallel prefix-scan on a length-8 sequence. Each pass
-           combines two elements separated by the current step size; after
+           combines two elements separated by the current step size, and after
            $\log_2 T = 3$ passes every $h_t$ contains the full context.
            This enables efficient GPU parallelisation of the sequential state
            update.}
@@ -149,10 +149,10 @@ dynamics.
   \caption{Synthetic signal filtering: \textbf{vanilla SSM} (standard Mamba,
            fixed $A$) vs.\ \textbf{KCMamba} (adaptive $K$-gain) at moderate
            ($\sigma=2$) and strong ($\sigma=5$) noise.
-           \textit{Top rows:} predicted vs.\ true signal; KCMamba tracks
+           \textit{Top rows:} predicted vs.\ true signal, where KCMamba tracks
            more tightly even under noise.
            \textit{Bottom rows:} learned $K$ values over time.
-           Vanilla SSM has a fixed $A$; KCMamba's $A$ adapts with noise level.}
+           Vanilla SSM has a fixed $A$, whereas KCMamba's $A$ adapts with noise level.}
   \label{fig:synth_mamba}
 \end{figure}
 
@@ -164,7 +164,7 @@ dynamics.
            with noise ($0.294 \to 0.926$), extending the memory horizon.
            \textbf{Right:} Effective memory horizon (number of steps until
            $A^k > 5\%$) vs.\ noise level. LSTM and vanilla SSM have fixed
-           horizons; KCMamba automatically extends memory under noise.}
+           horizons, whereas KCMamba automatically extends memory under noise.}
   \label{fig:memory_retention}
 \end{figure}
 
@@ -230,7 +230,7 @@ Fig.~\ref{fig:system_arch} shows the main components:
 \label{sec:module_structure}
 
 The source code is split into four main packages. \texttt{core/} contains all
-business logic and holds no references to any adapter; code in \texttt{adapters/}
+business logic and holds no references to any adapter. Code in \texttt{adapters/}
 accesses the core only through the \texttt{ports.py} interfaces.
 
 \begin{table}[H]
@@ -251,7 +251,7 @@ accesses the core only through the \texttt{ports.py} interfaces.
                                   \texttt{SignalEvent}, \texttt{FillEvent} \\
     \hline
     \multirow{5}{*}{\texttt{core/application/}}
-      & \texttt{engine.py}      & \texttt{TradingEngine}: main pipeline orchestrator;
+      & \texttt{engine.py}      & \texttt{TradingEngine}: main pipeline orchestrator,
                                   internal state machine for the trading cycle \\
       & \texttt{execution.py}   & Order assembly, sizing, and dispatch via
                                   \texttt{IBrokerGatewayPort} \\
@@ -288,7 +288,7 @@ accesses the core only through the \texttt{ports.py} interfaces.
     \hline
   \end{tabular}
   \caption{Module and class structure of the system. Each class depends only
-           on the data types and interfaces of its own package; cross-package
+           on the data types and interfaces of its own package, while cross-package
            dependencies are mediated by the \texttt{ports.py} abstractions.}
   \label{tab:module_structure}
 \end{table}

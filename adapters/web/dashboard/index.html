@@ -185,8 +185,8 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
         <div class="flex justify-between"><span class="text-slate-500">Val Acc</span><span class="font-mono font-bold" id="qValAcc">—</span></div>
       </div>
       <div class="mt-4 pt-3 border-t border-slate-800 flex gap-2 flex-wrap">
-        <a href="/model.html" class="text-xs text-blue-400 hover:text-blue-300">🧠 Modell diagnosztika →</a>
-        <a href="/training.html" class="text-xs text-blue-400 hover:text-blue-300">🎓 Tréning részletek →</a>
+        <a href="/model.html" class="text-xs text-blue-400 hover:text-blue-300">Modell diagnosztika →</a>
+        <a href="/training.html" class="text-xs text-blue-400 hover:text-blue-300">Tréning részletek →</a>
       </div>
     </div>
   </div>
@@ -317,7 +317,7 @@ async function refresh(){
   const tr=training.last_result||{};
   const sc={completed:'text-emerald-400',failed:'text-red-400',running:'text-yellow-400',idle:'text-slate-500'};
   set('qTrainStatus',training.status||'—','font-bold '+(sc[training.status]||'text-slate-400'));
-  set('qDeploy',tr.deployable!=null?(tr.deployable?'Igen ✓':'Nem ✗'):'—',tr.deployable?'font-bold text-emerald-400':'font-bold text-red-400');
+  set('qDeploy',tr.deployable!=null?(tr.deployable?'Igen':'Nem'):'—',tr.deployable?'font-bold text-emerald-400':'font-bold text-red-400');
   set('qValAcc',tr.val_directional_accuracy!=null?pct(tr.val_directional_accuracy):'—','font-mono font-bold '+(Number(tr.val_directional_accuracy)>=.50?'text-emerald-400':'text-slate-300'));
 }
 

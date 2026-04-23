@@ -355,7 +355,7 @@ async function refresh(){
   set('tstatus',tr.status||'—');
   const depEl=document.getElementById('tdeployable');if(depEl)depEl.innerHTML=lr.deployable!=null?badge(lr.deployable,'Igen','Nem'):'—';
   set('tdeployReason',lr.deploy_reason||'—');
-  const colEl=document.getElementById('tcollapse');if(colEl)colEl.innerHTML=lr.val_collapse_detected!=null?badge(!lr.val_collapse_detected,'✅ Nincs','🔴 COLLAPSE'):'—';
+  const colEl=document.getElementById('tcollapse');if(colEl)colEl.innerHTML=lr.val_collapse_detected!=null?badge(!lr.val_collapse_detected,'Nincs','COLLAPSE'):'—';
 
   // Key metrics
   const vda=lr.val_directional_accuracy;
@@ -413,12 +413,12 @@ async function refresh(){
       const acc=e.val_directional_accuracy;
       const accCls=acc>=.55?'text-emerald-400':acc>=.52?'text-amber-400':'text-red-400';
       return`<tr class="${isBest?'bg-emerald-950/25':''} border-b border-slate-800/40">
-        <td class="${isBest?'text-emerald-400 font-bold':'text-slate-400'}">${i+1}${isBest?' ★':''}</td>
+        <td class="${isBest?'text-emerald-400 font-bold':'text-slate-400'}">${i+1}${isBest?' (best)':''}</td>
         <td class="text-slate-300">${e.train_loss!=null?Number(e.train_loss).toFixed(5):'—'}</td>
         <td class="text-slate-300">${e.val_loss!=null?Number(e.val_loss).toFixed(5):'—'}</td>
         <td class="${accCls}">${acc!=null?pct(acc):'—'}</td>
         <td class="text-slate-400">${e.val_brier_up!=null?Number(e.val_brier_up).toFixed(4):'—'}</td>
-        <td>${e.meets_gate!=null?badge(e.meets_gate,'✅','✗'):'—'}</td>
+        <td>${e.meets_gate!=null?badge(e.meets_gate,'OK','-'):'—'}</td>
       </tr>`;
     }).join('');}
   }

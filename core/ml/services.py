@@ -23,9 +23,7 @@ if TYPE_CHECKING:
     from core.domain.models import Instrument
 
 
-# =====================================================
 # VALUE OBJECTS
-# =====================================================
 
 # Állapotbecslés value object.
 @dataclass(slots=True)
@@ -49,9 +47,7 @@ class Prediction:
     ts: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
-# =====================================================
 # DOMAIN SERVICE PORTS (Hexagonal boundary for ML)
-# =====================================================
 
 # State estimator port.
 class IStateEstimator(Protocol):
@@ -80,9 +76,7 @@ class IModelUpdatePort(Protocol):
         ...
 
 
-# =====================================================
 # STATE ESTIMATOR IMPLEMENTATIONS
-# =====================================================
 
 # KLA-hoz szükséges minimális feature state előállító.
 class KCAStateEstimator:
@@ -138,9 +132,7 @@ class KCAStateEstimator:
         return self.models[symbol]
 
 
-# =====================================================
 # PREDICTOR IMPLEMENTATIONS
-# =====================================================
 
 # KCAPredictor: KLA alapú prediktor, közvetlen online modellfrissítéssel
 class KCAPredictor(IPredictor, IModelUpdatePort):

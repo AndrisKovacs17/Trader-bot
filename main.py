@@ -263,16 +263,10 @@ async def run_demo() -> None:
         exec_stage=exec_stage,
     )
 
-    # =====================================================
     # 7. OFFLINE TRAINING ADAPTER
-    # =====================================================
-    
     training_engine = TrainingEngine()
 
-    # =====================================================
     # 8. OBSERVABILITY & WEB DASHBOARD
-    # =====================================================
-    
     perf_tracker = PerformanceTracker(
         initial_equity=wallet.initial_cash,
         peak_equity=wallet.initial_cash,
@@ -316,19 +310,14 @@ async def run_demo() -> None:
         port=int(config.web.get("port", 8000)),
     )
 
-    # =====================================================
     # 9. EVENT BUS SUBSCRIPTIONS
-    # =====================================================
-    
     bus.subscribe("MarketData", engine)
     bus.subscribe("OrderFilled", execution_order_handler)
     bus.subscribe("OrderRejected", execution_order_handler)
     bus.subscribe("*", tap)  # Observability tap
     bus.subscribe("*", recorder)  # Event store
 
-    # =====================================================
     # 10. DEMO: OFFLINE TRAINING
-    # =====================================================
 
     training_state: dict = {
         "status": "idle",
@@ -613,10 +602,7 @@ async def run_demo() -> None:
         )
         print(f"[TRAIN] Deployment skipped: {deploy_skip_reason}")
 
-    # =====================================================
     # 11. START SERVERS
-    # =====================================================
-    
     await bus.start()
     print(f"\n=== SIMULATION STARTED ===")
     print(f"initial_cash={wallet.initial_cash}")
@@ -624,10 +610,7 @@ async def run_demo() -> None:
     print(f"Dashboard (browser): {browser_base}/")
     print(f"Health (browser): {browser_base}/health")
 
-    # =====================================================
     # 12. OPTIONAL: INITIAL BATCH LOAD (for warmup)
-    # =====================================================
-    
     # Optional: Load recent closed klines for warmup before WebSocket
     try:
         print("\n[WARMUP] Loading recent closed klines for initial state...")
@@ -671,9 +654,7 @@ async def run_demo() -> None:
     except Exception as error:
         print(f"[WARN] Warmup failed, starting fresh: {error}")
 
-    # =====================================================
     # 13. RSS + SENTIMENT NEWS (one-time load + background polling)
-    # =====================================================
 
     async def _poll_news_loop() -> None:
         poll_interval = int(config.web.get("news_poll_interval_seconds", 300))
@@ -712,9 +693,7 @@ async def run_demo() -> None:
 
     asyncio.create_task(_poll_news_loop())
 
-    # =====================================================
     # 13b. DEMO REPLAY (gyors visszajátszás historikus adatokból)
-    # =====================================================
     demo_speed = float(config.web.get("demo_replay_bar_seconds", 0.0))
     if demo_speed > 0 and training_dataset:
         # Demo módban: fali idő alapú cooldown ki (a visszajátszás mesterséges tempójú),
@@ -751,10 +730,7 @@ async def run_demo() -> None:
             print("\n[DEMO] Megszakítva")
             raise
 
-    # =====================================================
     # 14. WEBSOCKET LIVE STREAM (REAL-TIME TRADING)
-    # =====================================================
-    
     live_stream_type = str(config.web.get("live_stream_type", "kline_1m"))
     live_kline_interval = str(config.web.get("live_kline_interval", "1m"))
     print("\n=== LIVE WEBSOCKET STREAM STARTED ===")
@@ -890,10 +866,7 @@ async def run_demo() -> None:
         traceback.print_exc()
         await run_rest_fallback_loop()
     finally:
-        # =====================================================
         # 15. GRACEFUL SHUTDOWN & FINAL REPORT
-        # =====================================================
-        
         await ws_stream.stop()
         await asyncio.sleep(0.25)
         await bus.stop()

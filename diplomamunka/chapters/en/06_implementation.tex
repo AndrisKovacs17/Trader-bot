@@ -1,14 +1,14 @@
 % ============================================================
-%  Chapter 6 — The Implemented System
+%  Chapter 6, The Implemented System
 % ============================================================
 \chapter{The Implemented System}
 \label{ch:implementacio}
 
-This chapter describes the software built around the KCMamba model:
-the trading engine, dashboard, backtesting infrastructure, and Binance adapter.
-The system follows a hexagonal architecture (\emph{Ports \& Adapters}); the
-architectural principles were introduced in Sec.~\ref{sec:system_arch};
-here the focus is on the concrete implementation of each adapter.
+This chapter describes the software built around the KCMamba model, namely
+the trading engine, the dashboard, the backtesting infrastructure and the Binance adapter.
+The system follows a hexagonal architecture (\emph{Ports \& Adapters}).
+The architectural principles were introduced in Sec.~\ref{sec:system_arch},
+and here the focus is on the concrete implementation of each adapter.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Technology Stack}
@@ -61,18 +61,18 @@ through \texttt{IBrokerGatewayPort}.
 
 \noindent\textbf{aiohttp web server} (\texttt{adapters/web/dashboard.py})\\
 Runs in the same \texttt{asyncio} event loop as the trading loop.
-Pushes a 1~Hz WebSocket stream to browsers via an \texttt{asyncio.Task};
-also exposes REST endpoints (\texttt{/api/signals}, \texttt{/api/equity},
+Pushes a 1~Hz WebSocket stream to browsers via an \texttt{asyncio.Task}.
+It also exposes REST endpoints (\texttt{/api/signals}, \texttt{/api/equity},
 etc.) for state queries.
 
 \noindent\textbf{Binance WebSocket / REST} (external)\\
-\texttt{BinanceFeed} receives OHLCV data over an async WebSocket;
+\texttt{BinanceFeed} receives OHLCV data over an async WebSocket, while
 \texttt{BinanceBroker} sends orders via REST.
 Automatic reconnection on network interruptions.
 
 \noindent\textbf{Filesystem}\\
 Model weights (\texttt{*.pt}), log files, CSV exports, and the
-\texttt{.env} configuration file. No database is used;
+\texttt{.env} configuration file. No database is used, and
 all runtime state lives in in-memory data structures.
 
 \begin{table}[H]
@@ -106,19 +106,19 @@ The backend pushes updates via a 1~Hz WebSocket stream.
 \label{subsec:dash_overview}
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 
-The home page (\texttt{index.html}) consolidates the most important information:
-equity curve, open positions, recent trading signals, and the model's current
+The home page (\texttt{index.html}) consolidates the most important information,
+namely the equity curve, open positions, recent trading signals, and the model's current
 Kalman gain value.
 
 \begin{figure}[H]
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Home --- Overview]}\\[4pt]
+    \textit{[Screenshot: Home, Overview]}\\[4pt]
     \small Placeholder for \texttt{dashboard/index.html} screenshot\\
     showing the equity curve, open positions, and Kalman gain.
   \end{minipage}}
-  \caption{Dashboard home page. The top panel shows the equity curve; below it
+  \caption{Dashboard home page. The top panel shows the equity curve, and below it
            are open positions and recent signals.}
   \label{fig:dash_overview}
 \end{figure}
@@ -137,7 +137,7 @@ filterable by symbol and signal type.
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Trading Signals --- \texttt{signals.html}]}\\[4pt]
+    \textit{[Screenshot: Trading Signals, \texttt{signals.html}]}\\[4pt]
     \small Signal log table in chronological order, with filter and export.
   \end{minipage}}
   \caption{Trading signals view. Each row represents one generated signal with
@@ -158,7 +158,7 @@ actual values.
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Model Diagnostics --- \texttt{model.html}]}\\[4pt]
+    \textit{[Screenshot: Model Diagnostics, \texttt{model.html}]}\\[4pt]
     \small Predicted vs.\ actual values, rolling MSE, confidence interval.
   \end{minipage}}
   \caption{Model diagnostics view. The Chart.js panel updates in real time
@@ -180,7 +180,7 @@ the model actually responds to changes in market volatility.
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Kalman Filter Diagnostics --- \texttt{kla\_kalman.html}]}\\[4pt]
+    \textit{[Screenshot: Kalman Filter Diagnostics, \texttt{kla\_kalman.html}]}\\[4pt]
     \small $K$-gain, $A$-factor, and $R$ noise estimate over time during
     moderate and high-volatility market periods.
   \end{minipage}}
@@ -194,15 +194,15 @@ the model actually responds to changes in market volatility.
 \label{subsec:dash_training}
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 
-The training view (\texttt{training.html}) monitors offline training progress:
-epoch loss curve, validation MSE, estimated completion time, and the
+The training view (\texttt{training.html}) monitors offline training progress,
+including the epoch loss curve, validation MSE, estimated completion time and the
 current configuration parameters.
 
 \begin{figure}[H]
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Offline Training --- \texttt{training.html}]}\\[4pt]
+    \textit{[Screenshot: Offline Training, \texttt{training.html}]}\\[4pt]
     \small Epoch loss curve, validation MSE with live updates, progress bar,
     and configuration summary.
   \end{minipage}}
@@ -224,7 +224,7 @@ noise level and stride configuration.
   \centering
   \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: LSTM/Mamba comparison --- \texttt{ltsf\_benchmark.html}]}\\[4pt]
+    \textit{[Screenshot: LSTM/Mamba comparison, \texttt{ltsf\_benchmark.html}]}\\[4pt]
     \small Interactive heat map and line charts for MSE results across noise
     levels and datasets.
   \end{minipage}}
@@ -253,7 +253,7 @@ ratio, maximum drawdown, and win rate.
   \centering
   \fbox{\begin{minipage}[c][5.5cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Backtest results --- equity curve and metrics]}\\[4pt]
+    \textit{[Screenshot: Backtest results, equity curve and metrics]}\\[4pt]
     \small Equity curve, Sharpe ratio, maximum drawdown, and monthly
     return heat map for the backtest period.
   \end{minipage}}
@@ -270,7 +270,7 @@ ratio, maximum drawdown, and win rate.
 The risk layer (\texttt{core/domain/risk.py}) enforces four rules.
 Position-size cap: no single entry may exceed 10\% of total equity.
 Asymmetric stop-loss: $-2\%$ from entry on long positions, $-1.5\%$ on short.
-If more than five symbols are open simultaneously, new signals are blocked;
+If more than five symbols are open simultaneously, new signals are blocked,
 and if the daily realised loss exceeds 3\% of equity, the engine closes all
 open positions.
 
@@ -286,7 +286,7 @@ given the current data quality.
     \small Risk module log: attempted and rejected signals, stop-loss event
     sequence, daily loss progress bar.
   \end{minipage}}
-  \caption{Risk management overview. Red rows indicate rejected signals;
+  \caption{Risk management overview. Red rows indicate rejected signals,
            green rows indicate executed ones.}
   \label{fig:risk_panel}
 \end{figure}
@@ -298,19 +298,19 @@ given the current data quality.
 
 The live trading adapter (\texttt{adapters/infrastructure/binance\_broker.py})
 uses the Binance Futures REST and WebSocket endpoints. Price updates reach the
-\texttt{TradingEngine} via \texttt{IEventBusPort}; the business logic has no
-knowledge of the Binance-specific data format; the adapter is replaceable.
+\texttt{TradingEngine} via \texttt{IEventBusPort}. The business logic has no
+knowledge of the Binance-specific data format, so the adapter is replaceable.
 
 \begin{figure}[H]
   \centering
   \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Live trading --- Binance positions and orders]}\\[4pt]
+    \textit{[Screenshot: Live trading, Binance positions and orders]}\\[4pt]
     \small Open Binance Futures positions, pending orders, and equity updates
     in real time.
   \end{minipage}}
   \caption{Live Binance trading view. The panel is synchronised with the
-           Binance account; balance and positions update every second.}
+           Binance account, and balance and positions update every second.}
   \label{fig:live_trading}
 \end{figure}
 
@@ -345,11 +345,11 @@ and never appear in source code.
   \centering
   \fbox{\begin{minipage}[c][4.5cm][c]{0.92\textwidth}
     \centering
-    \textit{[Screenshot: Terminal --- system startup and log lines]}\\[4pt]
+    \textit{[Screenshot: Terminal, system startup and log lines]}\\[4pt]
     \small Console output during startup: model loading, WebSocket connection
     confirmation, event loop start.
   \end{minipage}}
-  \caption{System startup log. Each adapter initialises in sequence; on error
+  \caption{System startup log. Each adapter initialises in sequence, and on error
            the system prints a detailed message and stack trace.}
   \label{fig:startup_log}
 \end{figure}
@@ -379,8 +379,8 @@ live-run ML-based trading strategies.
     Python           & 3.10                   & 3.11 \\
     RAM              & 4~GB                   & 8~GB \\
     Disk             & 2~GB                   & 5~GB \\
-    GPU (optional)   & ---                    & NVIDIA $\ge$6~GB VRAM \\
-    Network          & --- (backtest mode)    & Stable internet (live) \\
+    GPU (optional)   & n.a.                   & NVIDIA $\ge$6~GB VRAM \\
+    Network          & n.a. (backtest mode)   & Stable internet (live) \\
     \hline
   \end{tabular}
   \caption{Minimum and recommended hardware/software requirements.}
@@ -412,8 +412,8 @@ cp .env.example .env
 \subsubsection*{First run (paper-trading demo)}
 
 The default way to run the system is the foreground paper-trading demo.
-Executing \texttt{main.py} launches three background services concurrently:
-the offline trainer, the Binance WebSocket feed, and the web dashboard.
+Executing \texttt{main.py} launches three background services concurrently,
+namely the offline trainer, the Binance WebSocket feed, and the web dashboard.
 
 \begin{verbatim}
 source .venv/bin/activate
@@ -454,7 +454,7 @@ The top navigation bar exposes eight views grouped into three categories:
 
 A context-sensitive help dialog opens on clicking the \texttt{?} button in the
 bottom-right corner of every page. Page-to-page navigation happens through the
-top bar; the browser's \emph{back} button also works.
+top bar, and the browser's \emph{back} button also works.
 
 \subsubsection*{Usage patterns}
 
@@ -493,7 +493,7 @@ The demo runs in \emph{paper-trading} mode by default and does not submit
 real Binance orders. If a production key is nonetheless placed in the
 \texttt{.env} file, it is recommended to (a) grant only read and Futures
 trading permissions on the Binance side, and (b) restrict the key by
-IP whitelist. The dashboard listens on \texttt{0.0.0.0:8080} by default;
+IP whitelist. The dashboard listens on \texttt{0.0.0.0:8080} by default, and
 exposing it on a public IP should only happen behind an external
 reverse proxy (nginx, traefik).
 
@@ -510,7 +510,7 @@ settings on the Binance trading interface.
 
 \noindent\textbf{WebSocket connection error}\\
 A firewall may block Binance's
-\texttt{wss://} endpoint (port $9443$); set up a proxy if necessary.
+\texttt{wss://} endpoint (port $9443$). Set up a proxy if necessary.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Testing}
@@ -519,7 +519,7 @@ A firewall may block Binance's
 
 \subsection{Testing Strategy}
 
-The test suite uses \textbf{pytest}. Core logic is covered by unit tests;
+The test suite uses \textbf{pytest}. Core logic is covered by unit tests, and
 the Binance and aiohttp adapters are replaced with \texttt{unittest.mock}, so
 all tests run deterministically without a network connection.
 

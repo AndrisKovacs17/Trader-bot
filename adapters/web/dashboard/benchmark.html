@@ -121,7 +121,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
   <div class="flex items-center justify-between flex-wrap gap-3">
     <div>
-      <h1 class="text-xl font-extrabold text-slate-200">⚗️ Szintetikus Benchmark</h1>
+      <h1 class="text-xl font-extrabold text-slate-200">Szintetikus Benchmark</h1>
       <p class="text-xs text-slate-500 mt-1">KCA-Mamba vs. Plain Mamba — rezsimváltó AR(1) látens állapot követési feladat</p>
     </div>
     <div class="flex items-center gap-3">
@@ -162,7 +162,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Plain Mamba card -->
     <div class="section border-slate-700" id="cardPlain">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">📊 Plain Mamba<button class="tip-btn" data-tip="Az eredeti Mamba architektúra — state space model selective scan-nel, Kalman/KCA kiegészítés NÉLKÜL.&#10;Referencia: mennyire javít a Kalman-inspired gating a puszta Mamba-hoz képest.">?</button></h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Plain Mamba<button class="tip-btn" data-tip="Az eredeti Mamba architektúra: state space model selective scan-nel, Kalman/KCA kiegészítés NÉLKÜL.&#10;Referencia: mennyire javít a Kalman-inspired gating a puszta Mamba-hoz képest.">?</button></h2>
       <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="pParams">—</span></div>
       <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="pTestLoss">—</span></div>
       <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="pTrainRange">—</span></div>
@@ -172,7 +172,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- KLA card -->
     <div class="section bg-blue-950/20 border-blue-900" id="cardKla">
-      <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-3">🧠 KCA-Mamba<button class="tip-btn" data-tip="A diplomamunka modellje: KCA-Mamba (Kalman-Calibrated Attention Mamba).&#10;Kalman-inspired gain gating + slow-context cross-attention.">?</button></h2>
+      <h2 class="text-xs font-bold text-blue-300 uppercase tracking-widest mb-3">KCA-Mamba<button class="tip-btn" data-tip="A diplomamunka modellje: KCA-Mamba (Kalman-Calibrated Attention Mamba).&#10;Kalman-inspired gain gating + slow-context cross-attention.">?</button></h2>
       <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="kParams">—</span></div>
       <div class="kv"><span class="lbl">Test MSE</span><span class="val font-bold" id="kTestLoss">—</span></div>
       <div class="kv"><span class="lbl">Train loss (start → vége)</span><span class="val" id="kTrainRange">—</span></div>
@@ -347,7 +347,7 @@ async function refresh(){
   set('navTime',new Date().toLocaleTimeString('hu-HU'));
 
   // Status badge
-  const statusMap={idle:'⏸ Idle',running:'⏳ Fut…',done:'✅ Kész',failed:'❌ Hiba',unavailable:'⚠️ N/A'};
+  const statusMap={idle:'Idle',running:'Fut…',done:'Kész',failed:'Hiba',unavailable:'N/A'};
   const statusCls={idle:'badge badge-warn',running:'badge badge-run',done:'badge badge-ok',failed:'badge badge-err',unavailable:'badge badge-warn'};
   set('runStatus',statusMap[status]||status,statusCls[status]||'badge badge-warn');
   if(sb){sb.textContent=status==='running'?'● Fut':'○ '+status;sb.className='px-2.5 py-0.5 rounded-full text-xs font-bold '+(status==='running'?'bg-blue-950 text-blue-400':'bg-slate-800 text-slate-500');}
@@ -394,13 +394,13 @@ async function refresh(){
     const banner=document.getElementById('verdictBanner');
     if(banner){banner.classList.remove('hidden');}
     if(diff>0){
-      set('verdictText','🏆 KCA-Mamba nyert! MSE: '+kL.toFixed(6)+' vs '+pL.toFixed(6),'text-lg font-extrabold text-emerald-400');
+      set('verdictText','KCA-Mamba nyert. MSE: '+kL.toFixed(6)+' vs '+pL.toFixed(6),'text-lg font-extrabold text-emerald-400');
       set('verdictSub','KCA-Mamba '+pct+'%-kal kisebb test MSE-t ér el ugyanazon az adaton.');
     } else if(diff<0){
-      set('verdictText','📊 Plain Mamba nyert! MSE: '+pL.toFixed(6)+' vs '+kL.toFixed(6),'text-lg font-extrabold text-amber-400');
+      set('verdictText','Plain Mamba nyert. MSE: '+pL.toFixed(6)+' vs '+kL.toFixed(6),'text-lg font-extrabold text-amber-400');
       set('verdictSub','Plain Mamba '+pct+'%-kal kisebb test MSE-t ér el ezen a konfiguráción.');
     } else {
-      set('verdictText','🤝 Döntetlen');
+      set('verdictText','Döntetlen');
       set('verdictSub','Mindkét modell azonos test MSE-t produkált.');
     }
   }

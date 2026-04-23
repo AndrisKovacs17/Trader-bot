@@ -62,7 +62,7 @@ több olyan egyszerűsítést tartalmaz, amelyek a következtetések
           enyhe alulilleszkedést okoz, és a struktúra nem képes teljesen
           kikapcsolni a szűrést.
 
-    \item ETTh1/$s=1$-nél az LSTM a legjobb; a gating mechanizmus
+    \item ETTh1/$s=1$-nél az LSTM a legjobb, mivel a gating mechanizmus
           kihasználja a nagy adatmennyiséget. Az LSTM forget/input gate
           párosa hasonló adaptív szűrést valósít meg, de rugalmasabb, mert
           nem köti meg a $K = Q/(Q+R)$ struktúra. Ez nem a KCMamba
@@ -79,11 +79,11 @@ több olyan egyszerűsítést tartalmaz, amelyek a következtetések
     \item Csak $L=H=96$ horizontot vizsgáltam. A 336, 720 és 960 lépéses
           horizontokon a Mamba $O(T)$ komplexitása számottevő előnyt hozhat
           az $O(T^2)$ Transzformerekkel szemben, és az LSTM memória-korlátai
-          is itt kezdenek dominálni; a jelen fejezet következtetései
+          is itt kezdenek dominálni, így a jelen fejezet következtetései
           tehát formálisan csak a rövid horizontra vonatkoznak.
 
     \item A zajmodell kizárólag izotróp Gauss-zaj
-          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$); a valós alkalmazásokban
+          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$). A valós alkalmazásokban
           a zaj jellemzően heteroszkedasztikus, időben korrelált, esetenként
           nem-Gauss eloszlású, és gyakran strukturális (szenzorkiesés, hiányzó
           érték). Az itt mért robusztusság ezekre a zajformákra nem
@@ -95,16 +95,16 @@ több olyan egyszerűsítést tartalmaz, amelyek a következtetések
           érzékelhetően növelné.
 
     \item Két benchmark (Weather, ECL) a tanítási futamszám skálázódása
-          miatt a jelen kísérleti körbe nem került be; a dimenzió-érzékenység
+          miatt a jelen kísérleti körbe nem került be, így a dimenzió-érzékenység
           (7 vs.\ 21 vs.\ 321 csatorna) \emph{a~priori} nincs alátámasztva.
 
     \item A hiperparaméter-érzékenység szélesebb körű vizsgálata (rejtett
           dimenzió, fejek száma, rétegek száma, kernelméret, tanulási sebesség)
-          nem történt meg; a bemutatott konfiguráció egy ésszerű alapbeállítás,
+          nem történt meg. A bemutatott konfiguráció ésszerű alapbeállítás,
           amely nem biztos, hogy Pareto-optimális.
 
     \item A valós kereskedelmi oldalon (\ref{ch:implementacio}.\ fejezet)
-          a rendszer backtestben van validálva; élő piac, slippage-ingadozás,
+          a rendszer backtestben van validálva. Élő piac, slippage-ingadozás,
           szünetek és részteljesülési sorrend-hatások a jelen dolgozat
           hatókörén kívül esnek.
 \end{itemize}

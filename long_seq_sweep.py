@@ -240,7 +240,7 @@ def main() -> None:
 
         done += 1
         final_loss = res["epoch_losses"][-1] if res["epoch_losses"] else float("nan")
-        print(f"\n  ✓ {label}  mse={res['test_mse']:.4f}  ep_loss={final_loss:.4f}"
+        print(f"\n  [OK] {label}  mse={res['test_mse']:.4f}  ep_loss={final_loss:.4f}"
               f"  lr={found_lr:.2e}  t={res['train_time_s']:.0f}s")
 
     print(f"\n\nSweep done. {done} cells in {(time.time()-sweep_start)/60:.1f} min")

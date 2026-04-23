@@ -64,7 +64,7 @@ pytest tests/
 
 ## Eredmények
 
-Minden teszt sikeres (✓) ha:
+Minden teszt sikeres (OK), ha:
 - Az equity helyesen csökken fee-vel
 - BUY és SELL műveletek helyesen frissítik az equity-t
 - A pozíciók helyesen követik a tranzakciókat

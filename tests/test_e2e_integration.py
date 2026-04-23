@@ -44,9 +44,7 @@ from adapters.testing.broker import MockBrokerGateway
 from adapters.testing.time_source import SimulatedTimeSource
 
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 class SyncEventBus(IEventBusPort):
     """Synchronous event bus for deterministic E2E testing."""
@@ -94,9 +92,7 @@ def make_market_event(price: float, symbol: str = "BTCUSDT") -> MarketDataEvent:
     )
 
 
-# ---------------------------------------------------------------------------
 # Fixtures
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def config() -> Config:
@@ -189,9 +185,7 @@ def engine(bus, config):
     return engine
 
 
-# ---------------------------------------------------------------------------
 # Tests
-# ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
 async def test_full_pipeline_produces_fill(engine, bus):

@@ -39,7 +39,7 @@ Ez az arány-alapú dinamikus súlyozás a KCMamba mechanizmusának is kiinduló
 A neurális Kalman-irodalomban a $F, H, Q, R$ mátrixokat hálózatokkal
 paraméterezik~\cite{krishnan2015deep,fraccaro2017disentangled}.
 A \emph{Deep Kalman Filter}~\cite{krishnan2015deep} nemlineáris átmenetet
-enged meg; a \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
+enged meg, a \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
 a latens állapotok szétválasztott reprezentációját tanítja.
 A KCMamba ezeken az elveken épít, de nem autoencoderként, hanem
 szekvencia-előrejelzőként.
@@ -111,8 +111,8 @@ Az irodalom ezt a beállítást \emph{Fair Mamba} néven hivatkozza.
 
 \subsection{Problémaformulázás}
 
-Adott $\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$;
-a cél $\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H})$
+Adott $\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$.
+A cél $\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H})$
 előrejelzése nMSE minimalizálásával.
 
 \subsection{Referenciamodellek}
@@ -121,8 +121,8 @@ előrejelzése nMSE minimalizálásával.
 A Long Short-Term Memory~\cite{hochreiter1997lstm} hálózat a rekurrens
 modellek közül a legszélesebb körben alkalmazott idősor-előrejelző
 architektúra. A \emph{forget gate} $f_t = \sigma(W_f [h_{t-1}, x_t] + b_f)$
-szabályozza, hogy az előző cellaállapot mekkora hányada maradjon meg;
-az \emph{input gate} $i_t = \sigma(W_i [h_{t-1}, x_t] + b_i)$ határozza
+szabályozza, hogy az előző cellaállapot mekkora hányada maradjon meg.
+Az \emph{input gate} $i_t = \sigma(W_i [h_{t-1}, x_t] + b_i)$ határozza
 meg az új információ beáramlásának mértékét. Ez a kapuzási mechanizmus
 adaptív szűrést valósít meg, ami funkcionálisan rokon a Kalman-gain
 szerepével, azzal a különbséggel, hogy az LSTM-ben nincs explicit
@@ -134,7 +134,7 @@ Az ARIMA($p,d,q$) modell a Box--Jenkins-eljárás klasszikus statisztikai
 módszere~\cite{box2015time}. A $d$-szeres differenciálás stacionerizálja az
 idősort, az AR($p$) tag lineáris autoregressziót, az MA($q$) tag mozgóátlagot
 modellez. Az ARIMA zajtalan adatokon rendkívül hatékony, és a legkisebb
-MSE-t éri el $\sigma=0$ mellett; ugyanakkor $\sigma \ge 3$ felett
+MSE-t éri el $\sigma=0$ mellett. Ugyanakkor $\sigma \ge 3$ felett
 katasztrofálisan összeomlik, mert a lineáris struktúra nem képes szétválasztani
 a jelet és a zajt.
 
@@ -163,8 +163,8 @@ a jelet és a zajt.
 Az idősor-modellek zajérzékenységének szisztematikus elemzése az
 LTSF-irodalomban aláreprezentált terület.
 A PatchTST~\cite{nie2022patchtst} patch-tokenizálással csökkenti a
-szomszédos mintavételezési torzítást; ez közvetett zajcsökkentő hatással
-jár, bár nem ez az eljárás fő célkitűzése. A zajos adatokkal
+szomszédos mintavételezési torzítást. Ennek közvetett zajcsökkentő hatása
+van, bár nem ez az eljárás fő célkitűzése. A zajos adatokkal
 augmentált tanításon alapuló robusztusság-növelés az LTSF-kutatásban
 eddig kevés figyelmet kapott.
 

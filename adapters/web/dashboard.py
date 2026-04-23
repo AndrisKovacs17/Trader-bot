@@ -499,7 +499,7 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>🚀 Trading Simulation Dashboard</title>
+        <title>Trading Simulation Dashboard</title>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
@@ -665,7 +665,7 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
     </head>
     <body>
         <div class="container">
-            <h1>🚀 Trading Simulation Dashboard</h1>
+            <h1>Trading Simulation Dashboard</h1>
             <div class="subtitle">Real-time monitoring · Automatikus frissítés 2mp-enként <span class="badge live">LIVE</span></div>
 
             <div class="controls">
@@ -678,55 +678,55 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
 
             <div class="metrics">
                 <div class="metric-card">
-                    <div class="metric-label">💰 Kezdőtőke</div>
+                    <div class="metric-label">Kezdőtőke</div>
                     <div class="metric-value" id="initialCash">-</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">💵 Cash</div>
+                    <div class="metric-label">Cash</div>
                     <div class="metric-value" id="cash">-</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">📊 Equity</div>
+                    <div class="metric-label">Equity</div>
                     <div class="metric-value" id="equity">-</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">📈 PnL</div>
+                    <div class="metric-label">PnL</div>
                     <div class="metric-value" id="pnl">-</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">⚡ Sharpe</div>
+                    <div class="metric-label">Sharpe</div>
                     <div class="metric-value" id="sharpe">-</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">📉 Drawdown</div>
+                    <div class="metric-label">Drawdown</div>
                     <div class="metric-value" id="drawdown">-</div>
                 </div>
             </div>
 
             <div class="charts-grid">
                 <div class="chart-container">
-                    <div class="chart-title">💰 Wallet Equity Curve</div>
+                    <div class="chart-title">Wallet Equity Curve</div>
                     <canvas id="equityChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">💵 Cash Balance</div>
+                    <div class="chart-title">Cash Balance</div>
                     <canvas id="cashChart"></canvas>
                 </div>
             </div>
 
             <div class="charts-grid">
                 <div class="chart-container">
-                    <div class="chart-title">🤖 Model Prediction (prob_up)</div>
+                    <div class="chart-title">Model Prediction (prob_up)</div>
                     <canvas id="probChart"></canvas>
                 </div>
                 <div class="chart-container">
-                    <div class="chart-title">📊 PnL Distribution</div>
+                    <div class="chart-title">PnL Distribution</div>
                     <canvas id="pnlChart"></canvas>
                 </div>
             </div>
 
             <div class="chart-container" style="margin-bottom: 24px;">
-                <div class="chart-title">🛡️ Risk Diagnostics</div>
+                <div class="chart-title">Risk Diagnostics</div>
                 <div class="risk-grid">
                     <div class="risk-box">
                         <h3>Rule Hits</h3>
@@ -740,7 +740,7 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
             </div>
 
             <div class="json-container">
-                <div class="chart-title">📋 Raw Data (JSON)</div>
+                <div class="chart-title">Raw Data (JSON)</div>
                 <pre id="jsonOut">Betöltés...</pre>
             </div>
         </div>
@@ -846,7 +846,7 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
                     const toggle = document.getElementById('kalmanToggle');
                     toggle.checked = !!cfg.use_kalman;
                     const status = document.getElementById('kalmanStatus');
-                    status.textContent = cfg.use_kalman ? '✓ Aktív' : '✗ Kikapcsolva';
+                    status.textContent = cfg.use_kalman ? 'Aktív' : 'Kikapcsolva';
                     status.className = cfg.use_kalman ? 'status on' : 'status off';
                 } catch (_) {}
             }
@@ -860,7 +860,7 @@ _DASHBOARD_HTML_LEGACY = """<!doctype html>
                     });
                     const cfg = await response.json();
                     const status = document.getElementById('kalmanStatus');
-                    status.textContent = cfg.use_kalman ? '✓ Aktív' : '✗ Kikapcsolva';
+                    status.textContent = cfg.use_kalman ? 'Aktív' : 'Kikapcsolva';
                     status.className = cfg.use_kalman ? 'status on' : 'status off';
                 } catch (err) {
                     console.error('Kalman update error:', err);

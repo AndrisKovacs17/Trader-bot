@@ -267,7 +267,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Predikció vs valódi ármozgás -->
   <div class="section">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">📈 Predikció vs valódi ármozgás<button class="tip-btn" data-tip="A modell által előrejelzett és a ténylegesen realizált hozam összehasonlítása.&#10;&#10;Korreláció → kalibráltság jele.&#10;Mu mindig 0 közelében → a modell nem mer markáns becslést adni.">?</button></h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Predikció vs valódi ármozgás<button class="tip-btn" data-tip="A modell által előrejelzett és a ténylegesen realizált hozam összehasonlítása.&#10;&#10;Korreláció → kalibráltság jele.&#10;Mu mindig 0 közelében → a modell nem mer markáns becslést adni.">?</button></h2>
       <span id="predVsActualMeta" class="text-xs text-slate-600">—</span>
     </div>
     <div style="height:260px"><canvas id="cPredVsActual"></canvas></div>
@@ -351,12 +351,12 @@ function diagProb(arr){
   const std=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length);
   const range=Math.max(...arr)-Math.min(...arr);
   const issues=[];
-  if(std<0.01)issues.push('⚠️ Túl kis szórás ('+std.toFixed(4)+') — a jel lapos');
-  if(range<0.05)issues.push('⚠️ Tartomány nagyon szűk ('+range.toFixed(4)+') — prior debias vagy temperature hiba?');
+  if(std<0.01)issues.push('Túl kis szórás ('+std.toFixed(4)+'), a jel lapos');
+  if(range<0.05)issues.push('Tartomány nagyon szűk ('+range.toFixed(4)+'), prior debias vagy temperature hiba?');
   if(Math.abs(mean-0.5)<0.01)issues.push('ℹ️ Átlag közel 0.5 — modell semleges torzítással');
-  if(mean<0.44)issues.push('⚠️ Átlag szisztematikusan alacsony ('+mean.toFixed(4)+') — SELL bias?');
-  if(mean>0.56)issues.push('⚠️ Átlag szisztematikusan magas ('+mean.toFixed(4)+') — BUY bias?');
-  return{txt:issues.length?issues.join('\n'):'✅ Prob↑ jel egészségesnek tűnik',cls:issues.length?'text-amber-400':'text-emerald-400'};
+  if(mean<0.44)issues.push('Átlag szisztematikusan alacsony ('+mean.toFixed(4)+'), SELL bias?');
+  if(mean>0.56)issues.push('Átlag szisztematikusan magas ('+mean.toFixed(4)+'), BUY bias?');
+  return{txt:issues.length?issues.join('\n'):'Prob↑ jel egészségesnek tűnik',cls:issues.length?'text-amber-400':'text-emerald-400'};
 }
 
 function diagSigma(arr){
@@ -365,11 +365,11 @@ function diagSigma(arr){
   const std=Math.sqrt(arr.reduce((a,b)=>a+(b-mean)**2,0)/arr.length);
   const range=Math.max(...arr)-Math.min(...arr);
   const issues=[];
-  if(range<1e-5)issues.push('🔴 HALOTT SIGMA — var_head konstans kimenetet ad (Beta-NLL collapse?)');
-  else if(range<1e-4)issues.push('⚠️ Sigma alig változik (range='+range.toExponential(2)+') — var_head alulteljesít');
-  if(mean<1e-5)issues.push('🔴 Átlag sigma közel 0 — clamp-on van, model nem tud bizonytalanságot becsülni');
-  if(mean>0.1)issues.push('⚠️ Átlag sigma nagyon magas ('+mean.toFixed(4)+') — esetleg túl konzervatív');
-  return{txt:issues.length?issues.join('\n'):'✅ Sigma megfelelően változik',cls:issues.length?'text-red-400':'text-emerald-400'};
+  if(range<1e-5)issues.push('HALOTT SIGMA, var_head konstans kimenetet ad (Beta-NLL collapse?)');
+  else if(range<1e-4)issues.push('Sigma alig változik (range='+range.toExponential(2)+'), var_head alulteljesít');
+  if(mean<1e-5)issues.push('Átlag sigma közel 0, clamp-on van, model nem tud bizonytalanságot becsülni');
+  if(mean>0.1)issues.push('Átlag sigma nagyon magas ('+mean.toFixed(4)+'), esetleg túl konzervatív');
+  return{txt:issues.length?issues.join('\n'):'Sigma megfelelően változik',cls:issues.length?'text-red-400':'text-emerald-400'};
 }
 
 async function refresh(){
@@ -428,7 +428,7 @@ async function refresh(){
     set('phNeutCount',neut+' ('+pct(neut/probArr.length)+')');
     const flat=(mx-mn)<.05;
     const ge=document.getElementById('phFlatDiag');
-    if(ge){ge.innerHTML=flat?'<span class="badge badge-err">⚠️ LAPOS JEL</span>':'<span class="badge badge-ok">✅ Változó jel</span>';}
+    if(ge){ge.innerHTML=flat?'<span class="badge badge-err">LAPOS JEL</span>':'<span class="badge badge-ok">Változó jel</span>';}
     const diag=diagProb(probArr);
     const diagEl=document.getElementById('probHealthDiag');
     if(diagEl){diagEl.textContent=diag.txt;diagEl.className='mt-3 p-3 rounded-xl bg-slate-950 text-xs leading-relaxed whitespace-pre-line '+diag.cls;}
@@ -447,7 +447,7 @@ async function refresh(){
     set('shRange',range.toExponential(3),'val '+(range>1e-5?'text-emerald-400':'text-red-400'));
     const dead=range<1e-5;
     const deadEl=document.getElementById('shDead');
-    if(deadEl){deadEl.innerHTML=dead?'<span class="badge badge-err">🔴 HALOTT</span>':'<span class="badge badge-ok">✅ Élő</span>';}
+    if(deadEl){deadEl.innerHTML=dead?'<span class="badge badge-err">HALOTT</span>':'<span class="badge badge-ok">Élő</span>';}
     const diag=diagSigma(sigArr);
     const diagEl=document.getElementById('sigmaHealthDiag');
     if(diagEl){diagEl.textContent=diag.txt;diagEl.className='mt-3 p-3 rounded-xl bg-slate-950 text-xs leading-relaxed whitespace-pre-line '+diag.cls;}
@@ -562,7 +562,7 @@ async function refresh(){
     if(blRows.length){
       if(noData)noData.classList.add('hidden');if(chartDiv)chartDiv.classList.remove('hidden');
       upC('cBaselineComp',blRows.map(r=>r.label),[{data:blRows.map(r=>r.acc),backgroundColor:blRows.map(r=>r.isKla?'rgba(59,130,246,.85)':'rgba(71,85,105,.55)'),borderColor:blRows.map(r=>r.isKla?'#60a5fa':'#94a3b8'),borderWidth:2,borderRadius:4,borderSkipped:false}]);
-      if(klaAcc2!=null&&baseRef2!=null){const diff=klaAcc2-baseRef2;set('baselineCompMeta',(diff>=0?'✅ KCA +':'⚠️ KCA ')+pct(diff)+' vs best baseline');}
+      if(klaAcc2!=null&&baseRef2!=null){const diff=klaAcc2-baseRef2;set('baselineCompMeta',(diff>=0?'KCA +':'KCA ')+pct(diff)+' vs best baseline');}
       const bTbody=document.getElementById('baselineCompTbody');
       if(bTbody){bTbody.innerHTML=blRows.map(r=>{
         const diffFromKla=r.isKla?null:(klaAcc2!=null&&r.acc!=null?klaAcc2-r.acc:null);

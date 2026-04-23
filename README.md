@@ -1,4 +1,4 @@
-# KCA-Mamba kereskedési rendszer — Felhasználói útmutató
+# KCA-Mamba kereskedési rendszer (felhasználói útmutató)
 
 Ez a dokumentum a [diplomamunka](diplomamunka/main.pdf) kiegészítő felhasználói
 leírása. A fejlesztői dokumentáció a dolgozatban (4–5. fejezet) található.
@@ -16,7 +16,7 @@ Binance tőzsde nyilvános adatait használja. A rendszer:
 * Webes irányítópulton (dashboard) megjeleníti a modell állapotát, a
   szignálokat, az egyenleget és a diagnosztikákat.
 
-A program **nem** éles kereskedésre készült; a pénzügyi veszteségek
+A program **nem** éles kereskedésre készült. A pénzügyi veszteségek
 elkerülése érdekében minden order a beépített szimulációs brókerbe fut.
 
 ## 2. Célközönség
@@ -35,7 +35,7 @@ elkerülése érdekében minden order a beépített szimulációs brókerbe fut.
 | Python | 3.11 | 3.12 |
 | CPU | 4 mag, x86-64 | 8 mag |
 | RAM | 4 GB | 8 GB |
-| GPU | — (CPU-n is fut) | NVIDIA CUDA 12.x kompatibilis |
+| GPU | nincs (CPU-n is fut) | NVIDIA CUDA 12.x kompatibilis |
 | Lemez | 2 GB (dataset cache-sel együtt ~150 MB) | 5 GB |
 | Hálózat | Binance REST/WS (kimenő HTTPS, 443) | stabil szélessáv |
 
@@ -84,7 +84,7 @@ python -m pytest tests/ -q
 
 Várt kimenet: `71 passed`.
 
-## 6. Dashboard — felhasználói felület
+## 6. Dashboard (felhasználói felület)
 
 A dashboard magyar nyelvű, a felső navigációs sávban kategorizált menükkel:
 
@@ -107,20 +107,20 @@ funkcióit.
 
 | Üzenet | Ok | Teendő |
 |---|---|---|
-| `[WARN] RSS/sentiment processing failed: ...` | RSS forrás átmenetileg elérhetetlen | Figyelmen kívül hagyható; a program hír nélkül folytatja |
-| `[FALLBACK] WebSocket unavailable. Switching to REST polling` | A WebSocket kapcsolat instabil | A program automatikusan áttér REST-polling fallback módra; manuális beavatkozás nem szükséges |
-| `[FATAL ERROR] ...` + traceback | Váratlan belső hiba | A program lezárja a kapcsolatokat és megpróbál REST fallbacket; ha ismétlődik, nyisson hibajegyet |
-| `[SHUTDOWN] User interrupted (CTRL+C)` | Szabályos megszakítás | Nincs teendő; a `finally` ág eltakarít |
-| `Bad request: API key required` | Érvénytelen Binance kulcs | Csak historikus/WebSocket adatokhoz nem kell kulcs; éles rendeléshez sem, mert a rendszer paper trading módban fut |
+| `[WARN] RSS/sentiment processing failed: ...` | RSS forrás átmenetileg elérhetetlen | Figyelmen kívül hagyható, a program hír nélkül folytatja. |
+| `[FALLBACK] WebSocket unavailable. Switching to REST polling` | A WebSocket kapcsolat instabil | A program automatikusan áttér REST-polling fallback módra, manuális beavatkozás nélkül. |
+| `[FATAL ERROR] ...` + traceback | Váratlan belső hiba | A program lezárja a kapcsolatokat és REST fallbackre vált. Ismétlődő jelentkezés esetén érdemes hibajegyet nyitni. |
+| `[SHUTDOWN] User interrupted (CTRL+C)` | Szabályos megszakítás | Nincs teendő, a `finally` ág elvégzi az erőforrás-felszabadítást. |
+| `Bad request: API key required` | Érvénytelen Binance kulcs | Historikus és WebSocket adatokhoz kulcs nem szükséges, és a rendszer paper trading üzemmódja miatt éles rendeléshez sincs rá szükség. |
 | `OSError: [Errno 98] Address already in use` | A 8080-as port foglalt | Állítsa le a foglaló folyamatot, vagy módosítsa a `config.web.port` értéket |
 
 A program minden hibaüzenetet a `stderr`-re ír, a rendes kimenet a `stdout`-ra
-megy — így `nohup python main.py > run.log 2> run.err &` módon külön
+megy, így `nohup python main.py > run.log 2> run.err &` módon külön
 naplózható.
 
 ## 8. Biztonsági megfontolások
 
-* A rendszer paper trading módban fut; nem indít valós tőzsdei pozíciót.
+* A rendszer paper trading módban fut, és nem nyit valós tőzsdei pozíciót.
 * A Binance kulcsok (ha mégis használ) csak olvasási jogosultságúak legyenek.
 * A dashboard csak a lokális interfészen (`127.0.0.1`) hallgat, nem nyilvános.
 * A tréning cache (`adapters/offline_training/dataset_cache/`) nincs a
@@ -150,10 +150,10 @@ logikával váltja ki: minden időlépésben a hálózat kiszámít egy
 $Q$ folyamatzaj- és $R$ mérési zajtermet, ezekből klasszikus Kalman-erősítést
 ($K$) vezet le, majd az állapotátmeneti faktort ($A = 1 - K$) közvetlenül
 ebből állítja elő. Zajos bemenetkor $R \gg Q \Rightarrow K \approx 0 \Rightarrow A \approx 1$
-(hosszú memória, kicsi frissítés); tiszta jelnél $Q \approx R \Rightarrow K \approx 0.5$
+(hosszú memória, kicsi frissítés). Tiszta jelnél $Q \approx R \Rightarrow K \approx 0.5$
 (gyors követés).
 
-### 10.2 KCAMambaBlock — egyetlen réteg felépítése
+### 10.2 KCAMambaBlock (egyetlen réteg felépítése)
 
 ```
 x [B, T, d_model]
@@ -179,7 +179,7 @@ x [B, T, d_model]
   │──────────────────────────────────────────────────────────────────────────
   │
   ├─ parallel_scan(A, B, μ₀) → μ_all [B,T,E]
-  │    O(T log T) idő, O(T log T) memória — GPU-n párhuzamos
+  │    O(T log T) idő, O(T log T) memória, GPU-n párhuzamos
   │
   ├─ out_proj(μ_all · gate) → y_p
   │
@@ -219,7 +219,7 @@ Iteráció 2 (step=2):
 Fontos: a $B$-frissítésnél mindig az *eredeti* (frissítés előtti) $A$-értéket
 kell használni, különben minden korábbi hozzájárulás kétszeresen lecsengne.
 
-### 10.4 KCAMambaStack — több réteg + multi-timescale figyelés
+### 10.4 KCAMambaStack (több réteg + multi-timescale figyelés)
 
 ```
 x [B, T, feature_dim]
@@ -267,7 +267,7 @@ jelent.
 └────────────────┘ └──────────────┘ └────────────────────────────┘
 ```
 
-A `core/` réteg egyetlen infrastrukturális importot sem tartalmaz — az összes
+A `core/` réteg egyetlen infrastrukturális importot sem tartalmaz; az összes
 külső függőség az `adapters/` rétegen keresztül, port-interfészeken át
 csatlakozik. Így a teljes kereskedési pipeline szintetikus adatokon is
 futtatható (lásd `tests/`).

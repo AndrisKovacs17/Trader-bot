@@ -39,7 +39,7 @@ def test_equity_with_fee_fix():
     
     expected_buy = 10000.0 - 50100.0  # = -40100
     assert equity_after_buy == expected_buy, f"BUY equity wrong: {equity_after_buy} != {expected_buy}"
-    print(f"  ✓ CORRECT!")
+    print(f"  [OK] CORRECT!")
     
     # SELL 0.5 BTC @ 60000 with fee 50
     # PnL = (qty * price) - fee = (0.5 * 60000) - 50 = 29950
@@ -59,16 +59,16 @@ def test_equity_with_fee_fix():
     
     expected_sell = -40100.0 + 29950.0  # = -10150
     assert equity_after_sell == expected_sell, f"SELL equity wrong: {equity_after_sell} != {expected_sell}"
-    print(f"  ✓ CORRECT!")
+    print(f"  [OK] CORRECT!")
     
     print("\n" + "=" * 70)
-    print("KEY INSIGHT: Fee ALWAYS reduces PnL (previously it ADDED to SELL PnL!)")
+    print("A fee MINDIG csokkenti a PnL-t (korabban a SELL PnL-hez hozzaadodott).")
     print("=" * 70)
     print("\nBUY formula:  pnl = -(qty * price) - fee")
     print("SELL formula: pnl = +(qty * price) - fee")
     print("  → BUY: -(1*50000) - 100 = -50100")
     print("  → SELL: +(0.5*60000) - 50 = +29950")
-    print("\n✓ All tests PASSED!")
+    print("\n[OK] All tests PASSED!")
     print("=" * 70)
 
 if __name__ == "__main__":
