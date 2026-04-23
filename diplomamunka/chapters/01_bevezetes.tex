@@ -50,9 +50,10 @@ Három konkrét kérdést vizsgálunk:
 \section{Hozzájárulások}
 
 \begin{itemize}
-    \item A \textbf{KCMamba} architektúra leírása: tanult $Q_\text{net}$,
-          $R_\text{net}$, $K_\text{net}$ alhálózatok differenciálható
-          Kalman-szűrőn belül, párhuzamos prefix-scan GPU-implementációval.
+    \item A \textbf{KCMamba} architektúra bemutatása, amely tanult
+          $Q_\text{net}$, $R_\text{net}$ és $K_\text{net}$ alhálózatokat ágyaz
+          be egy differenciálható Kalman-szűrőbe, és a rekurzió kiértékelését
+          párhuzamos prefix-scan alapú GPU-implementációval gyorsítja.
     \item Mérések arról, hogy a tanult $K$ valóban adaptívan változik a
           zajszinttel: $\sigma=0$-nál $K \approx 0{,}71$ (passzív átengedés),
           $\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
