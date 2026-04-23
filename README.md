@@ -71,7 +71,7 @@ Ez elindít:
 
 * egy háttérben futó tréningfolyamatot (offline dataset alapján),
 * a Binance WebSocket élő adatfolyamot,
-* a webes dashboardot a `http://127.0.0.1:8000/` címen.
+* a webes dashboardot a `http://127.0.0.1:8080/` címen.
 
 Leállítás: **Ctrl+C**. A program ilyenkor szabályosan lezárja a WebSocketet,
 kiüríti az eseménypuffert, leállítja a HTTP-szervert és kiírja a végleges
@@ -113,7 +113,7 @@ funkcióit.
 | `[FATAL ERROR] ...` + traceback | Váratlan belső hiba | A program lezárja a kapcsolatokat és megpróbál REST fallbacket; ha ismétlődik, nyisson hibajegyet |
 | `[SHUTDOWN] User interrupted (CTRL+C)` | Szabályos megszakítás | Nincs teendő; a `finally` ág eltakarít |
 | `Bad request: API key required` | Érvénytelen Binance kulcs | Csak historikus/WebSocket adatokhoz nem kell kulcs; éles rendeléshez sem, mert a rendszer paper trading módban fut |
-| `OSError: [Errno 98] Address already in use` | A 8000-es port foglalt | Állítsa le a foglaló folyamatot, vagy módosítsa a `config.web.port` értéket |
+| `OSError: [Errno 98] Address already in use` | A 8080-as port foglalt | Állítsa le a foglaló folyamatot, vagy módosítsa a `config.web.port` értéket |
 
 A program minden hibaüzenetet a `stderr`-re ír, a rendes kimenet a `stdout`-ra
 megy — így `nohup python main.py > run.log 2> run.err &` módon külön
@@ -137,137 +137,151 @@ bármikor biztonságosan leállíthatók. A shutdown-ág garantálja, hogy:
 * a HTTP-szerver lezárja az aktív kapcsolatokat,
 * a végleges állapot kiírásra kerül a konzolra.
 
-## 10. Architektúra rövid összefoglaló
+## 10. A KCA-Mamba modell architektúrája
 
-A rendszer **hexagonális architektúrát** (Ports & Adapters) követ:
+### 10.1 Motiváció
 
-* `core/domain` — tartomány-entitások, értékobjektumok (Event, Signal, Order)
-* `core/application` — használati esetek, portok, pipeline szakaszok
-* `core/ml` — ML-portok és alap-prediktor
-* `adapters/infrastructure` — Binance, RSS hírek, WebSocket, REST
-* `adapters/web` — HTTP/WebSocket dashboard
-* `adapters/offline_training` — batch tréning és benchmark
-* `adapters/testing` — backtest és mock bróker
+A hagyományos Mamba SSM (State Space Model) szelektív kapui a szekvencia
+tartalmától függően változtatják az állapotátmeneti mátrixot, de a zajszint
+becslése implicit marad: a modellnek magának kell megtanulnia, mikor bízzon az
+új bemenetben és mikor támaszkodjon inkább a korábbi állapotra.
 
-A részletes tervezési dokumentáció a dolgozat 4. fejezetében található
-(`diplomamunka/main.pdf`).
-
----
-
-**Verzió**: 1.0 (2026-04-19) · **Licenc**: az ELTE szakdolgozatra vonatkozó szabályzat szerint
-# Diplomamunka – Async Clean/Hexagonal Trading Architecture (Fully Hexagonal)
-
-High-integrity trading system implementing **Hexagonal Architecture** with AsyncIO.
-
-## Architecture Overview
-
-### Core Layer (Domain-Driven Design)
-
-- **`core/domain`**: Domain entities, value objects, aggregates
-  - `events.py`: Base Event + type-specific events (MarketData, Order, Signal, Risk, Model)
-  - `models.py`: Instrument, Signal, Order, Fill, RiskResult, Position
-  - `strategy.py`: IStrategy interface (trading signal generation)
-  - `risk.py`: IRiskRule, RiskPolicy (risk evaluation via Chain of Responsibility)
-
-- **`core/ml`**: ML domain services with model lifecycle
-  - `services.py`: 
-    - `IStateEstimator` port - state estimation (Kalman, Simple variants)
-    - `IPredictor` port - price prediction
-    - **`IModelUpdatePort`** - Training Engine → Predictor updates
-    - **`IModelLifecycle`** - Staging → Active model application
-    - `MambaPredictor` - Dual-model (active + staging) implementation
-
-- **`core/ops`**: Operations metrics contract
-- **`core/analytics`**: Analytics services (performance tracking, diagnostics)
-
-### Application Layer (Use Cases + Orchestration)
-
-- **`core/application/ports`**: Hexagonal boundary (interfaces for adapters)
-  - `IEventBusPort` - Event publication/subscription
-  - `IEventHandlerPort` - Event processing
-  - `IStateRepository` - State persistence
-  - `IBrokerGatewayPort` - Order execution
-  - `ITimeSource` - Time provider
-  - `IExecutionUseCase` - Order submission/handling
-
-- **`core/application/stages`**: Pipeline orchestration
-  - `IMarketDataStage`, `IStateEstimationStage`, `IPredictionStage`
-  - `ISignalStage`, `IRiskStage`, `IExecutionStage`
-
-- **`core/application/engine`**: TradingEngine facade
-  - Orchestrates full pipeline: Market → State → Prediction → Signal → Risk → Execution
-  - Integrates **IModelLifecycle** for ML model updates
-
-### Adapter Layer (Infrastructure Implementation)
-
-- **`adapters/infrastructure`**: Core adapters
-  - `event_bus.py`: AsyncInMemoryEventBus, InMemoryEventStore
-  - `execution.py`: ExecutionUseCase, SimpleBrokerGateway
-  - `binance_feed.py`: Real market data from Binance API
-  - `news_feed.py`: RSS news + sentiment analysis
-
-- **`adapters/offline_training`**: **Training Engine** (NEW)
-  - `training_engine.py`: Offline model training with zero-downtime deployment
-  - `train(dataset, epochs)` - Train models
-  - `push_model(update_port)` - Deploy via staging model pattern
-
-- **`adapters/web`**: Dashboard API
-  - REST + WebSocket real-time streaming
-
-- **`adapters/testing`**: Backtest framework
-
-## Key Features
-
-### Fully Hexagonal (Zero Infrastructure Coupling)
-
-- All ports defined in `core/application/ports` + `core/ml/services`
-- Adapters implement ports
-- Domain has no dependencies outside of itself
-
-### ML Model Lifecycle (NEW)
-
-```
-TrainingEngine (Offline)
-  └─ train(dataset) → export_weights() → push_model(predictor)
-       └─ IModelUpdatePort
-            ├─ Staging model receives weights
-            └─ apply_pending_update() → Active swap (zero-downtime)
-```
-
-### Trading Pipeline
-
-```
-MarketData → State → Prediction → Signal → Risk → Execution
-```
-
-## Installation
-
-```bash
-pip install pandas feedparser nltk python-binance
-```
-
-## Running
-
-```bash
-python main.py
-```
-
-Output includes:
-- Offline training demo
-- Live simulation with Binance data
-- Dashboard at `http://127.0.0.1:8000/`
-
-## Configuration
-
-```python
-config = Config(
-    symbols=["BTCUSDT"],
-    model={"use_kalman": True, "signal_threshold": 0.50},
-    simulation={"initial_cash": 10000.0},
-)
-```
+A **KCA-Mamba** (Kalman-Cross-Attention Mamba) ezt explicit Kalman-szűrő
+logikával váltja ki: minden időlépésben a hálózat kiszámít egy
+$Q$ folyamatzaj- és $R$ mérési zajtermet, ezekből klasszikus Kalman-erősítést
+($K$) vezet le, majd az állapotátmeneti faktort ($A = 1 - K$) közvetlenül
+ebből állítja elő. Zajos bemenetkor $R \gg Q \Rightarrow K \approx 0 \Rightarrow A \approx 1$
+(hosszú memória, kicsi frissítés); tiszta jelnél $Q \approx R \Rightarrow K \approx 0.5$
+(gyors követés).
 
 ---
 
-**Status**: MVP (Production-ready core, scalable adapter layer)  
-**Date**: 2026-02-22
+### 10.2 KCAMambaBlock — egyetlen réteg felépítése
+
+```
+x [B, T, d_model]
+  │
+  ├─ in_proj ──→ x_cw [B,T,E],  gate = SiLU(x_gate) [B,T,E]
+  │                E = H × D  (fejek × állapotméret)
+  │
+  ├─ conv1d (kauzális, csoportos, kernel=4) → x_core [B,T,E]
+  │    ⟶ SiLU aktiváció
+  │
+  ├─ v_norm(proj_v(x_core)) → v_seq [B,T,H,D]   (értékek fejekre bontva)
+  │
+  ├─── Kalman-gain számítás ────────────────────────────────────────────────
+  │   Q = softplus(Q_net(x_core)) · softplus(q_scale)   [B,T,H,1]
+  │   R = softplus(R_net(x_core)) · softplus(r_scale)   [B,T,H,1]
+  │
+  │   K_base  = Q / (Q + R + ε)          ← klasszikus Kalman-erősítés
+  │   K_delta = 0.3 · (σ(K_net) − 0.5)  ← tartalom-függő korrekció, nullában 0
+  │   K_seq   = clamp(K_base + K_delta, 1e-4, 0.999)
+  │
+  │   A = clamp(1 − K_seq, 0.01, 0.99)  ← állapot-megtartási faktor
+  │   B = K_seq · v_seq                  ← bemenet-beszivárgási faktor
+  │──────────────────────────────────────────────────────────────────────────
+  │
+  ├─ parallel_scan(A, B, μ₀) → μ_all [B,T,E]
+  │    O(T log T) idő, O(T log T) memória — GPU-n párhuzamos
+  │
+  ├─ out_proj(μ_all · gate) → y_p
+  │
+  └─ out = y_p + sigmoid(res_gate_bias) · (res_proj(x) − y_p)
+             ↑ tanulható reziduális kapu, −1.0 inicializálással (~0.27 induló erősítés)
+```
+
+**Tanulható paraméterek inicializálása:**
+
+| Paraméter | Induló érték | Hatás |
+|---|---|---|
+| `q_scale` | −2.0 | `softplus(−2) ≈ 0.13` → alacsony folyamatzaj |
+| `r_scale` | +1.5 | `softplus(+1.5) ≈ 1.73` → magas mérési zaj |
+| `res_gate_bias` | −1.0 | `σ(−1) ≈ 0.27` → gyenge reziduális kapu |
+| `mu_init` | **0** | tanulható kezdő állapot fejenkénti |
+
+A `q_scale` / `r_scale` inicializálással $K_\text{base} \approx 0.07$, vagyis
+$A \approx 0.93$: a modell körülbelül 14 lépés memóriával indul, majd tanítás
+közben a feladathoz alkalmazkodik.
+
+---
+
+### 10.3 Parallel scan
+
+A párhuzamos prefix-scan az asszociativitást kihasználva $O(T)$ szekvenciális
+lépés helyett $O(\log T)$ "sweepben" számolja ki az összes rejtett állapotot:
+
+```
+Iteráció 1 (step=1):
+  A_new[t] = A[t] · A[t−1]
+  B_new[t] = B[t] + A_eredeti[t] · B[t−1]
+
+Iteráció 2 (step=2):
+  A_new[t] = A[t] · A[t−2]
+  B_new[t] = B[t] + A_eredeti[t] · B[t−2]
+  ...
+```
+
+Fontos: a $B$-frissítésnél mindig az *eredeti* (frissítés előtti) $A$-értéket
+kell használni, különben minden korábbi hozzájárulás kétszeresen lecsengne.
+
+---
+
+### 10.4 KCAMambaStack — több réteg + multi-timescale figyelés
+
+```
+x [B, T, feature_dim]
+  │
+  ├─ input_proj → input_norm (LayerNorm) → h [B,T, d_hidden]
+  │
+  ├─ KCAMambaBlock₁ → block_norm₁ → KCAMambaBlock₂ → block_norm₂ → …
+  │    N réteg, köztük pre-norm LayerNorm (aktiváció-skála drift megakadályozása)
+  │
+  ├─ final LayerNorm
+  │
+  └─ Cross-attention (multi-timescale)
+       query = h[:, −1:, :]                      ← utolsó (legújabb) token
+       key/value = h[:, ::slow_stride, :]        ← ritka mintavétel (pl. stride=12)
+       attn_out → residuális hozzáadás az utolsó pozícióhoz
+```
+
+A `slow_stride` (alapértelmezett: 12) azt szimulálja, mintha a modell egy
+durvább időléptékű ("slow") kontextust is látna: 1 perces gyertyáknál
+`stride=12` kb. 12 perces összefoglalót nyújt az utolsó tokennek.
+
+---
+
+### 10.5 A teljes rendszer felépítése (hexagonális architektúra)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       CORE (üzleti logika)                      │
+│                                                                 │
+│  core/domain   ←  Event, Signal, Order, Fill, RiskResult        │
+│  core/ml       ←  KCAMambaStack, MambaPredictor, Kalman-portok  │
+│  core/application ← TradingEngine pipeline:                     │
+│      MarketData → StateEstimation → Prediction                  │
+│                → Signal → Risk → Execution                      │
+└────────────────────────┬────────────────────────────────────────┘
+                         │  port-interfészek (ABC)
+         ┌───────────────┼───────────────────────┐
+         ↓               ↓                       ↓
+┌────────────────┐ ┌──────────────┐ ┌────────────────────────────┐
+│ adapters/      │ │ adapters/    │ │ adapters/offline_training  │
+│ infrastructure │ │ web          │ │                            │
+│                │ │              │ │ TrainingEngine:            │
+│ Binance WS/REST│ │ aiohttp HTTP │ │  • adatgyűjtés             │
+│ RSS + sentiment│ │ + WebSocket  │ │  • KCAMamba tanítás        │
+│ EventBus       │ │ dashboard    │ │  • validációs kapu         │
+│ ExecutionUseCase│ │ REST API    │ │  • zero-downtime deploy    │
+└────────────────┘ └──────────────┘ └────────────────────────────┘
+```
+
+A `core/` réteg egyetlen infrastrukturális importot sem tartalmaz — az összes
+külső függőség az `adapters/` rétegen keresztül, portinterfészeken átívelve
+kapcsolódik be. Ez lehetővé teszi, hogy a teljes kereskedési pipeline
+szintetikus adatokon is futtatható legyen (lásd `tests/`).
+
+---
+
+**Verzió**: 1.0 (2026-04-23) · **Licenc**: az ELTE szakdolgozatra vonatkozó szabályzat szerint
+
