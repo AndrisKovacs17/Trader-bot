@@ -20,7 +20,7 @@ cross-attention layer at the top.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig08_architecture_en.png}
+  \includegraphics[width=\textwidth]{images/fig08_architecture_en.pdf}
   \caption{Full data-flow diagram of the KCMamba block. Yellow blocks
            ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) learn the Kalman
            statistics. The purple block performs the parallel prefix-scan on GPU
@@ -98,7 +98,7 @@ The recurrence can be parallelised on GPU in $O(\log T)$ synchronisation steps.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig09_parallel_scan_en.png}
+  \includegraphics[width=\textwidth]{images/fig09_parallel_scan_en.pdf}
   \caption{Blelloch parallel prefix-scan on a length-8 sequence. Each pass
            combines two elements separated by the current step size, and after
            $\log_2 T = 3$ passes every $h_t$ contains the full context.
@@ -136,7 +136,7 @@ dynamics.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram_en.png}
+  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram_en.pdf}
   \caption{KCMamba stack structure. From input to output: input projection,
            2 KC-blocks with LayerNorm, output normalisation, and cross-attention
            for the slow ($s=4$) time scale.}
@@ -145,7 +145,7 @@ dynamics.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig11_synth_mamba_en.png}
+  \includegraphics[width=\textwidth]{images/fig11_synth_mamba_en.pdf}
   \caption{Synthetic signal filtering: \textbf{vanilla SSM} (standard Mamba,
            fixed $A$) vs.\ \textbf{KCMamba} (adaptive $K$-gain) at moderate
            ($\sigma=2$) and strong ($\sigma=5$) noise.
@@ -158,7 +158,7 @@ dynamics.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig13_memory_retention_en.png}
+  \includegraphics[width=\textwidth]{images/fig13_memory_retention_en.pdf}
   \caption{\textbf{Left:} Impulse-response function: exponential state decay
            $h_k = A^k$ as a function of lag $k$. KCMamba's $A$ grows adaptively
            with noise ($0.294 \to 0.926$), extending the memory horizon.
@@ -214,7 +214,7 @@ Fig.~\ref{fig:system_arch} shows the main components:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/system_arch.png}
+  \includegraphics[width=\textwidth]{images/fig14_system_arch_en.pdf}
   \caption{Hexagonal architecture of the KCMamba trading system. The
            \textbf{Core} package contains the TradingEngine
            (pipeline: state estimation $\to$ prediction $\to$ signal $\to$

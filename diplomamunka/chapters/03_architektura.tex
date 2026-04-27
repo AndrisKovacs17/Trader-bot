@@ -26,7 +26,7 @@ reprezentációs torzítást, így a végső predikcióba a lassabb időskáláj
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig08_architecture.png}
+  \includegraphics[width=\textwidth]{images/fig08_architecture_hu.pdf}
   \caption{A KCMamba blokk teljes adatfolyam-diagramja. A sárga blokkok
            ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) tanítják a Kalman-statisztikákat,
            a lila blokkban történik a párhuzamos prefix-scan GPU-n $O(\log T)$
@@ -129,7 +129,7 @@ A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig09_parallel_scan.png}
+  \includegraphics[width=\textwidth]{images/fig09_parallel_scan_hu.pdf}
   \caption{A Blelloch-féle párhuzamos prefix-scan vizualizációja 8 elemű
            szekvencián. Minden lépésben a $step$-nyi távolságú két elem
            kombinálódik.
@@ -183,7 +183,7 @@ $s$-adik minden pozícióból vett alámintavétel (kulcs és érték, lassú id
 cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram.png}
+  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram_hu.pdf}
   \caption{A KCMamba verem (stack) felépítése. A bemenettől a kimenetig az
            input projekció, 2 KC-blokk LayerNorm rétegekkel, output
            normalizáció, majd cross-attention réteg követi egymást a lassú ($s=4$)
@@ -192,7 +192,7 @@ cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 \end{figure}
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig11_synth_mamba.png}
+  \includegraphics[width=\textwidth]{images/fig11_synth_mamba_hu.pdf}
   \caption{Szintetikus jel szűrése: \textbf{vanilla SSM} (standard Mamba, rögzített $A$)
            vs.\ \textbf{KCMamba} (adaptív $K$-gain) közepes ($\sigma=2$) és erős
            ($\sigma=5$) zajnál.
@@ -205,7 +205,7 @@ cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig13_memory_retention.png}
+  \includegraphics[width=\textwidth]{images/fig13_memory_retention_hu.pdf}
   \caption{\textbf{Bal:} Impulzus-válasz függvény: az állapot exponenciális csökkenése
            $h_k = A^k$ a késő $k$ függvényében. A KCMamba $A$-értéke adaptívan
            nő a zajszinttel ($0.294 \to 0.926$), ezzel a memória-horizont
@@ -270,7 +270,7 @@ A \ref{fig:system_arch}.\ ábra a főbb komponenseket mutatja:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/system_arch.png}
+  \includegraphics[width=\textwidth]{images/fig14_system_arch_hu.pdf}
   \caption{A KCMamba alapú kereskedési rendszer hexagonális architektúrájának
            áttekintése. A \textbf{Core} csomag tartalmazza a TradingEngine-t
            (pipeline: állapotbecslés $\to$ predikció $\to$ szignál $\to$ kockázat

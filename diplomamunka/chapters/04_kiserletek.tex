@@ -136,7 +136,7 @@ nagy mértékben kiszűri.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_hu.png}
+  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_hu.pdf}
   \caption{\textbf{Bal:} MSE a zajszint függvényében, Exchange/$s=16$ konfiguráció.
            A Fair Mamba a legjobb zajmentes MSE-t adja ($\sigma=0$), de $\sigma=5$-nél
            $+152\,350\%$-os degradációval összeomlik. A KCMamba degradációja $+66\%$.
@@ -217,7 +217,7 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_hu.png}
+  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_hu.pdf}
   \caption{MSE hőtérkép mind a négy modellre (ARIMA, LSTM, Fair Mamba, KCMamba),
            minden konfigurációra és zajszintre. A sötétpiros mezők katasztrofikus
            összeomlást jeleznek ($\text{MSE} > 4$). Az ARIMA és a Fair Mamba
@@ -228,7 +228,7 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig03_degradation_hu.png}
+  \includegraphics[width=\textwidth]{images/fig03_degradation_hu.pdf}
   \caption{MSE-degradáció logaritmikus skálán ($\sigma=0 \to \sigma=5$) az összes
            konfigurációban. A Fair Mamba három esetben katasztrofikus összeomlást
            mutat ($>10\,000\%$). A KCMamba (zöld) és az LSTM (kék) lényegesen
@@ -262,7 +262,7 @@ A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamik
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig01_noise_curves_hu.png}
+  \includegraphics[width=\textwidth]{images/fig01_noise_curves_hu.pdf}
   \caption{Zajrobusztussági összehasonlítás mind a négy modellre: MSE a
            zajszint ($\sigma$) függvényében, logaritmikus skálán.
            Az ARIMA (narancssárga, szaggatott) $s{=}16$-nál katasztrofálisan
@@ -274,7 +274,7 @@ A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamik
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig06_radar_hu.png}
+  \includegraphics[width=\textwidth]{images/fig06_radar_hu.pdf}
   \caption{Pókháló-diagram, amely a modelleket öt dimenzió mentén hasonlítja össze:
            zajmentes teljesítmény, zajrobusztusság, adat-hatékonyság ($s=16$
            rezsim), paraméter-hatékonyság és konvergencia-sebesség. A KCMamba a
@@ -309,7 +309,7 @@ a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_hu.png}
+  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_hu.pdf}
   \caption{Előrejelzés-vizualizáció három zajszinten (ETTh-típusú jel,
            $T=96$ lookback, $H=96$ horizon).
            Fekete $=$ valós jel, zöld $=$ KCMamba, narancssárga $=$ Fair Mamba,
@@ -322,7 +322,7 @@ a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_hu.png}
+  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_hu.pdf}
   \caption{\textbf{Bal:} Paraméterszam vs.\ MSE ($\sigma{=}3$ átlag). A KCMamba
            egyszerre a legkisebb paraméterszámú és a legjobb MSE-jű, optimális
            Pareto-pozícióban van.
@@ -392,7 +392,7 @@ alapján három mintázat figyelhető meg:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig15_longseq_hu.png}
+  \includegraphics[width=\textwidth]{images/fig15_longseq_hu.pdf}
   \caption{MSE a szekvenciahossz ($T$) függvényében $\sigma{=}3$ (bal oszlop)
            és $\sigma{=}5$ (jobb oszlop) zajszinten, ETTm1 (felső sor) és
            Exchange (alsó sor) adatkészleteken.
@@ -467,7 +467,7 @@ Két főmintázat olvasható le a \ref{tab:stride_longseq}.~táblázatból
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig16_stride_seq_hu.png}
+  \includegraphics[width=\textwidth]{images/fig16_stride_seq_hu.pdf}
   \caption{MSE a szekvenciahossz függvényében sűrű ($s{=}1$, felső sor)
            és ritka ($s{=}16$, alsó sor) ablakozásnál, $\sigma{=}3$ (bal oszlop)
            és $\sigma{=}5$ (jobb oszlop) zajszinten az Exchange adatkészleten.

@@ -32,6 +32,17 @@
 \PassOptionsToPackage{table}{xcolor}
 \usepackage{colortbl}
 
+% Long verbatim/command lines: enable automatic line breaking
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{breaklines=true,breakanywhere=true,fontsize=\footnotesize}
+
+% Long \texttt{...} paths/identifiers should not overflow the margin
+\setlength{\emergencystretch}{3em}
+
+% Use case diagram (TikZ)
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, positioning, fit, calc}
+
 \addbibresource{bib/references.bib}
 
 % ============================================================

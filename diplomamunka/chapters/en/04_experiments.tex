@@ -104,7 +104,7 @@ filtering out the noisy measurement.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_en.png}
+  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_en.pdf}
   \caption{\textbf{Left:} MSE vs.\ noise level, Exchange/$s=16$ configuration.
            Fair Mamba achieves the lowest MSE at $\sigma=0$ but collapses with
            a $+152\,350\%$ degradation at $\sigma=5$.
@@ -202,7 +202,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_en.png}
+  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_en.pdf}
   \caption{MSE heatmap for all four models (ARIMA, LSTM, Fair Mamba, KCMamba)
            across all configurations and noise levels. Dark red cells indicate
            catastrophic failure (MSE $>4$). ARIMA and Fair Mamba collapse
@@ -213,7 +213,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig03_degradation_en.png}
+  \includegraphics[width=\textwidth]{images/fig03_degradation_en.pdf}
   \caption{MSE degradation on a log scale ($\sigma=0 \to \sigma=5$) across all
            configurations. Fair Mamba exhibits catastrophic collapse in three
            cases (orange, $>10\,000\%$), whereas KCMamba (green) and LSTM (blue) are
@@ -227,7 +227,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig01_noise_curves_en.png}
+  \includegraphics[width=\textwidth]{images/fig01_noise_curves_en.pdf}
   \caption{Noise robustness comparison across all four models: MSE vs.\
            noise level $\sigma$ on a logarithmic scale.
            ARIMA (orange dashed) collapses catastrophically at $s{=}16$
@@ -260,7 +260,7 @@ The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig06_radar_en.png}
+  \includegraphics[width=\textwidth]{images/fig06_radar_en.pdf}
   \caption{Radar chart comparing models across five dimensions: clean-data
            performance, noise robustness, data efficiency ($s=16$ regime),
            parameter efficiency, and convergence speed. KCMamba excels on
@@ -275,7 +275,7 @@ explicitly programmed to do so.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_en.png}
+  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_en.pdf}
   \caption{Forecast visualisation at three noise levels (ETTh-type signal,
            $T=96$ lookback, $H=96$ horizon).
            Black = ground truth, green = KCMamba, orange = Fair Mamba,
@@ -288,7 +288,7 @@ explicitly programmed to do so.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_en.png}
+  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_en.pdf}
   \caption{\textbf{Left:} Parameter count vs.\ MSE (averaged at $\sigma=3$).
            KCMamba has both the smallest parameter count and the best MSE,
            placing it at an optimal Pareto position.
@@ -327,7 +327,7 @@ horizons ($T \ge 2000$) KCMamba is expected to dominate.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig12_speed_triton_en.png}
+  \includegraphics[width=\textwidth]{images/fig12_speed_triton_en.pdf}
   \caption{\textbf{Left:} Throughput (samples/s) at $T=96$, batch$=32$ on
            a single RTX~3060. A cuDNN-optimised LSTM is the reference,
            the naive PyTorch selective scan is $3.4\times$ slower, and a
@@ -411,7 +411,7 @@ Figure~\ref{fig:longseq}:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig15_longseq_en.png}
+  \includegraphics[width=\textwidth]{images/fig15_longseq_en.pdf}
   \caption{MSE vs.\ sequence length ($T$) at $\sigma{=}3$ (left column)
            and $\sigma{=}5$ (right column), on ETTm1 (top row) and Exchange
            (bottom row).
@@ -482,7 +482,7 @@ Figure~\ref{fig:stride_longseq}:
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig16_stride_seq_en.png}
+  \includegraphics[width=\textwidth]{images/fig16_stride_seq_en.pdf}
   \caption{MSE vs.\ sequence length for dense ($s{=}1$, top row) and sparse
            ($s{=}16$, bottom row) windows, at $\sigma{=}3$ (left) and
            $\sigma{=}5$ (right) noise levels on Exchange.

@@ -380,10 +380,13 @@ def apply_style():
 
 
 def save(fig, name: str, lang: str) -> Path:
-    out = IMAGES_DIR / f"{name}_{lang}.png"
-    fig.savefig(out, facecolor="white")
+    """Save the figure both as high-DPI PNG (legacy) and as vector PDF (preferred for LaTeX)."""
+    out_png = IMAGES_DIR / f"{name}_{lang}.png"
+    out_pdf = IMAGES_DIR / f"{name}_{lang}.pdf"
+    fig.savefig(out_png, facecolor="white")
+    fig.savefig(out_pdf, facecolor="white")
     plt.close(fig)
-    return out
+    return out_pdf
 
 
 def degradation(ds, stride, model) -> float:
@@ -566,7 +569,7 @@ def fig07(lang):
         ax1.scatter(PARAMS_K[m], AVG_MSE_S3[m], s=120, color=COLORS[m],
                     marker=mk, edgecolors="white", linewidth=1.0,
                     label=m, zorder=3)
-    for m in MODELS:
+    for m in PARAMS_K:
         ax1.annotate(m, (PARAMS_K[m], AVG_MSE_S3[m]),
                      textcoords="offset points", xytext=(8, 5),
                      fontsize=8.5, color=COLORS[m])

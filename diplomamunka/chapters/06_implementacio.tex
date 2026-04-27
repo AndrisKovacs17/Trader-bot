@@ -372,6 +372,53 @@ kerülnek a forráskódba.
 \label{sec:user_docs}
 % ─────────────────────────────────────────────────────────────────────────────
 
+\subsection{Használati esetek}
+\label{sec:usecases}
+
+A rendszer két szereplőt különböztet meg. A \textbf{Felhasználó} (kutató,
+fejlesztő) a kereskedési motort és a webes irányítópultot vezérli, míg a
+\textbf{Binance} külső rendszerként szolgáltat piaci adatot, és fogadja
+a megbízásokat. Az~\ref{fig:usecases}.~ábra a támogatott használati
+eseteket foglalja össze.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      actor/.style={draw, thick, minimum width=2.2cm, align=center},
+      uc/.style={draw, ellipse, thick, minimum width=3.6cm, minimum height=0.9cm, align=center, inner sep=2pt}
+    ]
+    % Szereplők
+    \node[actor] (user) at (0,0) {\textbf{Felhasználó}\\(kutató, fejlesztő)};
+    \node[actor] (binance) at (12,0) {\textbf{Binance}\\(külső rendszer)};
+
+    % Használati esetek
+    \node[uc] (uc1) at (6, 3.5)  {Visszatesztelés futtatása};
+    \node[uc] (uc2) at (6, 2.2)  {Paper-trading indítása};
+    \node[uc] (uc3) at (6, 0.9)  {Élő kereskedés indítása};
+    \node[uc] (uc4) at (6,-0.4)  {Modell offline tanítása};
+    \node[uc] (uc5) at (6,-1.7)  {Irányítópult megtekintése};
+    \node[uc] (uc6) at (6,-3.0)  {Kockázati szabályok beállítása};
+
+    % Rendszerhatár
+    \node[draw, thick, dashed, fit=(uc1)(uc2)(uc3)(uc4)(uc5)(uc6),
+          inner sep=10pt, label=above:{\textbf{KCMamba kereskedési rendszer}}] {};
+
+    % Felhasználó kapcsolatai
+    \foreach \u in {uc1,uc2,uc3,uc4,uc5,uc6} {
+      \draw (user) -- (\u);
+    }
+    % Binance kapcsolatok
+    \draw (uc2) -- (binance);
+    \draw (uc3) -- (binance);
+  \end{tikzpicture}
+  \caption{A KCMamba rendszer használati esetei. A felhasználó hat fő
+           művelethez fér hozzá; a Binance külső rendszerként a paper- és
+           élő-kereskedési útvonalon kapcsolódik be (piaci adat,
+           megbízás-végrehajtás).}
+  \label{fig:usecases}
+\end{figure}
+
 \subsection{A szoftver célja és célközönsége}
 
 A rendszer kriptovaluta idősorok automatizált elemzésére és kereskedési
@@ -539,8 +586,8 @@ vannak kiváltva, tehát hálózat nélkül, determinisztikusan futnak.
 
 \begin{table}[H]
   \centering
-  \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \footnotesize
+  \begin{tabular}{|l|l|p{6.6cm}|}
     \hline
     \textbf{Tesztfájl} & \textbf{Típus} & \textbf{Mit fedez le?} \\
     \hline\hline

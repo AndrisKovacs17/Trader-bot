@@ -359,6 +359,47 @@ and never appear in source code.
 \label{sec:user_docs}
 % ─────────────────────────────────────────────────────────────────────────────
 
+\subsection{Use cases}
+\label{sec:usecases}
+
+The system distinguishes two actors. The \textbf{User} (researcher, developer)
+operates the trading engine and the web dashboard, while \textbf{Binance}
+acts as an external system providing market data and accepting orders.
+Figure~\ref{fig:usecases} summarises the supported use cases.
+
+\begin{figure}[H]
+  \centering
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      actor/.style={draw, thick, minimum width=2.2cm, align=center},
+      uc/.style={draw, ellipse, thick, minimum width=3.6cm, minimum height=0.9cm, align=center, inner sep=2pt}
+    ]
+    \node[actor] (user) at (0,0) {\textbf{User}\\(researcher, developer)};
+    \node[actor] (binance) at (12,0) {\textbf{Binance}\\(external system)};
+
+    \node[uc] (uc1) at (6, 3.5)  {Run backtest};
+    \node[uc] (uc2) at (6, 2.2)  {Start paper trading};
+    \node[uc] (uc3) at (6, 0.9)  {Start live trading};
+    \node[uc] (uc4) at (6,-0.4)  {Train model offline};
+    \node[uc] (uc5) at (6,-1.7)  {Inspect dashboard};
+    \node[uc] (uc6) at (6,-3.0)  {Configure risk policy};
+
+    \node[draw, thick, dashed, fit=(uc1)(uc2)(uc3)(uc4)(uc5)(uc6),
+          inner sep=10pt, label=above:{\textbf{KCMamba trading system}}] {};
+
+    \foreach \u in {uc1,uc2,uc3,uc4,uc5,uc6} {
+      \draw (user) -- (\u);
+    }
+    \draw (uc2) -- (binance);
+    \draw (uc3) -- (binance);
+  \end{tikzpicture}
+  \caption{Use case diagram of the KCMamba system. The user has six main
+           operations available; Binance participates as an external system
+           on the paper- and live-trading paths (market data, order
+           execution).}
+  \label{fig:usecases}
+\end{figure}
+
 \subsection{Purpose and Audience}
 
 The system is designed for automated analysis of cryptocurrency time series

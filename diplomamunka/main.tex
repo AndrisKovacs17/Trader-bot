@@ -36,6 +36,17 @@
 \PassOptionsToPackage{table}{xcolor}
 \usepackage{colortbl}
 
+% Hosszú kód-/parancssorok automatikus tördelése
+\usepackage{fvextra}
+\DefineVerbatimEnvironment{verbatim}{Verbatim}{breaklines=true,breakanywhere=true,fontsize=\footnotesize}
+
+% Hosszú \texttt{...} útvonalak/azonosítók ne lógjanak ki a margón
+\setlength{\emergencystretch}{3em}
+
+% Use case diagramhoz
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, positioning, fit, calc}
+
 % Irodalomjegyzék forrása
 \addbibresource{bib/references.bib}
 
