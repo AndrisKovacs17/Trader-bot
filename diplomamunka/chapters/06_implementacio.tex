@@ -383,6 +383,7 @@ eseteket foglalja össze.
 
 \begin{figure}[H]
   \centering
+  \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
       every node/.style={font=\small},
       actor/.style={draw, thick, minimum width=2.2cm, align=center},
@@ -411,7 +412,8 @@ eseteket foglalja össze.
     % Binance kapcsolatok
     \draw (uc2) -- (binance);
     \draw (uc3) -- (binance);
-  \end{tikzpicture}
+  \end{tikzpicture}%
+  }
   \caption{A KCMamba rendszer használati esetei. A felhasználó hat fő
            művelethez fér hozzá; a Binance külső rendszerként a paper- és
            élő-kereskedési útvonalon kapcsolódik be (piaci adat,

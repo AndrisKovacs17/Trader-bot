@@ -337,8 +337,8 @@ python main.py --mode paper --symbol BTCUSDT ETHUSDT
 python main.py --mode live --symbol BTCUSDT
 \end{verbatim}
 
-The dashboard starts automatically and is accessible at
-\texttt{http://localhost:8080}. API keys are loaded from a \texttt{.env} file
+The dashboard starts automatically. The web interface is accessible at
+\url{http://localhost:8080}; API keys are loaded from a \texttt{.env} file
 and never appear in source code.
 
 \begin{figure}[H]
@@ -369,6 +369,7 @@ Figure~\ref{fig:usecases} summarises the supported use cases.
 
 \begin{figure}[H]
   \centering
+  \resizebox{\textwidth}{!}{%
   \begin{tikzpicture}[
       every node/.style={font=\small},
       actor/.style={draw, thick, minimum width=2.2cm, align=center},
@@ -392,7 +393,8 @@ Figure~\ref{fig:usecases} summarises the supported use cases.
     }
     \draw (uc2) -- (binance);
     \draw (uc3) -- (binance);
-  \end{tikzpicture}
+  \end{tikzpicture}%
+  }
   \caption{Use case diagram of the KCMamba system. The user has six main
            operations available; Binance participates as an external system
            on the paper- and live-trading paths (market data, order
@@ -566,8 +568,8 @@ all tests run deterministically without a network connection.
 
 \begin{table}[H]
   \centering
-  \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \footnotesize
+  \begin{tabular}{|l|l|p{6.6cm}|}
     \hline
     \textbf{Test file} & \textbf{Type} & \textbf{Coverage} \\
     \hline\hline
