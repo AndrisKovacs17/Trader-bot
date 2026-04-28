@@ -116,14 +116,7 @@ nevezetesen a tőke-görbét (equity curve), a nyitott pozíciókat, a legutóbb
 
 \begin{figure}[H]
   \centering
-  % ── KÉPERNYŐKÉP HELYE ──────────────────────────────────────────────────
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Főoldal, Áttekintő nézet]}\\[4pt]
-    \small Ide kerül a \texttt{dashboard/index.html} oldal képernyőképe,\\
-    amely a tőke-görbét, a nyitott pozíciókat és a Kalman-gain értéket mutatja.
-  \end{minipage}}
-  % ── KÉPERNYŐKÉP VÉGE ───────────────────────────────────────────────────
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_overview.png}
   \caption{Az irányítópult főoldala. A felső sávon a tőke-görbe, alatta a
            nyitott pozíciók és a legutóbbi jelzések láthatók.}
   \label{fig:dash_overview}
@@ -141,12 +134,7 @@ jelzéstípus szerint.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Kereskedési jelzések, \texttt{signals.html}]}\\[4pt]
-    \small A jelzésnapló táblázata időrendi sorrendben,
-    szűrési és export-funkcióval.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_signals.png}
   \caption{A kereskedési jelzések nézete. Minden sor egy generált jelzést
            ábrázol a jelzés erősségével és a döntéshozó modell állapotával.}
   \label{fig:dash_signals}
@@ -163,12 +151,7 @@ megjelenítve az előre jelzett és a tényleges értékeket.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Modell diagnosztika, \texttt{model.html}]}\\[4pt]
-    \small Előrejelzett vs.\ tényleges értékek, gördülő MSE-görbe,
-    konfidencia-intervallum.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_model.png}
   \caption{A modell diagnosztikai nézete. A Chart.js-alapú panel valós időben
            frissül az előrejelzésekkel és eltérésekkel.}
   \label{fig:dash_model}
@@ -184,19 +167,6 @@ A Kalman-diagnosztikai nézet (\texttt{kla\_kalman.html}) a modell belső
 zajbecslő időbeli alakulása.  Ez a nézet hasznos annak ellenőrzésekor,
 hogy a modell valóban reagál-e a piaci volatilitás változásaira.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Kalman-szűrő diagnosztika, \texttt{kla\_kalman.html}]}\\[4pt]
-    \small A $K$-gain, $A$-faktor és $R$-zajbecslő időbeli változása
-    közepes és magas volatilitású piaci periódusban.
-  \end{minipage}}
-  \caption{A Kalman-szűrő diagnosztikai nézete. A $K$-gain csökkenése
-           magas volatilitás esetén megerősíti az adaptív szűrési mechanizmus
-           helyes működését.}
-  \label{fig:dash_kalman}
-\end{figure}
 
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 \subsection{Offline tanítás}
@@ -209,12 +179,7 @@ monitorozza: epoch-veszteség-görbe, validációs MSE, becsült befejezési id�
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Offline tanítás, \texttt{training.html}]}\\[4pt]
-    \small Epoch-veszteség-görbe, validációs MSE élő frissítéssel,
-    haladási sáv és konfiguráció-összefoglaló.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_training.png}
   \caption{Az offline tanítás irányítópultja. A tanítás teljes menete
            nyomon követhető, beleértve a korai leállás feltételét is.}
   \label{fig:dash_training}
@@ -231,12 +196,7 @@ formájában, különböző zajszintekre és stride-konfigurációkra lebontva.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: LSTM/Mamba összehasonlítás, \texttt{ltsf\_benchmark.html}]}\\[4pt]
-    \small Interaktív hőtérkép és vonalgrafikonok az MSE-eredményekről
-    különböző zajszinteken és adatkészleteken.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_benchmark.png}
   \caption{A benchmark összehasonlítási nézet. Az interaktív szűrők lehetővé
            teszik az adatkészlet, zajszint és stride dinamikus változtatását.}
   \label{fig:dash_benchmark}
@@ -260,18 +220,7 @@ a validációs perióduson: $0{,}1\%$ taker és $0{,}1\%$ maker díjjakkal.
 Az eredményt tőkegörbe, Sharpe-mutató, maximális visszaesés és win-rate
 formájában naplózza.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Visszateszt eredmények, tőkegörbe és metrikák]}\\[4pt]
-    \small Tőkegörbe (equity curve), Sharpe-mutató, maximális visszaesés
-    és havi hozam-heatmap a visszatesztelési periódusra.
-  \end{minipage}}
-  \caption{Visszateszt eredmény-összesítő. A tőkegörbe mutatja a stratégia
-           kumulatív teljesítményét az adott historikus perióduson.}
-  \label{fig:backtest_results}
-\end{figure}
+
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Kockázatkezelés}
@@ -289,18 +238,6 @@ Ezentúl csak akkor adódik ki megbízás, ha a KCMamba $K$-gain értéke
 meghaladja a $K_\text{min} = 0{,}15$ küszöböt, ami azt jelzi, hogy a modell
 elegendő bizalommal rendel előrejelzéshez az aktuális adatminőség alapján.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Kockázati napló és pozícióméret-panel]}\\[4pt]
-    \small A kockázatkezelő modul naplója: megkísérelt és elutasított
-    jelzések, stop-loss eseménysorozat, napi veszteség-progress sáv.
-  \end{minipage}}
-  \caption{A kockázatkezelési modul áttekintő nézete. Piros sor jelzi
-           az elutasított jelzéseket, zöld a végrehajtottakat.}
-  \label{fig:risk_panel}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Élő kereskedés Binance-szal}
@@ -312,19 +249,6 @@ a Binance Futures REST és WebSocket végpontjait használja. Az árfolyam-friss
 az \texttt{IEventBusPort}-on keresztül jutnak el a \texttt{TradingEngine}-hez,
 az üzleti logika nem tud a Binance-specifikus adatformátumról, az adapter cserélhető.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Élő kereskedés, Binance pozíciók és megbízások]}\\[4pt]
-    \small Nyitott Binance Futures pozíciók, függőben lévő megbízások,
-    tőke-frissítések valós időben.
-  \end{minipage}}
-  \caption{Az élő Binance-kereskedési nézet. A panel szinkronban van a
-           Binance számlával, az egyenleg és a pozíciók másodpercenként
-           frissülnek.}
-  \label{fig:live_trading}
-\end{figure}
 
 A rendszer papírkereskedelmi (\emph{paper trading}) módban is futtatható.
 Ebben az esetben a Binance-adapter le van cserélve a
@@ -354,18 +278,6 @@ Az irányítópult automatikusan elindul, és a \texttt{http://localhost:8080}
 címen érhető el.  Az API-kulcsok \texttt{.env} fájlból töltődnek be, sohasem
 kerülnek a forráskódba.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Képernyőkép: Terminál, rendszerindítás és naplósorok]}\\[4pt]
-    \small A konzolkimenet a rendszerindítás során: modelltöltés, WebSocket
-    csatlakozás megerősítése, eseményhurok indulása.
-  \end{minipage}}
-  \caption{A rendszer indítási naplója. Az egyes adapterek sorban inicializálódnak,
-           hiba esetén a rendszer részletes hibaüzenetet és stack trace-t ír ki.}
-  \label{fig:startup_log}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Felhasználói dokumentáció}

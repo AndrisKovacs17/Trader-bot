@@ -112,12 +112,7 @@ Kalman gain value.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Home, Overview]}\\[4pt]
-    \small Placeholder for \texttt{dashboard/index.html} screenshot\\
-    showing the equity curve, open positions, and Kalman gain.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_overview.png}
   \caption{Dashboard home page. The top panel shows the equity curve, and below it
            are open positions and recent signals.}
   \label{fig:dash_overview}
@@ -135,11 +130,7 @@ filterable by symbol and signal type.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Trading Signals, \texttt{signals.html}]}\\[4pt]
-    \small Signal log table in chronological order, with filter and export.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_signals.png}
   \caption{Trading signals view. Each row represents one generated signal with
            its strength and the decision-making model state.}
   \label{fig:dash_signals}
@@ -156,11 +147,7 @@ actual values.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Model Diagnostics, \texttt{model.html}]}\\[4pt]
-    \small Predicted vs.\ actual values, rolling MSE, confidence interval.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_model.png}
   \caption{Model diagnostics view. The Chart.js panel updates in real time
            with forecasts and residuals.}
   \label{fig:dash_model}
@@ -176,18 +163,6 @@ internal state: the adaptive $K$-gain, forgetting factor $A$, and noise
 estimate $R$ over time. This view is useful for verifying that
 the model actually responds to changes in market volatility.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Kalman Filter Diagnostics, \texttt{kla\_kalman.html}]}\\[4pt]
-    \small $K$-gain, $A$-factor, and $R$ noise estimate over time during
-    moderate and high-volatility market periods.
-  \end{minipage}}
-  \caption{Kalman filter diagnostics. Decreasing $K$-gain at high volatility
-           confirms that the adaptive filtering mechanism is working correctly.}
-  \label{fig:dash_kalman}
-\end{figure}
 
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 \subsection{Offline Training}
@@ -200,12 +175,7 @@ current configuration parameters.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Offline Training, \texttt{training.html}]}\\[4pt]
-    \small Epoch loss curve, validation MSE with live updates, progress bar,
-    and configuration summary.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_training.png}
   \caption{Offline training dashboard. The full training run can be monitored,
            including early-stopping status.}
   \label{fig:dash_training}
@@ -222,12 +192,7 @@ noise level and stride configuration.
 
 \begin{figure}[H]
   \centering
-  \fbox{\begin{minipage}[c][6cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: LSTM/Mamba comparison, \texttt{ltsf\_benchmark.html}]}\\[4pt]
-    \small Interactive heat map and line charts for MSE results across noise
-    levels and datasets.
-  \end{minipage}}
+  \includegraphics[width=0.92\textwidth]{images/fig_dash_benchmark.png}
   \caption{Benchmark comparison view. Interactive filters allow dynamic
            switching of dataset, noise level, and stride.}
   \label{fig:dash_benchmark}
@@ -249,18 +214,6 @@ then steps through the validation period minute by minute,
 applying 0.1\% taker and 0.1\% maker fees. Results are logged as an equity curve, Sharpe
 ratio, maximum drawdown, and win rate.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5.5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Backtest results, equity curve and metrics]}\\[4pt]
-    \small Equity curve, Sharpe ratio, maximum drawdown, and monthly
-    return heat map for the backtest period.
-  \end{minipage}}
-  \caption{Backtest results summary. The equity curve shows the strategy's
-           cumulative performance over the historical period.}
-  \label{fig:backtest_results}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Risk Management}
@@ -278,18 +231,6 @@ Additionally, an order is only dispatched if the KCMamba $K$-gain exceeds
 the threshold $K_\text{min} = 0{.}15$, indicating sufficient model confidence
 given the current data quality.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Risk log and position-sizing panel]}\\[4pt]
-    \small Risk module log: attempted and rejected signals, stop-loss event
-    sequence, daily loss progress bar.
-  \end{minipage}}
-  \caption{Risk management overview. Red rows indicate rejected signals,
-           green rows indicate executed ones.}
-  \label{fig:risk_panel}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Live Trading with Binance}
@@ -301,18 +242,6 @@ uses the Binance Futures REST and WebSocket endpoints. Price updates reach the
 \texttt{TradingEngine} via \texttt{IEventBusPort}. The business logic has no
 knowledge of the Binance-specific data format, so the adapter is replaceable.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Live trading, Binance positions and orders]}\\[4pt]
-    \small Open Binance Futures positions, pending orders, and equity updates
-    in real time.
-  \end{minipage}}
-  \caption{Live Binance trading view. The panel is synchronised with the
-           Binance account, and balance and positions update every second.}
-  \label{fig:live_trading}
-\end{figure}
 
 The system can also run in \emph{paper trading} mode: the Binance adapter is
 replaced with \texttt{adapters/testing/broker.py}'s simulated executor,
@@ -341,18 +270,6 @@ The dashboard starts automatically. The web interface is accessible at
 \url{http://localhost:8080}; API keys are loaded from a \texttt{.env} file
 and never appear in source code.
 
-\begin{figure}[H]
-  \centering
-  \fbox{\begin{minipage}[c][4.5cm][c]{0.92\textwidth}
-    \centering
-    \textit{[Screenshot: Terminal, system startup and log lines]}\\[4pt]
-    \small Console output during startup: model loading, WebSocket connection
-    confirmation, event loop start.
-  \end{minipage}}
-  \caption{System startup log. Each adapter initialises in sequence, and on error
-           the system prints a detailed message and stack trace.}
-  \label{fig:startup_log}
-\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{User Documentation}

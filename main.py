@@ -119,7 +119,7 @@ async def run_demo() -> None:
             "brier_improvement_margin": -0.01,  # 1% Brier slack; raw logits post label_smoothing=0 can have worse Brier than calibrated baselines
             "collapse_max_class_share": 0.90,
             "collapse_min_side_share": 0.10,  # was 0.03; prevents FLAT-collapse local minima
-            "early_stopping_patience": 4,  # round-2: val_acc peaks around epoch 5-9 then decays → catch peak early
+            "early_stopping_patience": 10,
             "run_simple_baselines": True,
             "baseline_epochs": 2,  # was 5; weaker baselines = more realistic bar for 5m BTC noise
             "cls_loss_weight": 3.0,  # was 2.0; let CE dominate NLL → classifier learns sharper decision boundaries
@@ -287,14 +287,49 @@ async def run_demo() -> None:
     recorder = DataRecorder(store=store, flush_interval_ms=1000)
     metrics_agg = MetricsAggregator()
     
-    dashboard = DashboardAPI(
-        performance_tracker=perf_tracker,
-        metrics_agg=metrics_agg,
-        get_model_summary=lambda: {
+    def _build_model_summary() -> dict:
+        # Pull hyperparams directly from the active predictor payload so the
+        # dashboard /model page can render arch + training-derived stats.
+        active = getattr(predictor, "active_model", None) or {}
+        predictor_payload = active.get("predictor", {}) if isinstance(active, dict) else {}
+        hyper = dict(predictor_payload.get("hyperparams", {})) if isinstance(predictor_payload, dict) else {}
+        # Surface device under hyperparams for the dashboard.
+        device_attr = getattr(predictor, "device", None)
+        if device_attr is not None and "device" not in hyper:
+            hyper["device"] = str(device_attr)
+        # Fallback: if no model loaded yet, populate arch from config so the
+        # page does not show only dashes before first training completes.
+        if not hyper:
+            hyper = {
+                "lookback": int(config.model.get("lookback", 64)),
+                "horizon": int(config.model.get("horizon", 5)),
+                "kca_heads": int(config.model.get("kca_heads", 4)),
+                "kca_state_dim": int(config.model.get("kca_state_dim", 32)),
+                "kca_num_layers": int(config.model.get("kca_num_layers", 3)),
+                "kca_hidden_dim": int(config.model.get("kca_hidden_dim", 64)),
+                "kca_slow_stride": int(config.model.get("kca_slow_stride", 12)),
+                "flat_threshold": float(config.model.get("direction_epsilon", 5e-5)),
+                "device": str(device_attr) if device_attr is not None else "cpu",
+            }
+        else:
+            # Ensure all dashboard-displayed keys exist (fall back to config / sane defaults).
+            hyper.setdefault("kca_num_layers", int(config.model.get("kca_num_layers", 3)))
+            hyper.setdefault("kca_hidden_dim", int(config.model.get("kca_hidden_dim", 64)))
+            hyper.setdefault("kca_slow_stride", int(config.model.get("kca_slow_stride", 12)))
+            hyper.setdefault("flat_threshold", hyper.get("effective_direction_epsilon", float(config.model.get("direction_epsilon", 5e-5))))
+            hyper.setdefault("train_mu_mean", 0.0)
+            hyper.setdefault("train_mu_std", 0.0)
+        return {
             **diagnostics.summary(),
             "strategy_diagnostics": strategy.diagnostics(),
             "current_version": predictor.current_version(),
-        },
+            "hyperparams": hyper,
+        }
+
+    dashboard = DashboardAPI(
+        performance_tracker=perf_tracker,
+        metrics_agg=metrics_agg,
+        get_model_summary=_build_model_summary,
         get_positions_snapshot=position_store.snapshot,
         get_simulation_results=lambda: simulation_snapshot(wallet, position_store, perf_tracker, policy),
         get_wallet_history=lambda limit: wallet.history[-limit:],
