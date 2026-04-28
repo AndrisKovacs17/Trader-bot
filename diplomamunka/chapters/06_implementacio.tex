@@ -166,7 +166,12 @@ A Kalman-diagnosztikai nézet (\texttt{kla\_kalman.html}) a modell belső
 állapotát mutatja: az adaptív $K$-gain, az $A$ felejtési faktor és a $R$
 zajbecslő időbeli alakulása.  Ez a nézet hasznos annak ellenőrzésekor,
 hogy a modell valóban reagál-e a piaci volatilitás változásaira.
-
+A $K$-gain értéke magas volatilitású periódusban csökken (a modell
+kevésbé bízik az aktuális mérésben), míg alacsony zajú időszakban
+nő (gyors tanulás). Ez a viselkedés konzisztens az elméleti
+Kalman-szűrő várható működésével, és a~\ref{ch:kiserletek}.~fejezetben
+bemutatott $0{,}706 \to 0{,}073$ $K$-gain trajektóriával összhangban
+van.
 
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 \subsection{Offline tanítás}
@@ -201,6 +206,72 @@ formájában, különböző zajszintekre és stride-konfigurációkra lebontva.
            teszik az adatkészlet, zajszint és stride dinamikus változtatását.}
   \label{fig:dash_benchmark}
 \end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Tesztelés}
+\label{sec:testing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+A rendszer egységtesztjei a \texttt{tests/} mappában találhatók, és
+\texttt{pytest}-tel futtathatók:
+
+\begin{verbatim}
+cd diplomamunkakod
+pytest tests/ -v
+\end{verbatim}
+
+A tesztek összesen 71 tesztesetet fednek le, amelyek mindegyike
+sikeresen lefut. A tesztesetek két fő kategóriába sorolhatók.
+
+\noindent\textbf{Moduláris (fehérdoboz) tesztek}\\
+Az üzleti logika izolált egységeit tesztelik; az infrastrukturális
+adaptereket (Binance, WebSocket) stub-ok helyettesítik.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
+    \hline\hline
+    \texttt{test\_equity.py}           & 8  & Egyenleg-kalkuláció BUY/SELL fill-ek után \\
+    \texttt{test\_fee\_fix.py}          & 6  & Díj mindig csökkenti az equity-t \\
+    \texttt{test\_fill\_fix.py}         & 7  & Pénztárca cash-kezelés, pozíció-követés \\
+    \texttt{test\_risk\_policy.py}      & 12 & Stop-loss, pozícióméret-korlát, napi limit \\
+    \texttt{test\_execution.py}        & 9  & Megbízás-végrehajtás, slippage-modell \\
+    \texttt{test\_strategy.py}         & 7  & Jelzésgenerálás, küszöb-logika \\
+    \texttt{test\_signal\_diagnostics.py} & 8 & Diagnosztikai metrikák pontossága \\
+    \hline
+  \end{tabular}
+  \caption{A fehérdoboz tesztesetek áttekintése.}
+  \label{tab:unit_tests}
+\end{table}
+
+\noindent\textbf{Rendszer- és integrációs (feketedoboz) tesztek}\\
+Az egész pipeline-t tesztelik valódi (historikus) adatokon a
+valódi interfészek mögött.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
+    \hline\hline
+    \texttt{test\_binance\_feed.py}    & 6  & Binance feed üzenetfeldolgozás, újracsatlakozás \\
+    \texttt{test\_signal\_diagnostics.py} & 8 & Teljes előrejelzési lánc end-to-end \\
+    \hline
+  \end{tabular}
+  \caption{A feketedoboz (integrációs) tesztesetek áttekintése.}
+  \label{tab:integration_tests}
+\end{table}
+
+A tesztelés során szerzett tapasztalatok alapján több implementációs
+döntés módosult: az eredetileg egyoldalas \texttt{prob\_up > 0.5}
+küszöb helyett aszimmetrikus \texttt{[0.45, 0.55]} neutral-sávot
+vezettem be (\texttt{test\_signal\_diagnostics.py} fedte fel a
+túlzott BUY-bias-t), és a díjszámítási hibát a
+\texttt{test\_fee\_fix.py} tárta fel.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{A visszatesztelő keretrendszer}
@@ -487,81 +558,31 @@ IP-whitelist beállításait a Binance kereskedési felületén.
 A tűzfal blokkolhatja a Binance \texttt{wss://}
 végpontját ($9443$ port). Szükség esetén proxyt kell beállítani.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Tesztelés}
-\label{sec:testing}
-% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Futásidei üzenetek és hibaelhárítás}
 
-\subsection{Tesztelési stratégia}
-
-A tesztkészlet a \textbf{pytest} keretrendszert használja. A core logikát
-egységtesztek fedik le. A Binance és aiohttp adapterek \texttt{unittest.mock}-kal
-vannak kiváltva, tehát hálózat nélkül, determinisztikusan futnak.
+Az alábbi táblázat a leggyakoribb futásidei üzeneteket és a javasolt
+teendőket foglalja össze.
 
 \begin{table}[H]
   \centering
-  \footnotesize
-  \begin{tabular}{|l|l|p{6.6cm}|}
+  \small
+  \begin{tabular}{|p{4.4cm}|p{3.2cm}|p{5.8cm}|}
     \hline
-    \textbf{Tesztfájl} & \textbf{Típus} & \textbf{Mit fedez le?} \\
+    \textbf{Üzenet / hibaüzenet} & \textbf{Súlyosság} & \textbf{Teendő} \\
     \hline\hline
-    \texttt{test\_strategy.py}          & Egységteszt   & ThresholdStrategy jelzéslogika, küszöb-, konfigurációs- és méretezetségi ellenőrzések \\
-    \texttt{test\_risk\_policy.py}       & Egységteszt   & RiskPolicy blokkolási útvonalak, MaxQty, MaxNotional, Confidence, SlippageGuard szabályok \\
-    \texttt{test\_execution.py}         & Integrációs   & PaperBroker megbízás-végrehajtás, kitöltési szimuláció, Stop és Limit megbízások \\
-    \texttt{test\_equity.py}            & Egységteszt   & SimulationWallet tőkeszámítás, PnL, mark-price frissítés \\
-    \texttt{test\_fee\_fix.py}          & Regressziós   & Jutalékszámítás pontossága kereskedési cikluson át \\
-    \texttt{test\_fill\_fix.py}         & Regressziós   & Fill-esemény idő- és árlogikája, részleges kitöltés kezelése \\
-    \texttt{test\_signal\_diagnostics.py} & Egységteszt & Jelzés-diagnosztikai metrikák (edge score, hit-rate számítás) \\
-    \texttt{test\_binance\_feed.py}     & Mock-alapú    & BinanceFeed WebSocket-esemény feldolgozás, reconnect logika \\
+    \texttt{[WARN] Offline training failed} & Figyelmeztetés & A rendszer az előző modellel folytatja; ellenőrizd az internet-kapcsolatot és az adatok elérhetőségét. \\
+    \hline
+    \texttt{[WebSocket] Connecting...} & Tájékoztató & Automatikus újracsatlakozás; ha 5 kísérlet után sem sikerül, ellenőrizd a tűzfalat ($9443$ port). \\
+    \hline
+    \texttt{ModuleNotFoundError: mamba\_ssm} & Hiba & Telepítsd a \texttt{requirements-ml.txt} csomagjait, vagy adj meg \texttt{--device cpu} kapcsolót. \\
+    \hline
+    \texttt{Binance API 401/403} & Hiba & Érvénytelen API-kulcs; frissítsd a \texttt{.env} fájlt és ellenőrizd az IP-whitelistet. \\
+    \hline
+    \texttt{Not enough data (N rows)} & Figyelmeztetés & Növeld a \texttt{training\_start\_str} ablakot, vagy várj, amíg több zárt gyertya gyűlik össze. \\
+    \hline
+    \texttt{[FATAL ERROR] ...} & Kritikus & Verem-nyomat a \texttt{stderr}-en; küldd el a teljes naplót a fejlesztőnek. \\
     \hline
   \end{tabular}
-  \caption{A rendszer tesztfájljainak összefoglalása.}
-  \label{tab:tests}
+  \caption{A leggyakoribb futásidei üzenetek és a javasolt hibaelhárítási lépések.}
+  \label{tab:errortable}
 \end{table}
-
-\subsection{Tesztek futtatása}
-
-\begin{verbatim}
-# Összes teszt futtatása
-pytest tests/ -v
-
-# Csak az egységtesztek, kihagyva a lassú integrációs teszteket
-pytest tests/ -v -m "not slow"
-
-# Lefedettségi riport generálása
-pytest tests/ --cov=core --cov-report=term-missing
-\end{verbatim}
-
-\subsection{Tesztesetek és eredmények}
-
-Az alábbiakban néhány jellemző teszteset kerül bemutatásra.
-
-\begin{itemize}
-    \item A \texttt{test\_risk\_policy.py} ellenőrzi, hogy az összes
-          tiltó szabály (\texttt{MaxQtyRule}, \texttt{MaxNotionalRule},
-          \texttt{ConfidenceRule}, \texttt{SlippageGuardRule}) helyesen
-          blokkol érvénytelen megbízásokat, és hogy a
-          \texttt{RiskPolicy} együttes alkalmazásakor a legszigorúbb
-          szabály érvényesül. A tesztek véletlenszerű bemenetek mellett
-          ($\sim 100$ kombináció) is megbízhatóan lefedik a határeseteket.
-    \item A \texttt{test\_strategy.py} verifikálja, hogy a
-          \texttt{ThresholdStrategy} pontosan akkor ad
-          \textsc{Buy}/\textsc{Sell} jelzést, ha az előrejelzett
-          valószínűség meghaladja a beállított küszöböt
-          (\texttt{threshold}), és hogy a \texttt{min\_edge},
-          \texttt{min\_confidence} és \texttt{max\_sigma} paraméterek
-          megfelelően szűrik a gyenge jelzéseket.
-    \item A \texttt{test\_equity.py} és \texttt{test\_fill\_fix.py}
-          összes tesztje zöld, ami megerősíti, hogy a PnL-számítás és a
-          részleges kitöltések kezelése helyesen működik
-          multi-szimbólumos portfóliókban.
-    \item A \texttt{test\_fee\_fix.py} regressziós tesztként
-          garantálja, hogy egy korábbi bugfix (jutalék duplán számolása
-          tételes nézeten) nem kerül vissza a kódbázisba.
-\end{itemize}
-
-\subsection{Tesztelési korlátok és fejlesztési lehetőségek}
-
-Nincs end-to-end integrációs teszt, amely a teljes pipeline-t egyetlen
-futtatásban ellenőrizné. A visszatesztelési mód részben betölti ezt a szerepet,
-de egy dedikált szimulációs tesztsuite még jobb fedettséget adna.

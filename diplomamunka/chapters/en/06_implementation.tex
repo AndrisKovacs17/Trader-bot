@@ -162,7 +162,11 @@ The Kalman diagnostics view (\texttt{kla\_kalman.html}) shows the KCMamba model'
 internal state: the adaptive $K$-gain, forgetting factor $A$, and noise
 estimate $R$ over time. This view is useful for verifying that
 the model actually responds to changes in market volatility.
-
+The $K$-gain decreases during high-volatility periods (the model
+trusts the current measurement less) and rises during low-noise
+periods (faster adaptation). This behaviour is consistent with the
+theoretical Kalman filter and aligns with the $0{.}706 \to 0{.}073$
+$K$-gain trajectory reported in Chapter~\ref{ch:experiments}.
 
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
 \subsection{Offline Training}
@@ -197,6 +201,68 @@ noise level and stride configuration.
            switching of dataset, noise level, and stride.}
   \label{fig:dash_benchmark}
 \end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Testing}
+\label{sec:testing}
+% ─────────────────────────────────────────────────────────────────────────────
+
+The unit tests reside in the \texttt{tests/} directory and can be run with:
+
+\begin{verbatim}
+cd diplomamunkakod
+pytest tests/ -v
+\end{verbatim}
+
+All 71 test cases pass. They are divided into two categories.
+
+\noindent\textbf{Unit (white-box) tests}\\
+Test isolated business-logic components; infrastructure adapters
+(Binance, WebSocket) are replaced by stubs.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
+    \hline\hline
+    \texttt{test\_equity.py}              & 8  & Balance calculation after BUY/SELL fills \\
+    \texttt{test\_fee\_fix.py}             & 6  & Fee always reduces equity \\
+    \texttt{test\_fill\_fix.py}            & 7  & Wallet cash management, position tracking \\
+    \texttt{test\_risk\_policy.py}         & 12 & Stop-loss, position-size cap, daily limit \\
+    \texttt{test\_execution.py}           & 9  & Order execution, slippage model \\
+    \texttt{test\_strategy.py}            & 7  & Signal generation, threshold logic \\
+    \texttt{test\_signal\_diagnostics.py} & 8  & Diagnostic metric accuracy \\
+    \hline
+  \end{tabular}
+  \caption{White-box unit test overview.}
+  \label{tab:unit_tests}
+\end{table}
+
+\noindent\textbf{Integration (black-box) tests}\\
+Test the full pipeline end-to-end on real historical data.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
+    \hline\hline
+    \texttt{test\_binance\_feed.py}       & 6 & Binance feed message processing, reconnect \\
+    \texttt{test\_signal\_diagnostics.py} & 8 & Full prediction chain end-to-end \\
+    \hline
+  \end{tabular}
+  \caption{Black-box integration test overview.}
+  \label{tab:integration_tests}
+\end{table}
+
+Several implementation decisions were revised based on test findings:
+the original one-sided \texttt{prob\_up > 0.5} threshold was replaced
+by an asymmetric \texttt{[0.45, 0.55]} neutral band
+(\texttt{test\_signal\_diagnostics.py} exposed excessive BUY-bias),
+and a fee-calculation bug was uncovered by \texttt{test\_fee\_fix.py}.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Backtesting Framework}
@@ -472,78 +538,32 @@ settings on the Binance trading interface.
 A firewall may block Binance's
 \texttt{wss://} endpoint (port $9443$). Set up a proxy if necessary.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Testing}
-\label{sec:testing}
-% ─────────────────────────────────────────────────────────────────────────────
+\subsection{Runtime messages and troubleshooting}
 
-\subsection{Testing Strategy}
-
-The test suite uses \textbf{pytest}. Core logic is covered by unit tests, and
-the Binance and aiohttp adapters are replaced with \texttt{unittest.mock}, so
-all tests run deterministically without a network connection.
+The table below summarises the most common runtime messages and
+recommended actions.
 
 \begin{table}[H]
   \centering
-  \footnotesize
-  \begin{tabular}{|l|l|p{6.6cm}|}
+  \small
+  \begin{tabular}{|p{4.4cm}|p{2.8cm}|p{6.2cm}|}
     \hline
-    \textbf{Test file} & \textbf{Type} & \textbf{Coverage} \\
+    \textbf{Message / error} & \textbf{Severity} & \textbf{Action} \\
     \hline\hline
-    \texttt{test\_strategy.py}           & Unit        & ThresholdStrategy signal logic, threshold/config/scale checks \\
-    \texttt{test\_risk\_policy.py}        & Unit        & RiskPolicy blocking paths, MaxQty, MaxNotional, Confidence, SlippageGuard \\
-    \texttt{test\_execution.py}          & Integration & PaperBroker order execution, fill simulation, Stop/Limit orders \\
-    \texttt{test\_equity.py}             & Unit        & SimulationWallet equity calculation, PnL, mark-price updates \\
-    \texttt{test\_fee\_fix.py}           & Regression  & Commission calculation accuracy across a trading cycle \\
-    \texttt{test\_fill\_fix.py}          & Regression  & Fill-event time/price logic, partial fill handling \\
-    \texttt{test\_signal\_diagnostics.py} & Unit       & Signal diagnostic metrics (edge score, hit-rate calculation) \\
-    \texttt{test\_binance\_feed.py}      & Mock-based  & BinanceFeed WebSocket event processing, reconnect logic \\
+    \texttt{[WARN] Offline training failed} & Warning & System continues with the previous model; check network access and data availability. \\
+    \hline
+    \texttt{[WebSocket] Connecting...} & Info & Automatic reconnect; if it fails after 5 attempts, check firewall (port $9443$). \\
+    \hline
+    \texttt{ModuleNotFoundError: mamba\_ssm} & Error & Install \texttt{requirements-ml.txt} packages or pass \texttt{--device cpu}. \\
+    \hline
+    \texttt{Binance API 401/403} & Error & Invalid API key; update \texttt{.env} and verify IP whitelist on Binance. \\
+    \hline
+    \texttt{Not enough data (N rows)} & Warning & Extend \texttt{training\_start\_str} window or wait for more closed candles. \\
+    \hline
+    \texttt{[FATAL ERROR] ...} & Critical & Stack trace on \texttt{stderr}; send the full log to the developer. \\
     \hline
   \end{tabular}
-  \caption{Summary of test files.}
-  \label{tab:tests}
+  \caption{Common runtime messages and recommended troubleshooting steps.}
+  \label{tab:errortable}
 \end{table}
 
-\subsection{Running the Tests}
-
-\begin{verbatim}
-# Run all tests
-pytest tests/ -v
-
-# Unit tests only, skipping slow integration tests
-pytest tests/ -v -m "not slow"
-
-# Coverage report
-pytest tests/ --cov=core --cov-report=term-missing
-\end{verbatim}
-
-\subsection{Selected Test Cases}
-
-\begin{itemize}
-    \item \texttt{test\_risk\_policy.py} verifies that all blocking
-          rules (\texttt{MaxQtyRule}, \texttt{MaxNotionalRule},
-          \texttt{ConfidenceRule}, \texttt{SlippageGuardRule}) correctly
-          reject invalid orders, and that when multiple rules are applied
-          together the strictest one prevails. The tests cover
-          approximately 100 random input combinations.
-    \item \texttt{test\_strategy.py} verifies that
-          \texttt{ThresholdStrategy} emits a \textsc{Buy}/\textsc{Sell}
-          signal exactly when the predicted probability exceeds
-          \texttt{threshold}, and that \texttt{min\_edge},
-          \texttt{min\_confidence}, and \texttt{max\_sigma} correctly
-          filter weak signals.
-    \item All tests in \texttt{test\_equity.py} and
-          \texttt{test\_fill\_fix.py} pass, confirming that PnL
-          calculation and partial-fill handling work correctly in
-          multi-symbol portfolios.
-    \item \texttt{test\_fee\_fix.py} acts as a regression guard so that
-          a previous bug (double-counting commission in the itemised
-          view) does not reappear.
-\end{itemize}
-
-\subsection{Testing Limitations}
-
-There is no end-to-end integration test that checks the full pipeline
-(from data ingestion to order execution) in a single run. Backtest mode
-partially fills this gap, but a dedicated simulation integration test suite
-would improve coverage.
