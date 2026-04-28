@@ -171,6 +171,7 @@ class ModelDiagnosticsService:
     recent_mu: list[float] = field(default_factory=list)
     recent_realized_return: list[float] = field(default_factory=list)
     recent_pred_error: list[float] = field(default_factory=list)
+    recent_confirm_score: list[float] = field(default_factory=list)
     max_points: int = 500
     ar_direction_hits: int = 0
     ar_samples: int = 0
@@ -193,6 +194,7 @@ class ModelDiagnosticsService:
         self._append_bounded(self.recent_prob_up, float(pred.prob_up))
         self._append_bounded(self.recent_sigma, float(pred.sigma))
         self._append_bounded(self.recent_mu, float(pred.mu))
+        self._append_bounded(self.recent_confirm_score, float(pred.confirm_score))
 
         if self.recent_prob_up:
             avg_prob = sum(self.recent_prob_up) / len(self.recent_prob_up)
@@ -300,5 +302,6 @@ class ModelDiagnosticsService:
             "recent_mu": self.recent_mu,
             "recent_realized_return": self.recent_realized_return,
             "recent_pred_error": self.recent_pred_error,
+            "recent_confirm_score": self.recent_confirm_score,
             "ar_metrics": self.ar_metrics(),
         }

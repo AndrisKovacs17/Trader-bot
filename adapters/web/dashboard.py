@@ -93,6 +93,7 @@ class DashboardAPI:
         recent_mu = model.get("recent_mu", [])
         recent_realized = model.get("recent_realized_return", [])
         recent_error = model.get("recent_pred_error", [])
+        recent_confirm = model.get("recent_confirm_score", [])
         if isinstance(recent_prob, list):
             recent_prob = recent_prob[-limit:]
         if isinstance(recent_sigma, list):
@@ -103,6 +104,8 @@ class DashboardAPI:
             recent_realized = recent_realized[-limit:]
         if isinstance(recent_error, list):
             recent_error = recent_error[-limit:]
+        if isinstance(recent_confirm, list):
+            recent_confirm = recent_confirm[-limit:]
         return {
             "wallet_history": wallet_history,
             "recent_prob_up": recent_prob,
@@ -110,6 +113,7 @@ class DashboardAPI:
             "recent_mu": recent_mu,
             "recent_realized_return": recent_realized,
             "recent_pred_error": recent_error,
+            "recent_confirm_score": recent_confirm,
             "ar_metrics": model.get("ar_metrics", {}),
         }
 

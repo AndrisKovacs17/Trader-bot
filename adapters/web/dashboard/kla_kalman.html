@@ -77,6 +77,11 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     .formula { background:#0c1116; border:1px solid #1e293b; border-radius:8px; padding:10px 14px; font-family:ui-monospace,monospace; font-size:12px; color:#67e8f9; margin-top:8px; }
     /* KLA annotation card */
     .annot { background:rgba(96,165,250,.07); border:1px solid rgba(96,165,250,.18); border-radius:10px; padding:12px 16px; font-size:12px; color:#93c5fd; line-height:1.6; }
+    /* Insight card — rich interpretation blocks */
+    .insight-card { background:#0c1220; border:1px solid #1e293b; border-radius:12px; padding:14px 18px; line-height:1.75; }
+    .insight-title { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:#64748b; }
+    .insight-value { font-family:ui-monospace,monospace; font-weight:800; font-size:1.05rem; }
+    .insight-body  { font-size:12.5px; margin-top:6px; }
     /* gauge ring */
     .gauge-wrap { display:flex; flex-direction:column; align-items:center; gap:4px; }
     .gauge-label { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.06em; }
@@ -200,7 +205,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
     <!-- Értelmező panel -->
     <div class="section">
-      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Automatikus értékelés<button class="tip-btn" data-tip="Rendszer által generált minőségi pontszám a KCA komponens teljesítményére.&#10;Figyelembe veszi: gain stabilitás, jel-zaj szeparáció, memóriamélység.">?</button></h2>
+      <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Automatikus értékelés<button class="tip-btn" data-tip="Összesített pontszám a KCA komponens viselkedéséről (gain stabilitás, jel-zaj szeparáció, memóriamélység).">?</button></h2>
       <div class="space-y-3" id="interpretPanel">
         <p class="text-xs text-slate-500">Adatok betöltése...</p>
       </div>
@@ -525,11 +530,23 @@ function updateUI(ks, sample, seqLen, arimaP) {
 
   // Interpret
   const { kBadge, kText, adaptText, gateText } = interpretKalman(ks);
-  $('kAnnot').innerHTML = kText;
+  $('kAnnot').innerHTML = `<p style="font-size:13px;line-height:1.75;color:#bae6fd">${kText}</p>`;
   $('interpretPanel').innerHTML = `
-    <div class="annot">${kText}</div>
-    <div class="annot" style="border-color:rgba(167,139,250,.2);background:rgba(167,139,250,.06);color:#c4b5fd">${adaptText}</div>
-    <div class="annot" style="border-color:rgba(251,191,36,.2);background:rgba(251,191,36,.06);color:#fde68a">${gateText}</div>
+    <div class="insight-card" style="border-left:3px solid #22d3ee;padding-left:16px">
+      <div class="flex items-center justify-between mb-1">
+        <span class="insight-title">K gain viselkedés</span>
+        <span class="badge badge-info">${kBadge}</span>
+      </div>
+      <p class="insight-body" style="color:#bae6fd">${kText}</p>
+    </div>
+    <div class="insight-card" style="border-left:3px solid #a78bfa;padding-left:16px">
+      <div class="mb-1"><span class="insight-title">Adaptivitás — K szórás</span></div>
+      <p class="insight-body" style="color:#ddd6fe">${adaptText}</p>
+    </div>
+    <div class="insight-card" style="border-left:3px solid #fbbf24;padding-left:16px">
+      <div class="mb-1"><span class="insight-title">Bypass gate</span></div>
+      <p class="insight-body" style="color:#fde68a">${gateText}</p>
+    </div>
   `;
   $('kDistBadge').textContent = kBadge;
   $('kDistBadge').style.display = 'inline-block';

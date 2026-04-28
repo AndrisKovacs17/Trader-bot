@@ -161,7 +161,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Jelszalag (utolsó 300 tick) — zöld:BUY szándék, piros:SELL, sárga:semleges<button class="tip-btn" data-tip="Az utolsó 300 tick vizuális összegzése.&#10;&#10; • Zöld → BUY szándék (prob_up &gt; threshold)&#10; • Piros → SELL szándék (prob_up &lt; 1−threshold)&#10; • Sárga → semleges, nincs pozícióváltás&#10;&#10;Sok sárga sáv → a modell bizonytalan a küszöb környékén.">?</button></h2>
       <span id="sigStripMeta" class="text-xs text-slate-600">—</span>
     </div>
-    <canvas id="cStrip" height="44"></canvas>
+    <canvas id="cStrip" height="44" style="width:100%;display:block"></canvas>
   </div>
 
   <!-- Main signal charts -->

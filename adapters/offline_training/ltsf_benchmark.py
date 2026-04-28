@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import copy
 import io
-import os
 import pathlib
 import threading
 import time
@@ -171,7 +170,7 @@ def _load_dataset(name: str, seq_len: int, batch_size: int, noise_scale: float =
     # Clipped to ±3σ to prevent extreme outliers blowing up training at high noise_scale.
     _noise_scale = float(noise_scale)
     if _noise_scale > 0.0:
-        rng = np.random.default_rng()   # different seed every run
+        rng = np.random.default_rng(42)   # fixed seed for reproducible noise
         # train noise
         tr_noise = rng.standard_normal(train_clean.shape).astype("float32") * _noise_scale
         tr_noise = np.clip(tr_noise, -3.0 * _noise_scale, 3.0 * _noise_scale)
@@ -259,6 +258,31 @@ def _make_fair_mamba(d_model: int, heads: int, d_state: int):
             return x + self.out_proj(self.proj_C(xc) * h * gate)
 
     return FairMambaBlock(d_model, heads, d_state)
+
+
+def _make_lstm_loop(input_dim: int, hidden_dim: int = 128):
+    """Pure-Python LSTMCell loop — identical math to nn.LSTM but no CuDNN fusion.
+    Provides a fair speed/VRAM baseline comparable to the Mamba implementations."""
+    import torch.nn as nn
+
+    class LoopLSTM(nn.Module):
+        def __init__(self, d, h):
+            super().__init__()
+            self.cell     = nn.LSTMCell(d, h)
+            self.out_proj = nn.Linear(h, d)
+        def forward(self, x):
+            import torch
+            B, T, D = x.shape
+            h = torch.zeros(B, self.cell.hidden_size, device=x.device, dtype=x.dtype)
+            c = torch.zeros_like(h)
+            outs = []
+            for t in range(T):
+                h, c = self.cell(x[:, t, :], (h, c))
+                outs.append(h)
+            out = torch.stack(outs, dim=1)   # [B, T, H]
+            return self.out_proj(out)
+
+    return LoopLSTM(input_dim, hidden_dim)
 
 
 def _make_kca_mamba(d_model: int, heads: int, d_state: int):
@@ -617,7 +641,12 @@ def _run(cfg: dict) -> None:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # ── Download + preprocess dataset ────────────────────────────────────────
+    # Fixed seed — ensures preset configs reproduce the sweep results consistently
+    torch.manual_seed(42)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(42)
+    import numpy as _np_seed; _np_seed.random.seed(42)
+    import random as _rnd_seed; _rnd_seed.seed(42)
     try:
         with _lock:
             _state["stage"] = f"{c['dataset']} adatok letöltése..."
@@ -634,9 +663,9 @@ def _run(cfg: dict) -> None:
         return
 
     models = [
-        ("lstm",       "Vanilla LSTM",             _make_lstm(input_dim, int(c.get("lstm_hidden", 128))).to(device)),
-        ("fair_mamba", "Fair Mamba",                _make_fair_mamba(input_dim, int(c.get("fair_heads", 4)), int(c.get("fair_state", 32))).to(device)),
-        ("kca_mamba",  "KCA-Mamba",                 _make_kca_mamba(input_dim,  int(c.get("kca_heads",  4)), int(c.get("kca_state",  32))).to(device)),
+        ("lstm_loop",  "Fair LSTM",   _make_lstm_loop(input_dim, int(c.get("lstm_hidden", 128))).to(device)),
+        ("fair_mamba", "Fair Mamba",  _make_fair_mamba(input_dim, int(c.get("fair_heads", 4)), int(c.get("fair_state", 32))).to(device)),
+        ("kca_mamba",  "KCA-Mamba",   _make_kca_mamba(input_dim,  int(c.get("kca_heads",  4)), int(c.get("kca_state",  32))).to(device)),
         ("ar_model",  f"ARIMA({int(c['arima_p'])},1,{int(c['arima_q'])})",
             _make_arima_model(input_dim, int(c["arima_p"]), int(c["arima_q"]),
                               int(c.get("lstm_hidden", 128)) * 2).to(device)),
@@ -663,6 +692,8 @@ def _run(cfg: dict) -> None:
             result["found_lr"] = found_lr
         except Exception as exc:
             result = {"name": model_name, "error": str(exc), "test_mse": None,
+                      "params": sum(p.numel() for p in model.parameters()),
+                      "epoch_losses": [], "train_time_s": None, "peak_vram_mb": None,
                       "found_lr": found_lr}
         partial[key] = result
         with _lock:

@@ -1,0 +1,14 @@
+{
+  "version": "offline-20260428-153446-e13",
+  "val_directional_accuracy": 0.5299751005554492,
+  "val_brier_up": 0.24947258467602104,
+  "baseline_reference_directional_accuracy": 0.5258571154951158,
+  "best_epoch": 13,
+  "dataset_size": 105120,
+  "horizon": 12,
+  "lookback": 64,
+  "feature_count": 33,
+  "deploy_reason": "meets-baseline-brier-collapse-gates",
+  "trained_at": "2026-04-28T15:34:46.799734+00:00",
+  "data_source": "binance-historical-klines-5m-downsampled-300.000s"
+}

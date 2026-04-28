@@ -226,12 +226,24 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div class="section">
       <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Osztály súlyok (tréning)<button class="tip-btn" data-tip="Inverse-frequency class weights a CE loss-ban.&#10;&#10;FLAT osztály ~4% gyakoriságú, ezért ~10–25× súllyal szerepel, hogy ne nyomódjon el.">?</button></h2>
-      <div style="height:200px"><canvas id="cClassW"></canvas></div>
+      <div style="height:200px;position:relative">
+        <canvas id="cClassW"></canvas>
+        <div id="cwNoData" style="display:flex;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:6px;z-index:10;background:#0f172a">
+          <span class="text-xs text-slate-500">Tréning még nem futott le</span>
+          <span class="text-[11px] text-slate-700">direction_class_weights hiányzik</span>
+        </div>
+      </div>
       <div class="mt-3 text-xs text-slate-600">Kiegyensúlyozó súlyok — nagyobb súly = ritka osztály. Ideális: DOWN/UP magas, FLAT alacsony.</div>
     </div>
     <div class="section">
       <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Val pred class share (kimenet megoszlás)<button class="tip-btn" data-tip="Milyen arányban jósolt a modell a val halmazon DOWN / FLAT / UP osztályokat.&#10;&#10;Egészséges: közel a priorokhoz.&#10;100% egy osztályban → collapse, újratanítás kell.">?</button></h2>
-      <div style="height:200px"><canvas id="cPredShare"></canvas></div>
+      <div style="height:200px;position:relative">
+        <canvas id="cPredShare"></canvas>
+        <div id="pcsNoData" style="display:flex;position:absolute;inset:0;align-items:center;justify-content:center;flex-direction:column;gap:6px;z-index:10;background:#0f172a">
+          <span class="text-xs text-slate-500">Tréning még nem futott le</span>
+          <span class="text-[11px] text-slate-700">val_pred_class_share hiányzik</span>
+        </div>
+      </div>
       <div class="mt-3 text-xs text-slate-600">Milyen arányban mondott DOWN/FLAT/UP-ot a modell a val seten. Ha lapos (1/3 mindenből) → megkülönböztetési gond.</div>
     </div>
   </div>
@@ -326,8 +338,8 @@ function initCharts(){
   initC('cEpoch',{type:'line',data:{labels:[],datasets:[{label:'Val Dir Acc',data:[],borderColor:'#4ade80',borderWidth:2,fill:false,tension:.3,...NP,yAxisID:'y1'},{label:'Train loss',data:[],borderColor:'#818cf8',borderWidth:1.5,fill:false,tension:.3,...NP,borderDash:[4,3]},{label:'Val loss',data:[],borderColor:'#f43f5e',borderWidth:1.5,fill:false,tension:.3,...NP}]},options:{...BASE,scales:{x:xA(),y:yA({title:{display:true,text:'Loss',font:{size:10}}}),y1:{display:true,position:'right',grid:{drawOnChartArea:false},ticks:{maxTicksLimit:5,font:{size:10}},title:{display:true,text:'Dir Acc',font:{size:10}}}}}});
   initC('cLoss',{type:'line',data:{labels:[],datasets:[{label:'Train loss',data:[],borderColor:'#818cf8',borderWidth:2,fill:false,tension:.3,...NP},{label:'Val loss',data:[],borderColor:'#f43f5e',borderWidth:2,fill:false,tension:.3,...NP}]},options:{...BASE,scales:{x:xA(),y:yA()}}});
   initC('cAcc',{type:'line',data:{labels:[],datasets:[{label:'Val Dir Acc',data:[],borderColor:'#4ade80',backgroundColor:'rgba(74,222,128,.1)',fill:true,borderWidth:2.5,tension:.3,...NP}]},options:{...BASE,plugins:{legend:{display:false},tooltip:TT},scales:{x:xA(),y:yA({min:0.4,max:0.8})}}});
-  initC('cClassW',{type:'bar',data:{labels:['DOWN','FLAT','UP'],datasets:[{data:[0,0,0],backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:TT},scales:{x:{display:true,grid:{display:false}},y:yA({min:0})}}});
-  initC('cPredShare',{type:'bar',data:{labels:['DOWN','FLAT','UP'],datasets:[{data:[0,0,0],backgroundColor:['rgba(239,68,68,.6)','rgba(245,158,11,.6)','rgba(34,197,94,.6)'],borderColor:['#ef4444','#f59e0b','#22c55e'],borderWidth:1.5,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:TT},scales:{x:{display:true,grid:{display:false}},y:yA({min:0,max:1})}}});
+  initC('cClassW',{type:'bar',data:{labels:['DOWN','FLAT','UP'],datasets:[{data:[],backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:TT},scales:{x:{display:true,grid:{display:false}},y:yA({min:0})}}});
+  initC('cPredShare',{type:'bar',data:{labels:['DOWN','FLAT','UP'],datasets:[{data:[],backgroundColor:['rgba(239,68,68,.6)','rgba(245,158,11,.6)','rgba(34,197,94,.6)'],borderColor:['#ef4444','#f59e0b','#22c55e'],borderWidth:1.5,borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:200},plugins:{legend:{display:false},tooltip:TT},scales:{x:{display:true,grid:{display:false}},y:yA({min:0,max:1})}}});
   initC('cBaselineBar',{type:'bar',data:{labels:[],datasets:[{data:[],backgroundColor:[],borderColor:[],borderWidth:2,borderRadius:4,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+(ctx.parsed.x*100).toFixed(2)+'%'}}},scales:{x:{display:true,grid:GRID,min:0.35,max:0.65,ticks:{maxTicksLimit:5,font:{size:10},callback:v=>(v*100).toFixed(0)+'%'}},y:{display:true,grid:{display:false},ticks:{font:{size:11},color:'#94a3b8'}}}}});
 }
 
@@ -465,11 +477,25 @@ async function refresh(){
 
   // Class weights bar chart
   const cw=lr.direction_class_weights;
-  if(Array.isArray(cw)&&cw.length===3){upC('cClassW',['DOWN','FLAT','UP'],[{data:cw.map(Number),backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]);}
+  const cwOk=Array.isArray(cw)&&cw.length>=2;
+  const cwLabels=cw&&cw.length===2?['DOWN','UP']:['DOWN','FLAT','UP'];
+  const cwColors2=['#ef4444','#22c55e'];
+  const cwColors3=['#ef4444','#f59e0b','#22c55e'];
+  const cwND=document.getElementById('cwNoData');
+  if(cwND)cwND.style.display=cwOk?'none':'flex';
+  if(cwOk){upC('cClassW',cwLabels,[{data:cw.map(Number),backgroundColor:cw.length===2?cwColors2:cwColors3,borderRadius:6,borderSkipped:false}]);}
 
   // Pred class share
   const pcs=lr.val_pred_class_share;
-  if(Array.isArray(pcs)&&pcs.length===3){upC('cPredShare',['DOWN','FLAT','UP'],[{data:pcs.map(Number),backgroundColor:['rgba(239,68,68,.6)','rgba(245,158,11,.6)','rgba(34,197,94,.6)'],borderColor:['#ef4444','#f59e0b','#22c55e'],borderWidth:1.5,borderRadius:6,borderSkipped:false}]);}
+  const pcsOk=Array.isArray(pcs)&&pcs.length>=2;
+  const pcsLabels=pcs&&pcs.length===2?['DOWN','UP']:['DOWN','FLAT','UP'];
+  const pcsBg2=['rgba(239,68,68,.6)','rgba(34,197,94,.6)'];
+  const pcsBg3=['rgba(239,68,68,.6)','rgba(245,158,11,.6)','rgba(34,197,94,.6)'];
+  const pcsBorder2=['#ef4444','#22c55e'];
+  const pcsBorder3=['#ef4444','#f59e0b','#22c55e'];
+  const pcsND=document.getElementById('pcsNoData');
+  if(pcsND)pcsND.style.display=pcsOk?'none':'flex';
+  if(pcsOk){upC('cPredShare',pcsLabels,[{data:pcs.map(Number),backgroundColor:pcs.length===2?pcsBg2:pcsBg3,borderColor:pcs.length===2?pcsBorder2:pcsBorder3,borderWidth:1.5,borderRadius:6,borderSkipped:false}]);}
 
   // Feature chips
   const featNames=lr.feature_names||[];

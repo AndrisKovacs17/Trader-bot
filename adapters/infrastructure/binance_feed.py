@@ -461,6 +461,7 @@ def parse_kline_message(msg: dict) -> dict | None:
         "high": float(kline.get("h", 0.0)),
         "low": float(kline.get("l", 0.0)),
         "volume": float(kline.get("v", 0.0)),
+        "taker_buy_vol": float(kline.get("V", -1.0)),  # Taker buy base asset volume
         "time": int(kline.get("T", 0)),  # Close time in ms
         "is_closed": kline.get("x", False),  # Is candle closed?
     }

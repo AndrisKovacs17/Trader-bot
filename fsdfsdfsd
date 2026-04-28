@@ -1,0 +1,26 @@
+[33mdae786b[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix: témabejelentő scale=0.75
+[33me878554[m fix: témabejelentő scale=0.85 (margó javítás)
+[33m8495351[m fix: témabejelentő PDF kicsinyítése (scale=0.92) a 2.5cm margó betartásához
+[33me4de4bf[m fix: bíráló-eszköz hibák javítása — TOC oldalszámok, cím/táblázat margó-átnyúlás, TikZ use case diagram méretezés
+[33m6ab4b37[m docs: use case diagram (TikZ), vektoros (PDF) ábrák, fvextra/emergencystretch margó-átnyúlások javítása, ARIMA KeyError fix make_figures.py-ben
+[33md7b8d94[m fix: hiányzó smith2017cyclical bib bejegyzés + bevezetés újrafogalmazása, PDF újrafordítás
+[33mc7da21e[m docs: magyar nyelvtani és fogalmazási javítások
+[33md1b31d8[m docs: magyar és angol fejezetek stilisztikai javítása
+[33mc667dfa[m README: remove all --- separators, fix AI-ish phrasing
+[33m08bbb5a[m README: full Hungarian, expand KCA-Mamba architecture section, fix port 8000→8080, remove stale English section
+[33m5bf5907[m Fix nav menu order, naming consistency (KCA-Mamba/KCMamba), 4-model count, warning-free tests; sync HU-EN thesis docs
+[33m29c5060[m Cleanup: remove PatchTST everywhere, remove bench variants/longmem/patchtst files, remove dead commented code
+[33m5e959d4[m KCA-Mamba: ablation variants, PatchTST, longmem bench, dashboard updates
+[33m9fc1e29[m thesis: add fig03/04/05/06/07 to HU ch04 (degradation bar, Exchange/Kalman, forecast, radar, efficiency)
+[33mb874f73[m thesis: add ARIMA to noise-curves (fig01) and heatmap (fig02), insert both into HU+EN ch04
+[33mac95774[m thesis: remove LSTM from all result tables, KCMamba vs Fair Mamba comparison only
+[33m1859776[m thesis: remove ARIMA rows from all comparison tables, fix bold highlights
+[33md6d3b9a[m thesis: 2dp precision + correct bold highlights in all result tables
+[33m5b7f522[m thesis: stride×longseq sweep (fig16 + ch04 HU+EN subsection), update ch01+ch05 HU+EN, remove listoffigures
+[33m3b8c1d9[m thesis: add best sweep wins to intro & conclusion everywhere (−31.7% vs LSTM, −63.6% vs Fair)
+[33m46c599b[m thesis: long-seq sweep results — fig15 + sec:longseq ch4 HU+EN
+[33m61a9159[m thesis: finalize user guide, cleanup scripts, bilingual figures, purge EC-MSE/fig4.2
+[33mc59b4bb[m docs: add comprehensive user guide README + context-sensitive dashboard help overlay
+[33m1320b2d[m chore: silence third-party DeprecationWarnings (binance/websockets)
+[33m8185e09[m style: replace Unicode decorative glyphs with ASCII in benchmark scripts
+[33m0ad5310[m Initial commit: KCMamba trader bot + thesis

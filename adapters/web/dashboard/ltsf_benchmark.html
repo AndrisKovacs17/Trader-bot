@@ -162,42 +162,42 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
   <!-- Preset quick-buttons -->
   <div class="section">
     <div class="preset-row">
-      <span class="preset-label">Előbeállítások<button class="tip-btn" data-tip="Konfigurációk, ahol a KCA-Mamba MSE értéke alacsonyabb volt MIND az LSTM-nél, MIND a Fair Mamba-nál.&#10;&#10;Forrás: sweep_results.json + stride_sweep_results.json (10 epoch, valódi mért adatok).&#10;&#10;FONTOS: a presetek 10 epoch-ot állítanak be — kevesebbel a KCA Kalman-loss-szal nem konvergál.">?</button></span>
+      <span class="preset-label">Előbeállítások<button class="tip-btn" data-tip="Sweep konfigurációk, amelyekben a KCA-Mamba teszt MSE-je alacsonyabb volt mind az LSTM, mind a Fair Mamba eredményénél. Mind 10 epoch-os futás.">?</button></span>
 
       <button class="btn-preset" onclick="applyPreset('exchange_192_clean')" title="A legnagyobb mért előny: KCA 0.033 vs LSTM 0.105 vs Fair 0.081  (+59% vs LSTM, +59% vs Fair)">
-        <span class="preset-tag">*</span> Exchange seq=192 σ=0 (zászólóshajó +59%)
+        <span class="preset-tag">*</span> Exchange seq=192 σ=0
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_336_sigma3')" title="Hosszú szekvencia + zaj: KCA 0.736 vs LSTM 1.000 vs Fair 1.162  (+26% vs LSTM)">
-        <span class="preset-tag">*</span> Exchange seq=336 σ=3 (+26%)
+        <span class="preset-tag">*</span> Exchange seq=336 σ=3
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_336_sigma1')" title="KCA 0.502 vs LSTM 0.735 vs Fair 0.662  (+24% vs LSTM)">
-        <span class="preset-tag">*</span> Exchange seq=336 σ=1 (+24%)
+        <span class="preset-tag">*</span> Exchange seq=336 σ=1
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_512_sigma3')" title="Long-context + zaj: KCA 0.772 vs LSTM 0.989 vs Fair 2.121  (+22% vs LSTM)">
-        <span class="preset-tag">L</span> Exchange seq=512 σ=3 (+22%)
+        <span class="preset-tag">L</span> Exchange seq=512 σ=3
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_192_sigma5')" title="Erős zaj: KCA 1.153 vs LSTM 1.448 vs Fair 1.557  (+20% vs LSTM)">
-        <span class="preset-tag">N</span> Exchange seq=192 σ=5 (+20%)
+        <span class="preset-tag">N</span> Exchange seq=192 σ=5
       </button>
 
       <button class="btn-preset" onclick="applyPreset('exchange_512_sigma5')" title="KCA 1.074 vs LSTM 1.197 vs Fair 1.700  (+10% vs LSTM)">
-        <span class="preset-tag">N</span> Exchange seq=512 σ=5 (+10%)
+        <span class="preset-tag">N</span> Exchange seq=512 σ=5
       </button>
 
       <button class="btn-preset" onclick="applyPreset('ettm1_clean')" title="ETTm1 standard LTSF benchmark: KCA 0.065 vs LSTM 0.074 vs Fair 0.086  (+13% vs LSTM)">
-        <span class="preset-tag">C</span> ETTm1 seq=96 σ=0 (+13%)
+        <span class="preset-tag">C</span> ETTm1 seq=96 σ=0
       </button>
 
       <button class="btn-preset" onclick="applyPreset('ettm1_512_sigma5')" title="ETTm1 long+noisy: KCA 0.717 vs LSTM 0.796 vs Fair 1.018  (+10% vs LSTM)">
-        <span class="preset-tag">L</span> ETTm1 seq=512 σ=5 (+10%)
+        <span class="preset-tag">L</span> ETTm1 seq=512 σ=5
       </button>
 
       <button class="btn-preset" onclick="applyPreset('weather_336_sigma5')" title="Weather (21 dim) high-noise: KCA 0.269 vs LSTM 0.298 vs Fair 0.653  (+10% vs LSTM)">
-        <span class="preset-tag">N</span> Weather seq=336 σ=5 (+10%)
+        <span class="preset-tag">N</span> Weather seq=336 σ=5
       </button>
     </div>
   </div>
@@ -230,31 +230,31 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <p class="text-center text-sm font-bold" id="verdictText"></p>
   </div>
 
-  <!-- Model cards (5 models) -->
-  <div class="grid gap-4 grid-autofill-240">
+  <!-- Model cards (4 models) -->
+  <div class="grid gap-4 grid-cols-4">
 
-    <!-- LSTM card -->
-    <div class="section card-lstm">
+    <!-- Fair LSTM (loop) card -->
+    <div class="section" style="border-color:#1e3a5f;background:#0c1220">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-slate-200">Vanilla LSTM</span>
-        <span id="lstmBadge" class="badge badge-warn hidden">...</span>
+        <span class="text-sm font-bold text-blue-300">Fair LSTM</span>
+        <span id="loopBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
-        <div><label>Hidden méret</label><input type="number" id="cfgLstmH" value="128" min="32" max="512" step="32" title="params ≈ 4·H·(D+H)"></div>
+        <div><label>Hidden méret</label><input type="number" id="cfgLstmH" value="128" min="32" max="512" step="32" title="params ≈ 4·H·(D+H), pure-PyTorch LSTMCell loop"></div>
       </div>
       <div class="space-y-1">
-        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="lstmParams">—</span></div>
-        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="lstmLr">—</span></div>
-        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="lstmMse">—</span></div>
-        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="lstmTime">—</span></div>
-        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="lstmVram">—</span></div>
+        <div class="kv"><span class="lbl">Paraméterek</span><span class="val" id="loopParams">—</span></div>
+        <div class="kv"><span class="lbl">Talált LR</span><span class="val" id="loopLr">—</span></div>
+        <div class="kv"><span class="lbl">Test MSE</span><span class="val" id="loopMse">—</span></div>
+        <div class="kv"><span class="lbl">Tréning idő</span><span class="val" id="loopTime">—</span></div>
+        <div class="kv"><span class="lbl">Peak VRAM</span><span class="val" id="loopVram">—</span></div>
       </div>
     </div>
 
     <!-- Fair Mamba card -->
     <div class="section card-fair">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-sm font-bold text-slate-200">⬜ Fair Mamba</span>
+        <span class="text-sm font-bold text-slate-200">Fair Mamba</span>
         <span id="fairBadge" class="badge badge-warn hidden">...</span>
       </div>
       <div class="card-cfg">
@@ -318,6 +318,8 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
       </div>
     </div>
 
+  </div><!-- /grid -->
+
   <!-- Results table -->
   <div class="section hidden" id="resultTableWrap">
     <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Eredmény összefoglaló<button class="tip-btn" data-tip="LTSF (Long-term Time Series Forecasting) benchmark eredményei:&#10;LSTM, Fair Mamba, KCA-Mamba, ARIMA összehasonlítása.&#10;Metrikák: Test MSE, paraméteraszám, tréning idő, peak VRAM.">?</button></h2>
@@ -331,6 +333,23 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     </div>
   </div>
 
+  <!-- Normalized comparison chart -->
+  <div class="section hidden" id="normCompWrap">
+    <div class="flex items-center justify-between mb-3">
+      <div>
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Normált összehasonlítás (alacsonyabb = jobb)<button class="tip-btn" data-tip="Minden metrikát 0–1 skálán normálunk: a legjobb modell 0.0, a legrosszabb 1.0 pontot kap.&#10;&#10;Metrikák (mind alacsonyabb = jobb):&#10;• Test MSE — előrejelzési pontosság&#10;• Paraméterek — modellméret&#10;• Tréning idő — tanítási költség&#10;• Peak VRAM — memóriaigény">?</button></h2>
+        <p class="text-[11px] text-slate-600 mt-0.5">Minden dimenzió 0–1 skálán normálva · legrosszabb = 1.0 · legjobb = 0.0</p>
+      </div>
+    </div>
+    <div class="h-[260px]"><canvas id="cNorm"></canvas></div>
+    <div class="flex flex-wrap gap-4 mt-2 text-[11px] text-slate-500">
+      <span><span class="leg-s" style="background:#3b82f6"></span>Fair LSTM</span>
+      <span><span class="leg-s" style="background:#94a3b8"></span>Fair Mamba</span>
+      <span><span class="leg-s" style="background:#4ade80"></span>KCA-Mamba</span>
+      <span><span class="leg-s" style="background:#f59e0b"></span>ARIMA</span>
+    </div>
+  </div>
+
   <!-- Combined prediction chart (full width) -->
   <div class="section">
     <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Predikció vs valós — utolsó feature (teszt minta)<button class="tip-btn" data-tip="Az utolsó feature csatorna előrejelzése vs. valós érték teszten.&#10;Tipikusan: OT (oil temperature) ETT datasetben, Close ár pénzügyi adaton.">?</button></h2>
@@ -339,7 +358,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <div class="flex flex-wrap gap-5 mt-3 text-[11px] text-slate-500">
       <span><span class="leg-s" style="background:rgba(203,213,225,.9)"></span>Valós (Ground Truth)</span>
       <span id="noisyLegendItem"><span class="leg-s" style="background:rgba(251,146,60,.6)"></span>Zajos bemenet</span>
-      <span><span class="leg-s" style="background:#60a5fa"></span>LSTM <span id="lblLstmMseInline" class="text-blue-400"></span></span>
+      <span><span class="leg-s" style="background:#3b82f6"></span>Fair LSTM <span id="lblLoopMseInline" class="text-blue-300"></span></span>
       <span><span class="leg-s" style="background:#94a3b8"></span>Fair Mamba <span id="lblFairMseInline" class="text-slate-400"></span></span>
       <span><span class="leg-s" style="background:#4ade80"></span>KCA-Mamba <span id="lblKlaMseInline" class="text-emerald-400"></span></span>
       <span><span class="leg-s" style="background:#f59e0b"></span>ARIMA modell <span id="lblArMseInline" class="text-amber-400"></span></span>
@@ -352,7 +371,7 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
     <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tréning loss görbék (epoch)<button class="tip-btn" data-tip="Epoch-onkénti loss minden benchmark modellre egyben.&#10;Gyorsan konvergáló és alacsony plateau → jobb architektúra az adott adaton.">?</button></h2>
     <div class="h-[220px]"><canvas id="cLoss"></canvas></div>
     <div class="flex flex-wrap gap-4 mt-2 text-[11px] text-slate-500">
-      <span><span class="leg-dot" style="background:#60a5fa"></span>LSTM</span>
+      <span><span class="leg-dot" style="background:#3b82f6"></span>Fair LSTM</span>
       <span><span class="leg-dot" style="background:#94a3b8"></span>Fair Mamba</span>
       <span><span class="leg-dot" style="background:#4ade80"></span>KCA-Mamba</span>
       <span><span class="leg-dot" style="background:#f59e0b"></span>ARIMA modell</span>
@@ -363,15 +382,11 @@ body{margin:0}h1,h2,h3,h4{margin:0;font-size:inherit;font-weight:inherit}p{margi
 
 <script>
 // ── Presets ──────────────────────────────────────────────────────────────────
-// Configurations where KCA-Mamba's measured test MSE was strictly lower than
-// BOTH LSTM and Fair Mamba. Data source: sweep_results.json (48 cells) and
-// stride_sweep_results.json (24 cells) — both ran with epochs=10, batch=64,
-// and model hyperparams heads=4/state=32/LSTM-H=128. The presets keep those
-// values constant and only vary dataset / seq_len / stride / noise so the
-// dashboard run reproduces the sweep conditions 1:1.
-// FIGYELEM: a stride per-(dataset,seqLen) különbözik — a sweep nem stride=1-et használt
-// mindenhol, hanem az adathalmaz méretére szabva. Preseteknél EZT vissza KELL állítani,
-// különben stride=1-gyel 4–16× több tréning ablak → teljesen más konvergencia (LSTM nyer).
+// Sweep configurations where KCA-Mamba's measured test MSE was lower than both
+// LSTM and Fair Mamba (sweep_results.json + stride_sweep_results.json). All ran
+// with epochs=10, batch=64, heads=4, state=32, LSTM-H=128. The stride is taken
+// per-(dataset, seqLen) from the sweep — not stride=1 — so the dashboard run
+// reproduces the sweep window count and convergence behavior.
 const _KCA_COMMON = {
   batch:64, epochs:10,
   lstmH:128, fairHeads:4, fairState:32, klaHeads:4, klaState:32,
@@ -447,23 +462,54 @@ function mkChart(id, datasets, opts){
   return new Chart(ctx,{type:'line',data:{datasets},options:{..._def,...opts}});
 }
 
-let cLoss=null, cPred=null;
+let cLoss=null, cPred=null, cNorm=null;
 function initCharts(){
   cLoss = mkChart('cLoss',[
-    {label:'LSTM',         data:[], borderColor:'#60a5fa', borderWidth:1.5, pointRadius:0, tension:.3},
-    {label:'Fair Mamba',   data:[], borderColor:'#94a3b8', borderWidth:1.5, pointRadius:0, tension:.3},
-    {label:'KCA-Mamba',    data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
-    {label:'ARIMA modell', data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:.3},
-  ],{scales:{x:{type:'linear',title:{display:false}},y:{type:'linear'}}});
+    {label:'Fair LSTM',  data:[], borderColor:'#3b82f6', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'Fair Mamba', data:[], borderColor:'#94a3b8', borderWidth:1.5, pointRadius:0, tension:.3},
+    {label:'KCA-Mamba',  data:[], borderColor:'#4ade80', borderWidth:2,   pointRadius:0, tension:.3},
+    {label:'ARIMA modell',data:[], borderColor:'#f59e0b', borderWidth:1.5, pointRadius:0, tension:.3},
+  ],{
+    scales:{x:{type:'linear',title:{display:false}},y:{type:'linear'}}
+  });
+
+  const ctxNorm = document.getElementById('cNorm');
+  if(ctxNorm) cNorm = new Chart(ctxNorm,{
+    type:'bar',
+    data:{
+      labels:['Test MSE','Paraméterek','Tréning idő','Peak VRAM'],
+      datasets:[
+        {label:'Fair LSTM',  data:[], backgroundColor:'rgba(59,130,246,.45)',  borderColor:'#3b82f6', borderWidth:1.5},
+        {label:'Fair Mamba', data:[], backgroundColor:'rgba(148,163,184,.35)', borderColor:'#94a3b8', borderWidth:1.5},
+        {label:'KCA-Mamba',  data:[], backgroundColor:'rgba(74,222,128,.4)',   borderColor:'#4ade80', borderWidth:1.5},
+        {label:'ARIMA',      data:[], backgroundColor:'rgba(245,158,11,.4)',   borderColor:'#f59e0b', borderWidth:1.5},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true, labels:{color:'#64748b', font:{size:11}, boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(3)}`}}
+      },
+      animation:{duration:350},
+      scales:{
+        x:{ticks:{color:'#94a3b8',font:{size:11}}, grid:{color:'rgba(30,41,59,.5)'}},
+        y:{beginAtZero:true, max:1,
+          ticks:{color:'#475569', callback:v=>v.toFixed(1)},
+          grid:{color:'rgba(30,41,59,.5)'},
+          title:{display:true, text:'Normált pontszám (0=legjobb, 1=legrosszabb)', color:'#475569', font:{size:10}}}
+      }
+    }
+  });
 
   cPred = mkChart('cPred',[
     {label:'Valós',         data:[], borderColor:'rgba(203,213,225,.95)', borderWidth:2,   pointRadius:1.5, pointHoverRadius:4, pointBackgroundColor:'rgba(203,213,225,.95)', tension:0},
     {label:'Zajos bemenet', data:[], borderColor:'rgba(251,146,60,.5)',   borderWidth:1,   pointRadius:0, tension:0},
-    {label:'LSTM',          data:[], borderColor:'#60a5fa', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
-    {label:'Fair Mamba',    data:[], borderColor:'#94a3b8', borderWidth:1, pointRadius:0, tension:0, borderDash:[4,2]},
-    {label:'KCA-Mamba',     data:[], borderColor:'#4ade80', borderWidth:1, pointRadius:0, tension:0, borderDash:[2,2]},
-    {label:'ARIMA modell',  data:[], borderColor:'#f59e0b', borderWidth:1, pointRadius:0, tension:0, borderDash:[6,3]},
-    {label:'KCA szűrt (μ)', data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
+    {label:'Fair LSTM',   data:[], borderColor:'#3b82f6', borderWidth:1,   pointRadius:0, tension:0, borderDash:[4,2]},
+    {label:'Fair Mamba',  data:[], borderColor:'#94a3b8', borderWidth:1,   pointRadius:0, tension:0, borderDash:[4,2]},
+    {label:'KCA-Mamba',   data:[], borderColor:'#4ade80', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,2]},
+    {label:'ARIMA modell',data:[], borderColor:'#f59e0b', borderWidth:1,   pointRadius:0, tension:0, borderDash:[6,3]},
+    {label:'KCA szűrt (μ)',data:[], borderColor:'#67e8f9', borderWidth:1.5, pointRadius:0, tension:0, borderDash:[2,1]},
   ],{scales:{x:{type:'linear'},y:{type:'linear'}}});
 }
 initCharts();
@@ -489,7 +535,7 @@ function setCard(prefix, m){
 
 function updateLoss(models){
   if(!cLoss || !models) return;
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
+  const keys = ['lstm_loop','fair_mamba','kca_mamba','ar_model'];
   keys.forEach((k,i)=>{
     const m = models[k];
     if(!m || !m.epoch_losses) return;
@@ -500,11 +546,11 @@ function updateLoss(models){
 
 function updatePred(models){
   if(!cPred || !models) return;
-  const anyModel = models.lstm || models.fair_mamba || models.kca_mamba || models.ar_model;
+  const anyModel = models.lstm_loop || models.fair_mamba || models.kca_mamba || models.ar_model;
   const base  = anyModel?.sample?.true;
   const noisy = anyModel?.sample?.noisy;
   if(!base) return;
-  cPred.data.datasets[0].data = base.map((v,i)=>({x:i,y:v}));
+  cPred.data.datasets[0].data = base.map((v,i)=>({x:i+1,y:v}));
   // dataset[1] = zajos bemenet
   if(noisy && noisy.length)
     cPred.data.datasets[1].data = noisy.map((v,i)=>({x:i,y:v}));
@@ -513,19 +559,19 @@ function updatePred(models){
   // Hide noisy legend item when noise=0 (noisy == clean)
   const noisyLegend = document.getElementById('noisyLegendItem');
   if(noisyLegend){ if(noisy && noisy.length) noisyLegend.classList.remove('hidden'); else noisyLegend.classList.add('hidden'); }
-  const predsMap = [models.lstm, models.fair_mamba, models.kca_mamba, models.ar_model];
+  const predsMap = [models.lstm_loop, models.fair_mamba, models.kca_mamba, models.ar_model];
   predsMap.forEach((m,i)=>{
     if(m && m.sample && m.sample.pred)
-      cPred.data.datasets[i+2].data = m.sample.pred.map((v,j)=>({x:j,y:v}));
+      cPred.data.datasets[i+2].data = m.sample.pred.map((v,j)=>({x:j+1,y:v}));
   });
   // KCA szűrt jel (μ — Kálmán-állapot becsült, bypass nélkül) — dataset[6]
   const klaFilt = models.kca_mamba?.sample?.kla_filtered;
   cPred.data.datasets[6].data = (klaFilt && klaFilt.length)
-    ? klaFilt.map((v,i)=>({x:i,y:v})) : [];
+    ? klaFilt.map((v,i)=>({x:i+1,y:v})) : [];
   cPred.options.scales.x.min = 0;
-  cPred.options.scales.x.max = base.length - 1;
-  const idMap  = ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'];
-  const keyMap = ['lstm','fair_mamba','kca_mamba','ar_model'];
+  cPred.options.scales.x.max = base.length;
+  const idMap  = ['lblLoopMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'];
+  const keyMap = ['lstm_loop','fair_mamba','kca_mamba','ar_model'];
   keyMap.forEach((k,i)=>{
     const mse = models[k]?.test_mse;
     const el = document.getElementById(idMap[i]);
@@ -537,7 +583,7 @@ function updatePred(models){
 function buildTable(models){
   if(!models) return;
   $('resultTableWrap').classList.remove('hidden');
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
+  const keys = ['lstm_loop','fair_mamba','kca_mamba','ar_model'];
   const mseMins = keys.map(k=>models[k]?.test_mse ?? Infinity);
   const minMse  = Math.min(...mseMins);
   const rows    = keys.map((k,i)=>{
@@ -555,9 +601,30 @@ function buildTable(models){
   $('resultTbody').innerHTML = rows;
 }
 
+function buildNormComp(models){
+  if(!cNorm || !models) return;
+  const keys      = ['lstm_loop','fair_mamba','kca_mamba','ar_model'];
+  const metricKeys= ['test_mse','params','train_time_s','peak_vram_mb'];
+  // For each metric: normalize each model's value to [0,1] (worst=1, best=0)
+  const normed = keys.map(()=>new Array(metricKeys.length).fill(null));
+  metricKeys.forEach((mk,mi)=>{
+    const vals = keys.map(k=>models[k]?.[mk]).filter(v=>v!=null&&isFinite(v));
+    if(vals.length<1) return;
+    const vmin=Math.min(...vals), vmax=Math.max(...vals), rng=vmax-vmin;
+    keys.forEach((k,ki)=>{
+      const v=models[k]?.[mk];
+      normed[ki][mi] = (v==null||!isFinite(v)) ? null : (rng<1e-12 ? 0 : (v-vmin)/rng);
+    });
+  });
+  keys.forEach((k,ki)=>{ cNorm.data.datasets[ki].data = normed[ki]; });
+  cNorm.update('none');
+  $('normCompWrap').classList.remove('hidden');
+}
+
 function buildVerdict(models){
   if(!models) return;
-  const keys = ['lstm','fair_mamba','kca_mamba','ar_model'];
+  // Use lstm_loop for fair comparison (no CuDNN advantage)
+  const keys = ['lstm_loop','fair_mamba','kca_mamba','ar_model'];
   const entries = keys.map(k=>({k,m:models[k]})).filter(x=>x.m&&x.m.test_mse!=null);
   if(entries.length < 2) return;
   entries.sort((a,b)=>a.m.test_mse - b.m.test_mse);
@@ -588,7 +655,7 @@ async function poll(){
     badge.className='px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-950 text-blue-400';
     badge.textContent='● Fut...';
     $('stageLabel').textContent = d.stage || '...';
-    if(d.models){ setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); updateLoss(d.models); }
+    if(d.models){ setCard('loop', d.models.lstm_loop); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model); updateLoss(d.models); }
     setTimeout(poll, 1500);
   } else if(d.status==='done'){
     if(_hasRun){
@@ -603,7 +670,7 @@ async function poll(){
     $('btnRun').disabled=false;
     $('stageLabel').textContent = '';
     if(d.models){
-      setCard('lstm', d.models.lstm); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model);
+      setCard('loop', d.models.lstm_loop); setCard('fair', d.models.fair_mamba); setCard('kla', d.models.kca_mamba); setCard('ar', d.models.ar_model);
       // KCA Kálmán stats
       const ks = d.models.kca_mamba?.kalman_stats;
       if(ks && Object.keys(ks).length){
@@ -617,6 +684,7 @@ async function poll(){
       updateLoss(d.models);
       updatePred(d.models);
       buildTable(d.models);
+      buildNormComp(d.models);
       buildVerdict(d.models);
     }
     _polling = false;
@@ -635,17 +703,18 @@ async function poll(){
 
 async function startRun(){
   // Reset model card badges and results
-  [['lstm','lstmBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge']].forEach(([,bid])=>{
+  [['loop','loopBadge'],['fair','fairBadge'],['kla','klaBadge'],['ar','arBadge']].forEach(([,bid])=>{
     const b=$(bid); if(b){b.textContent='...'; b.className='badge badge-warn'; b.classList.add('hidden');}
   });
   $('klaKalman').classList.add('hidden');
   $('resultTableWrap').classList.add('hidden');
-  [['lstm','Params'],['lstm','Mse'],['lstm','Time'],['lstm','Vram'],['lstm','Lr'],
+  $('normCompWrap').classList.add('hidden');
+  [['loop','Params'],['loop','Mse'],['loop','Time'],['loop','Vram'],['loop','Lr'],
    ['fair','Params'],['fair','Mse'],['fair','Time'],['fair','Vram'],['fair','Lr'],
    ['kla','Params'],['kla','Mse'],['kla','Time'],['kla','Vram'],['kla','Lr'],
    ['ar','Params'],['ar','Mse'],['ar','Time'],['ar','Vram'],['ar','Lr']
   ].forEach(([p,f])=>{ const el=$(p+f); if(el) el.textContent='—'; });
-  ['lblLstmMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
+  ['lblLoopMseInline','lblFairMseInline','lblKlaMseInline','lblArMseInline'].forEach(id=>{ const el=$(id); if(el) el.textContent=''; });
   if(cLoss){ cLoss.data.datasets.forEach(ds=>ds.data=[]); cLoss.update('none'); }
   if(cPred){ cPred.data.datasets.forEach(ds=>ds.data=[]); cPred.update('none'); }
   const cfg = {
