@@ -484,12 +484,22 @@ async function refresh(){
     tbody.innerHTML='<tr><td colspan="5" class="text-slate-600 py-4 text-center">Modell nincs betöltve – nincsenek scaler adatok</td></tr>';
   }
 
-  // Class distribution (from training priors as proxy)
-  if(Array.isArray(cp)&&cp.length===3){
-    const vals=cp.map(Number);
-    upC('cClassDist',['DOWN','FLAT','UP'],[{label:'Tréning arány',data:vals,backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]);
-    const ciEl=document.getElementById('classDistInfo');
-    if(ciEl){ciEl.innerHTML=['DOWN','FLAT','UP'].map((n,i)=>{const v=Number(cp[i]);const warn=n==='FLAT'&&v<0.02?'<span class="badge badge-warn ml-2">Ritka FLAT</span>':'';return`<div class="flex justify-between items-center"><span class="text-slate-500">${n}</span><span class="font-mono">${pct(v)}${warn}</span></div>`;}).join('');}
+  // Class distribution (live inference counts from prediction_distribution)
+  {
+    const pd=model.prediction_distribution||{};
+    const dn=pd.down||0, fl=pd.flat||0, up2=pd.up||0;
+    const tot=dn+fl+up2;
+    if(tot>0){
+      const vals=[dn/tot,fl/tot,up2/tot];
+      upC('cClassDist',['DOWN','FLAT','UP'],[{label:'Élő arány',data:vals,backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]);
+      const ciEl=document.getElementById('classDistInfo');
+      if(ciEl){ciEl.innerHTML=['DOWN','FLAT','UP'].map((n,i)=>{const v=vals[i];const cnt=[dn,fl,up2][i];const warn=n==='FLAT'&&v<0.02?'<span class="badge badge-warn ml-2">Ritka FLAT</span>':(v>0.8?'<span class="badge badge-err ml-2">Collapse?</span>':'');return`<div class="flex justify-between items-center"><span class="text-slate-500">${n}</span><span class="font-mono">${pct(v)} <span class="text-slate-600">(${cnt})</span>${warn}</span></div>`;}).join('');}
+    } else if(Array.isArray(cp)&&cp.length===3){
+      const vals=cp.map(Number);
+      upC('cClassDist',['DOWN','FLAT','UP'],[{label:'Tréning prior (nincs élő adat)',data:vals,backgroundColor:['#ef4444','#f59e0b','#22c55e'],borderRadius:6,borderSkipped:false}]);
+      const ciEl=document.getElementById('classDistInfo');
+      if(ciEl){ciEl.innerHTML='<div class="text-slate-600 text-xs">Élő predikció még nincs – tréning prior látható.</div>';}
+    }
   }
 
   // Prob hist chart

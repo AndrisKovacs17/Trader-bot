@@ -189,7 +189,13 @@ class ModelDiagnosticsService:
             del target[:-self.max_points]
 
     def analyze_prediction(self, pred: Prediction) -> None:
-        bucket = "up" if pred.prob_up >= 0.5 else "down"
+        p = float(pred.prob_up)
+        if p >= 0.55:
+            bucket = "up"
+        elif p <= 0.45:
+            bucket = "down"
+        else:
+            bucket = "flat"
         self.prediction_distribution[bucket] = self.prediction_distribution.get(bucket, 0) + 1
         self._append_bounded(self.recent_prob_up, float(pred.prob_up))
         self._append_bounded(self.recent_sigma, float(pred.sigma))
