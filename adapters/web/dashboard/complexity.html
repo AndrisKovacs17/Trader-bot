@@ -340,7 +340,7 @@ function initCharts() {
       plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } },
       scales: {
         x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
-        y: { beginAtZero: true, max: 1.0, ticks: { color: '#64748b' }, title: { display: true, text: 'Normált érték (0=legjobb, 1=legrosszabb)', color: '#64748b', font: { size: 10 } } }
+        y: { beginAtZero: true, max: 1.0, ticks: { color: '#64748b' }, title: { display: true, text: 'Normált érték (legjobb≈0.04, legrosszabb=1.0)', color: '#64748b', font: { size: 10 } } }
       }
     }
   });
@@ -380,8 +380,9 @@ function normalize(arr) {
   const valid = arr.filter(v => v != null && isFinite(v));
   if (!valid.length) return arr.map(() => null);
   const mn = Math.min(...valid), mx = Math.max(...valid);
-  if (mx === mn) return arr.map(v => v == null ? null : 0);
-  return arr.map(v => v == null ? null : (v - mn) / (mx - mn));
+  if (mx === mn) return arr.map(v => v == null ? null : 0.04);
+  // Map to [0.04, 1.0] so the best model still renders a visible bar
+  return arr.map(v => v == null ? null : 0.04 + ((v - mn) / (mx - mn)) * 0.96);
 }
 
 // ── Pareto dominance check ────────────────────────────────────────────────────
