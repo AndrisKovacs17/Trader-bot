@@ -217,7 +217,7 @@ def build_trade_feature_rows(rows: list[dict[str, Any]]) -> tuple[list[list[floa
         # taker_vol_ratio: raw taker buy fraction [0,1] → centred to [-0.5, 0.5]
         taker_vol_ratio = taker_ratio - 0.5  # positive = net buying pressure
 
-        # volume_accel: log(current_vol / short_mean_vol) — positive = surge
+        # volume_accel: log(current_vol / short_mean_vol), positive = surge
         vol_mean_8 = math.exp(_mean(_window(log_volumes, idx, 8)))
         volume_accel = max(-3.0, min(3.0, math.log(max(volume, 1e-8) / max(vol_mean_8, 1e-8))))
 

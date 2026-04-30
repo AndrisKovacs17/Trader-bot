@@ -39,12 +39,12 @@ _URLS: dict[str, str] = {
     "Exchange": "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/exchange_rate.csv",
     "Weather":  "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/weather.csv",
     "ECL":      "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/electricity.csv",
-    # ETT (Electricity Transformer Temperature) — Zeng et al. 2023 standard LTSF benchmarks
+    # ETT (Electricity Transformer Temperature), Zeng et al. 2023 standard LTSF benchmarks
     "ETTh1":    "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/ETTh1.csv",
     "ETTh2":    "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/ETTh2.csv",
     "ETTm1":    "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/ETTm1.csv",
     "ETTm2":    "https://huggingface.co/datasets/pkr7098/time-series-forecasting-datasets/resolve/main/ETTm2.csv",
-    # M4 Hourly — 414 óránkénti sorozat, változó hossz (700–1000 lépés/sor)
+    # M4 Hourly: 414 óránkénti sorozat, változó hossz (700–1000 lépés/sor)
     # Formátum: soronként 1 sorozat (V1=ID, V2..VN=értékek, NaN-paddelt)
     # Összefűzve egyetlen hosszú 1D sorozattá → 1-step autoregresszív feladat
     "M4Hourly": "https://raw.githubusercontent.com/Mcompetitions/M4-methods/master/Dataset/Train/Hourly-train.csv",
@@ -175,7 +175,7 @@ def _load_dataset(name: str, seq_len: int, batch_size: int, noise_scale: float =
         tr_noise = rng.standard_normal(train_clean.shape).astype("float32") * _noise_scale
         tr_noise = np.clip(tr_noise, -3.0 * _noise_scale, 3.0 * _noise_scale)
         train_noisy = train_clean + tr_noise
-        # test noise — same scale so model sees same distribution
+        # test noise: same scale so model sees same distribution
         te_noise = rng.standard_normal(test_data.shape).astype("float32") * _noise_scale
         te_noise = np.clip(te_noise, -3.0 * _noise_scale, 3.0 * _noise_scale)
         test_noisy = test_data + te_noise
@@ -261,7 +261,7 @@ def _make_fair_mamba(d_model: int, heads: int, d_state: int):
 
 
 def _make_lstm_loop(input_dim: int, hidden_dim: int = 128):
-    """Pure-Python LSTMCell loop — identical math to nn.LSTM but no CuDNN fusion.
+    """Pure-Python LSTMCell loop, identical math to nn.LSTM but no CuDNN fusion.
     Provides a fair speed/VRAM baseline comparable to the Mamba implementations."""
     import torch.nn as nn
 
@@ -337,7 +337,7 @@ def _make_kca_mamba(d_model: int, heads: int, d_state: int):
             rg   = torch.sigmoid(self.res_gate_bias)
             out  = yp + rg * (self.res_proj(x) - yp)
             stats = {
-                "_yp":    yp,             # tensor — popped before scalar averaging
+                "_yp":    yp,             # tensor, popped before scalar averaging
                 "K_mean": K.mean().item(), "K_std":  K.std().item(),
                 "K_min":  K.min().item(),  "K_max":  K.max().item(),
                 "A_mean": torch.clamp(1.0 - K, 0.01, 0.99).mean().item(),
@@ -417,8 +417,8 @@ def _make_arima_model(input_dim: int, p: int = 5, q: int = 3, hidden_dim: int = 
 #   • EMA-smoothed loss β=0.98 + bias correction  (fastai Recorder)
 #   • Divergence stop:  smooth > 4 × best_smooth    (fastai LRFinder.after_batch)
 #   • Trim: skip first num_it//10 and last 5 samples (fastai lr_find)
-#   • Suggestion: ‘valley’ — ESRI algorithm, longest decreasing
-#     subsequence (DP), take the point ≈2/3 through it  (fastai valley)
+#   • Suggestion: 'valley' (ESRI algorithm, longest decreasing
+#     subsequence via DP, take the point ~2/3 through it; fastai valley)
 #   • Model weights restored after the probe run
 
 def _find_lr_fastai(
@@ -486,7 +486,7 @@ def _find_lr_fastai(
         if smooth < best_smooth:
             best_smooth = smooth
         elif stop_div and smooth > 4.0 * best_smooth:
-            break  # diverged — fastai LRFinder.after_batch
+            break  # diverged (fastai LRFinder.after_batch)
 
         lrs.append(lr_i)
         losses.append(smooth)
@@ -500,7 +500,7 @@ def _find_lr_fastai(
     losses_t = losses[trim_s:trim_e]
 
     if len(lrs_t) < 3:
-        return 1e-3   # not enough points after trim — use fallback
+        return 1e-3   # not enough points after trim; use fallback
 
     # ─ FastAI `valley` suggestion (ESRI algorithm, 1:1 port) ─────────────
     # Longest decreasing subsequence via DP; take ~2/3 point inside it.
@@ -587,7 +587,7 @@ def _train_one(model, name: str, train_loader, test_loader, c: dict, device) -> 
             res = model(x_b)
             if isinstance(res, tuple) and len(res) == 4:
                 out, _, _, stats = res
-                yp_batch = stats.pop("_yp", None)  # tensor — remove before float() loop
+                yp_batch = stats.pop("_yp", None)  # tensor, remove before float() loop
                 for k, v in stats.items():
                     kalman_acc.setdefault(k, []).append(float(v))
             else:
@@ -641,7 +641,7 @@ def _run(cfg: dict) -> None:
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # Fixed seed — ensures preset configs reproduce the sweep results consistently
+    # Fixed seed: preset configs reproduce the sweep results consistently
     torch.manual_seed(42)
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(42)
@@ -675,7 +675,7 @@ def _run(cfg: dict) -> None:
     for key, model_name, model in models:
         # ── FastAI LR finder (valley method) ────────────────────────────────
         with _lock:
-            _state["stage"] = f"{model_name} — LR kereső (FastAI valley)..."
+            _state["stage"] = f"{model_name}: LR kereső (FastAI valley)..."
         try:
             found_lr = _find_lr_fastai(model, train_loader, device)
         except Exception:

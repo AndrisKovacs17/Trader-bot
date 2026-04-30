@@ -252,7 +252,7 @@ class KCAPredictor(IPredictor, IModelUpdatePort):
                 up_head = nn.Linear(_head_input, self._class_count)
                 var_head = nn.Linear(_head_input, 1)
             model = nn.ModuleDict({"kca_block": backbone, "mu_head": mu_head, "up_head": up_head, "var_head": var_head})
-        # Validate checkpoint compatibility — strict=False silently loads partial
+        # Validate checkpoint compatibility; strict=False silently loads partial
         # weights, leaving missing layers at random init without any warning.
         _ckpt_keys = set(state_dict.keys())
         _model_keys = set(model.state_dict().keys())
@@ -265,7 +265,7 @@ class KCAPredictor(IPredictor, IModelUpdatePort):
         ]
         if _missing_in_ckpt or _unexpected_in_ckpt or _shape_mismatches:
             raise ValueError(
-                f"Saved model artifact is incompatible with current architecture — "
+                f"Saved model artifact is incompatible with current architecture: "
                 f"missing={_missing_in_ckpt}, unexpected={_unexpected_in_ckpt}, "
                 f"shape_mismatches={_shape_mismatches}. Retrain the model."
             )

@@ -202,7 +202,7 @@ class TrainingEngine:
             # Only pass "return" to feature engineering when the caller explicitly
             # provides it.  When absent, leave it out so build_trade_feature_rows
             # computes ret = (close - prev_close) / prev_close from the price
-            # series — which is the correct per-bar momentum signal.
+            # series, which is the correct per-bar momentum signal.
             # Passing 0.0 would make the entire ret feature a flat zero vector,
             # killing the most basic momentum signal in the feature set.
             _raw_ret = row.get("return", None)
@@ -647,10 +647,10 @@ class TrainingEngine:
 
             # AR (AutoRegressive / ARIMA-like) baseline: fits AR(p) on return feature via lstsq
             # Uses only the first feature column (scaled returns) → linear combination → classify
-            # NOTE: AR is informational only — not included in baseline_reference_accuracy
+            # AR is informational only, not included in baseline_reference_accuracy
             # (degenerate AR solutions tend to predict FLAT > 80% and dominate the reference)
             try:
-                ar_x = baseline_x_train[:, :, 0].cpu().float()  # [N, lookback] — ret feature
+                ar_x = baseline_x_train[:, :, 0].cpu().float()  # [N, lookback], ret feature
                 ar_bias = torch.ones(ar_x.shape[0], 1)
                 ar_X = torch.cat([ar_x, ar_bias], dim=1)  # [N, lookback+1]
                 # Regression targets: DOWN→-1, UP→+1 (binary, no FLAT)
@@ -969,7 +969,7 @@ class TrainingEngine:
         ]
         if _missing_in_ckpt or _unexpected_in_ckpt or _shape_mismatches:
             raise RuntimeError(
-                f"Checkpoint incompatible with model — "
+                f"Checkpoint incompatible with model: "
                 f"missing={_missing_in_ckpt}, unexpected={_unexpected_in_ckpt}, "
                 f"shape_mismatches={_shape_mismatches}"
             )

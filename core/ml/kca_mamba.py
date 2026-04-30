@@ -51,7 +51,7 @@ if nn is not None:
                 B_shifted = B_scan[:, :-step]    # B[t-step]
                 # A_new[t] = A[t] * A[t-step]
                 A = torch.cat([A[:, :step], A_right * A_shifted], dim=1)
-                # B_new[t] = B[t] + A_original[t] * B[t-step]  — must use A_right, NOT new A
+                # B_new[t] = B[t] + A_original[t] * B[t-step]  (must use A_right, NOT new A)
                 # (using new A would double-decay all past contributions)
                 B_scan = torch.cat([B_scan[:, :step], B_scan[:, step:] + A_right * B_shifted], dim=1)
                 step *= 2
@@ -114,11 +114,11 @@ if nn is not None:
 
         Architecture:
           input_proj  : Linear(feature_dim → hidden_dim)
-          input_norm  : LayerNorm(hidden_dim) — applied right after input_proj so all
+          input_norm  : LayerNorm(hidden_dim), applied right after input_proj so all
                         blocks receive unit-variance inputs regardless of feature scale
           block_norms : N-1 intermediate LayerNorms between KLA blocks (pre-norm style)
           blocks      : N × KCAMambaBlock(hidden_dim)   [like real Mamba: 3-24 layers]
-          norm        : LayerNorm(hidden_dim) — final output norm
+          norm        : LayerNorm(hidden_dim), final output norm
           cross_attn  : last-token queries slow (every slow_stride-th token) context
                         → simulates a coarser timeframe (e.g. 5m bars, stride=12 ≈ 1h)
           output      : full sequence [batch, seq, hidden_dim]  (caller takes [:, -1, :])

@@ -232,7 +232,7 @@ class NewsSentimentGateRule:
     """Block entry signals that strongly oppose current news sentiment.
 
     Only activates when |sentiment| >= strong_threshold (default 0.45).
-    Neutral/mildly-bullish/bearish news is ignored — the gate is intentionally
+    Neutral/mildly-bullish/bearish news is ignored; the gate is intentionally
     conservative to avoid blocking on noise.
 
     Exit signals (closing/reducing an existing position) are always allowed.
