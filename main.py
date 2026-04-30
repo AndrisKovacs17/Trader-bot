@@ -293,6 +293,7 @@ async def run_demo() -> None:
         active = getattr(predictor, "active_model", None) or {}
         predictor_payload = active.get("predictor", {}) if isinstance(active, dict) else {}
         hyper = dict(predictor_payload.get("hyperparams", {})) if isinstance(predictor_payload, dict) else {}
+        scaler = dict(predictor_payload.get("scaler", {})) if isinstance(predictor_payload, dict) else {}
         # Surface device under hyperparams for the dashboard.
         device_attr = getattr(predictor, "device", None)
         if device_attr is not None and "device" not in hyper:
@@ -324,6 +325,7 @@ async def run_demo() -> None:
             "strategy_diagnostics": strategy.diagnostics(),
             "current_version": predictor.current_version(),
             "hyperparams": hyper,
+            "scaler": scaler,
         }
 
     dashboard = DashboardAPI(
