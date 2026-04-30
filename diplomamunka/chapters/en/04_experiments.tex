@@ -73,45 +73,43 @@ for every position, whereas $s=16$ produces roughly sixteen times fewer windows.
 \begin{table}[H]
     \centering
     \small
-    \begin{tabular}{|l|c|cccc|r|}
+    \begin{tabular}{|l|c|cccc|}
         \hline
         \textbf{Stride} & \textbf{Model} &
-        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
         \hline\hline
         \multirow{2}{*}{$s=1$}
-            & Fair  & 0.02 & \textbf{0.38} & 0.98 & 1.76 & +7\,833\% \\
-            & KCMamba   & \textbf{0.02} & 0.50 & \textbf{0.86} & \textbf{1.23} & \cellcolor{green!20}+5\,505\% \\
+            & Fair  & 0.02 & \textbf{0.38} & 0.98 & 1.76 \\
+            & KCMamba   & \textbf{0.02} & 0.50 & \textbf{0.86} & \textbf{1.23} \\
         \hline
         \multirow{2}{*}{$s=16$}
-            & Fair  & \textbf{0.00} & 1.33 & 3.25 & 5.95 & \cellcolor{red!20}+152\,350\% \\
-            & KCMamba   & 0.79 & \textbf{0.75} & \textbf{1.26} & \textbf{1.31} & \cellcolor{green!20}+66\% \\
+            & Fair  & \textbf{0.00} & 1.33 & 3.25 & 5.95 \\
+            & KCMamba   & 0.79 & \textbf{0.75} & \textbf{1.26} & \textbf{1.31} \\
         \hline
     \end{tabular}
     \caption{MSE on the Exchange-Rate dataset at different noise levels.
-             Bold: best (lowest) MSE per noise level. ``Degrad.'' is the relative
-             change from $\sigma=0$ to $\sigma=5$.}
+             Bold: best (lowest) MSE per noise level.}
     \label{tab:exchange}
 \end{table}
 
-The $s=16$ case is the most striking: Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$)
-but degrades $1\,487\times$ ($+152\,350\%$) by $\sigma=5$.
+The $s=16$ case is the most striking. Fair Mamba leads at $\sigma=0$ (MSE~$= 0.004$)
+but degrades $1\,487\times$ by $\sigma=5$.
 KCMamba moves only $+66\%$, a multi-order-of-magnitude spread.
 
-The $K$-gain explains this: at $\sigma=0$, $K=0.706$, and at $\sigma=5$,
+The $K$-gain explains this. At $\sigma=0$, $K=0.706$, and at $\sigma=5$,
 $K=0.073$ and $A=0.926$.
 Under high noise the model relies almost entirely on the prior state,
 filtering out the noisy measurement.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig04_exchange_and_kalman_en.pdf}
+  \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{images/fig04_exchange_and_kalman_en.pdf}
   \caption{\textbf{Left:} MSE vs.\ noise level, Exchange/$s=16$ configuration.
-           Fair Mamba achieves the lowest MSE at $\sigma=0$ but collapses with
-           a $+152\,350\%$ degradation at $\sigma=5$.
+           Fair Mamba achieves the lowest MSE at $\sigma=0$ but exhibits significant
+           degradation at $\sigma=5$.
            KCMamba stabilises at $+66\%$.
            \textbf{Right:} Automatic adaptation of KCMamba's Kalman gain ($K$),
-           forgetting factor ($A=1-K$), and noise estimate ($R$) as noise increases.
-           At high noise $K$ drops sharply ($0.706 \to 0.073$), stabilising the state.}
+           forgetting factor ($A=1-K$), and noise estimate ($R$) as noise increases.}
   \label{fig:exchange_s16}
 \end{figure}
 
@@ -120,18 +118,18 @@ filtering out the noisy measurement.
 \begin{table}[H]
     \centering
     \small
-    \begin{tabular}{|l|c|cccc|r|}
+    \begin{tabular}{|l|c|cccc|}
         \hline
         \textbf{Stride} & \textbf{Model} &
-        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
         \hline\hline
         \multirow{2}{*}{$s=1$}
-            & Fair  & 0.29 & \textbf{0.53} & \textbf{0.93} & \textbf{1.27} & \textbf{+339\%} \\
-            & KCMamba   & \textbf{0.18} & 0.56 & 1.09 & 1.36 & +658\% \\
+            & Fair  & 0.29 & \textbf{0.53} & \textbf{0.93} & \textbf{1.27} \\
+            & KCMamba   & \textbf{0.18} & 0.56 & 1.09 & 1.36 \\
         \hline
         \multirow{2}{*}{$s=16$}
-            & Fair  & \textbf{0.18} & 0.52 & 1.70 & 3.47 & +1\,817\% \\
-            & KCMamba   & 0.19 & \textbf{0.45} & \textbf{0.86} & \textbf{1.12} & \textbf{+492\%} \\
+            & Fair  & \textbf{0.18} & 0.52 & 1.70 & 3.47 \\
+            & KCMamba   & 0.19 & \textbf{0.45} & \textbf{0.86} & \textbf{1.12} \\
         \hline
     \end{tabular}
     \caption{MSE on ETTh1. At $s=16$ KCMamba shows significantly better noise robustness.}
@@ -147,18 +145,18 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 \begin{table}[H]
     \centering
     \small
-    \begin{tabular}{|l|c|cccc|r|}
+    \begin{tabular}{|l|c|cccc|}
         \hline
         \textbf{Stride} & \textbf{Model} &
-        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ & \textbf{Degrad.} \\
+        $\sigma=0$ & $\sigma=1$ & $\sigma=3$ & $\sigma=5$ \\
         \hline\hline
         \multirow{2}{*}{$s=1$}
-            & Fair  & 0.08 & \textbf{0.17} & \textbf{0.48} & \textbf{0.81} & \textbf{+919\%} \\
-            & KCMamba   & \textbf{0.06} & 0.21 & 0.51 & 0.87 & +1\,463\% \\
+            & Fair  & 0.08 & \textbf{0.17} & \textbf{0.48} & \textbf{0.81} \\
+            & KCMamba   & \textbf{0.06} & 0.21 & 0.51 & 0.87 \\
         \hline
         \multirow{2}{*}{$s=16$}
-            & Fair  & 0.05 & 0.35 & 1.24 & 3.11 & \cellcolor{red!20}+6\,145\% \\
-            & KCMamba   & \textbf{0.05} & \textbf{0.23} & \textbf{0.46} & \textbf{0.59} & \textbf{+982\%} \\
+            & Fair  & 0.05 & 0.35 & 1.24 & 3.11 \\
+            & KCMamba   & \textbf{0.05} & \textbf{0.23} & \textbf{0.46} & \textbf{0.59} \\
         \hline
     \end{tabular}
     \caption{MSE on ETTh2. KCMamba wins all $s=16$ noise levels (MSE 0.05--0.59 vs.\ Fair 0.05--3.11).}
@@ -202,20 +200,20 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig02_mse_heatmap_en.pdf}
+  \includegraphics[width=\textwidth, height=0.28\textheight, keepaspectratio]{images/fig02_mse_heatmap_en.pdf}
   \caption{MSE heatmap for all four models (ARIMA, LSTM, Fair Mamba, KCMamba)
            across all configurations and noise levels. Dark red cells indicate
-           catastrophic failure (MSE $>4$). ARIMA and Fair Mamba collapse
-           completely at $s{=}16$, $\sigma{\geq}3$, while KCMamba remains
+           high error, MSE $> 4$. ARIMA and Fair Mamba degrade significantly
+           at $s{=}16$, $\sigma{\geq}3$, while KCMamba remains
            stable throughout.}
   \label{fig:mse_heatmap}
 \end{figure}
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig03_degradation_en.pdf}
+  \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{images/fig03_degradation_en.pdf}
   \caption{MSE degradation on a log scale ($\sigma=0 \to \sigma=5$) across all
-           configurations. Fair Mamba exhibits catastrophic collapse in three
+           configurations. Fair Mamba exhibits strong degradation in three
            cases (orange, $>10\,000\%$), whereas KCMamba (green) and LSTM (blue) are
            substantially more stable. The highlighted box marks the Exchange/$s=16$
            case.}
@@ -227,7 +225,7 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig01_noise_curves_en.pdf}
+  \includegraphics[width=\textwidth, height=0.48\textheight, keepaspectratio]{images/fig01_noise_curves_en.pdf}
   \caption{Noise robustness comparison across all four models: MSE vs.\
            noise level $\sigma$ on a logarithmic scale.
            ARIMA (orange dashed) collapses catastrophically at $s{=}16$
@@ -237,8 +235,8 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
   \label{fig:all_noise_curves}
 \end{figure}
 
-The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$
-(Table~\ref{tab:k_dynamics}):
+The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$,
+shown in Table~\ref{tab:k_dynamics}.
 
 \begin{table}[H]
     \centering
@@ -258,16 +256,6 @@ The most illustrative case is the $K/A/R$ dynamics of Exchange/$s=16$
     \label{tab:k_dynamics}
 \end{table}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=\textwidth]{images/fig06_radar_en.pdf}
-  \caption{Radar chart comparing models across five dimensions: clean-data
-           performance, noise robustness, data efficiency ($s=16$ regime),
-           parameter efficiency, and convergence speed. KCMamba excels on
-           the noise robustness and data efficiency axes, whereas Fair Mamba leads on
-           clean-data performance.}
-  \label{fig:radar}
-\end{figure}
 
 When $R \gg Q$, the Kalman filter relies on the prior state rather than the
 measurement. KCMamba learned this behaviour from data, without being
@@ -275,7 +263,7 @@ explicitly programmed to do so.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig05_forecast_visualization_en.pdf}
+  \includegraphics[width=\textwidth, height=0.32\textheight, keepaspectratio]{images/fig05_forecast_visualization_en.pdf}
   \caption{Forecast visualisation at three noise levels (ETTh-type signal,
            $T=96$ lookback, $H=96$ horizon).
            Black = ground truth, green = KCMamba, orange = Fair Mamba,
@@ -288,7 +276,7 @@ explicitly programmed to do so.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/fig07_efficiency_en.pdf}
+  \includegraphics[width=0.95\textwidth, height=0.40\textheight, keepaspectratio]{images/fig07_efficiency_en.pdf}
   \caption{\textbf{Left:} Parameter count vs.\ MSE (averaged at $\sigma=3$).
            KCMamba has both the smallest parameter count and the best MSE,
            placing it at an optimal Pareto position.
@@ -327,7 +315,7 @@ horizons ($T \ge 2000$) KCMamba is expected to dominate.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig12_speed_triton_en.pdf}
+  \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{images/fig12_speed_triton_en.pdf}
   \caption{\textbf{Left:} Throughput (samples/s) at $T=96$, batch$=32$ on
            a single RTX~3060. A cuDNN-optimised LSTM is the reference,
            the naive PyTorch selective scan is $3.4\times$ slower, and a
@@ -343,13 +331,11 @@ horizons ($T \ge 2000$) KCMamba is expected to dominate.
 
 \section{Discussion}
 
-\subsubsection*{Why does Fair Mamba collapse?}
 Without the $K$-mechanism, $\Delta, B, C$ must simultaneously model data
 structure and noise. This works at low noise. Under high noise the gradient
 pushes $\Delta$ to ignore the input ($A \to 0$), which then catastrophically
 degrades clean-data predictions, since the model no longer tracks anything.
 
-\subsubsection*{Why does KCMamba generalise better with scarce data?}
 At $s=16$ roughly $16\times$ fewer training windows are available.
 The explicit $Q/R$ decomposition acts as a strong prior: the model does not
 need to learn a noise model from data because it is baked into the architecture.
@@ -399,19 +385,16 @@ epochs and the FastAI learning-rate finder.
 Three patterns emerge from Table~\ref{tab:longseq_ettm1} and
 Figure~\ref{fig:longseq}:
 
-\begin{itemize}
-    \item \textbf{KCMamba}: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$
-          as $T$ grows from 96 to 512 ($-31\%$). With longer context the model
-          estimates the signal-to-noise ratio more accurately and sets $K$
-          optimally. On Exchange ($T{=}512$, $\sigma{=}3$) KCMamba achieves MSE
-          $0.773$ vs.\ Fair Mamba $2.121$ ($+174\%$ advantage).
-    \item \textbf{Fair Mamba}: becomes unstable at
-          $\sigma \geq 3$, $T \geq 336$.
-\end{itemize}
+\textbf{KCMamba} benefits from longer context: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$
+as $T$ grows from 96 to 512 ($-31\%$). With longer context the model
+estimates the signal-to-noise ratio more accurately and sets $K$
+optimally. On Exchange ($T{=}512$, $\sigma{=}3$) KCMamba achieves MSE
+$0.773$ vs.\ Fair Mamba $2.121$ ($+174\%$ advantage).
+\textbf{Fair Mamba} becomes unstable at $\sigma \geq 3$, $T \geq 336$.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig15_longseq_en.pdf}
+  \includegraphics[width=\textwidth, height=0.48\textheight, keepaspectratio]{images/fig15_longseq_en.pdf}
   \caption{MSE vs.\ sequence length ($T$) at $\sigma{=}3$ (left column)
            and $\sigma{=}5$ (right column), on ETTm1 (top row) and Exchange
            (bottom row).
@@ -427,7 +410,7 @@ The previous section used dense windows ($s{=}1$). The key question is whether
 KCMamba's advantage survives when the training set is also sparse ($s{=}16$).
 Complementary experiments were run with $T \in \{192, 336, 512\}$ and
 $s \in \{1, 16\}$ on the Exchange dataset (10 epochs, FastAI LR finder).
-The $T{=}96$ reference values come from the original ltsf\_benchmark run.
+The $T{=}96$ reference values come from the original benchmark run, see Sec.~\ref{sec:results}.
 
 \begin{table}[H]
     \centering
@@ -468,21 +451,18 @@ The $T{=}96$ reference values come from the original ltsf\_benchmark run.
 Two patterns emerge from Table~\ref{tab:stride_longseq} and
 Figure~\ref{fig:stride_longseq}:
 
-\begin{itemize}
-    \item \textbf{$s{=}1$, $\sigma{=}3$}: KCMamba wins consistently from $T{=}96$
-          to $T{=}512$ ($0.895 \to 0.836$). This directly supports the adaptive-$K$
-          hypothesis: given sufficient training data and longer context,
-          KCMamba's noise model becomes progressively more accurate.
-
-    \item \textbf{$s{=}16$, $\sigma{\geq}3$}: Fair Mamba completely collapses
-          (MSE $8.1$--$8.5$, roughly $7$--$9\times$ worse than KCMamba). The extreme scarcity scenario
-          ($s{=}16$, $T{=}512$) provides only $\sim{}10$ training windows.
-          KCMamba is the only architecture that does not catastrophically collapse.
-\end{itemize}
+At \textbf{$s{=}1$, $\sigma{=}3$} KCMamba wins consistently from $T{=}96$
+to $T{=}512$ ($0.895 \to 0.836$), directly supporting the adaptive-$K$
+hypothesis: given sufficient training data and longer context,
+KCMamba's noise model becomes progressively more accurate.
+At \textbf{$s{=}16$, $\sigma{\geq}3$} Fair Mamba collapses
+(MSE $8.1$--$8.5$, roughly $7$--$9\times$ worse than KCMamba). The extreme scarcity scenario
+($s{=}16$, $T{=}512$) provides only $\sim{}10$ training windows, and
+KCMamba is the only architecture that remains stable.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig16_stride_seq_en.pdf}
+  \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{images/fig16_stride_seq_en.pdf}
   \caption{MSE vs.\ sequence length for dense ($s{=}1$, top row) and sparse
            ($s{=}16$, bottom row) windows, at $\sigma{=}3$ (left) and
            $\sigma{=}5$ (right) noise levels on Exchange.

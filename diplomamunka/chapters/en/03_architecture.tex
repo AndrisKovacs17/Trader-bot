@@ -20,7 +20,7 @@ cross-attention layer at the top.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig08_architecture_en.pdf}
+  \includegraphics[width=\textwidth, height=0.85\textheight, keepaspectratio]{images/fig08_architecture_en.png}
   \caption{Full data-flow diagram of the KCMamba block. Yellow blocks
            ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) learn the Kalman
            statistics. The purple block performs the parallel prefix-scan on GPU
@@ -32,53 +32,99 @@ cross-attention layer at the top.
 \section{KCMamba Block}
 \label{sec:kc_block}
 
-Let the input sequence be $x \in \mathbb{R}^{B \times T \times d}$
-($B$: batch size, $T$: sequence length, $d$: feature dimension).
+Let the input sequence be $x \in \mathbb{R}^{B \times T \times d}$,
+where $B$ is the batch size, $T$ is the sequence length, and $d$ is the
+feature dimension.
 
 \subsection{Input Projection and 1D Convolution}
 
 The input is projected into two streams ($x_\text{cw}, x_\text{gate}$) by a
-linear layer, followed by SiLU gating:
+linear layer $W_\text{in} \in \mathbb{R}^{2d_\text{inner} \times d}$,
+followed by SiLU gating:
 \begin{align}
     [x_\text{cw}, x_\text{gate}] &= W_\text{in} x, \\
     \text{gate} &= \mathrm{SiLU}(x_\text{gate}).
 \end{align}
-A depthwise 1D convolution ($k=4$ kernel) on $x_\text{cw}$ integrates local
-context:
+The dual-stream design separates two responsibilities. $x_\text{cw}$ carries
+the signal to be filtered by the Kalman layer, while $x_\text{gate}$ learns an
+independent amplitude modulation applied at the output stage.
+This prevents the gating signal from interfering with the Kalman state dynamics.
+$\mathrm{SiLU}(z) = z \cdot \sigma(z)$ is preferred over ReLU because it is
+smooth everywhere and allows small negative outputs, which benefits gradient
+flow during early training.
+
+Before the global sequential scan, a depthwise 1D convolution ($k=4$ kernel)
+on $x_\text{cw}$ integrates short-range temporal context:
 \begin{equation}
     x_\text{core} = \mathrm{SiLU}\bigl(\mathrm{Conv1D}(x_\text{cw})\bigr).
 \end{equation}
+Operating channel-by-channel (depthwise), the convolution adds only
+$k \cdot d_\text{inner}$ extra parameters while capturing local temporal
+patterns such as short-term momentum and candlestick-level trend direction,
+before the Kalman filter processes the full sequence.
 
 \subsection{Kalman Parameter Networks}
 
-Three small MLP sub-networks learn the Kalman filter statistics:
+Three small two-layer fully connected MLP sub-networks learn the Kalman filter statistics.
+$Q_\text{net}$ and $R_\text{net}$ produce the per-step noise variance estimates:
 \begin{align}
     Q_t &= \mathrm{softplus}(Q_\text{net}(x_\text{core})) \cdot
            \mathrm{softplus}(q_\text{scale}), \label{eq:Q_net}\\
     R_t &= \mathrm{softplus}(R_\text{net}(x_\text{core})) \cdot
            \mathrm{softplus}(r_\text{scale}). \label{eq:R_net}
 \end{align}
-The initialisations $q_\text{scale} = -2.0$ and $r_\text{scale} = 1.5$ ensure
-$R \gg Q$ at the start, giving $K_\text{base} \approx 0.07$ (strong filtering
-by default).
+$Q_t > 0$ denotes the \emph{process-noise} estimate. When $Q_t$ is large, the
+hidden state is expected to change rapidly, so the current measurement
+receives more weight.
+$R_t > 0$ denotes the \emph{measurement-noise} estimate. A large $R_t$
+indicates a noisy observation, causing the model to rely more on its prior state.
+The $\mathrm{softplus}$ activation, defined as $\mathrm{softplus}(z) = \ln(1 + e^z) > 0$,
+guarantees strict positivity of both quantities, as required by the Kalman
+derivation.
+The learnable scalars $q_\text{scale}$ and $r_\text{scale}$ set a global
+regime bias on top of the per-step outputs.
+Initialising $q_\text{scale} = -2.0$ and $r_\text{scale} = 1.5$ gives
+$R \gg Q$ at the start, corresponding to $K_\text{base} \approx 0.07$,
+meaning strong filtering by default.
+
+A third sub-network, $K_\text{net}$, is also a two-layer fully connected Multi-Layer Perceptron
+that provides a direct residual correction to the final gain, described in
+Section~\ref{sec:kalman_gain}.
+The $Q_\text{net}$/$R_\text{net}$ pair models the slowly evolving noise
+regime of the time series, whereas $K_\text{net}$ can react immediately to
+fast, content-specific events such as sudden volatility spikes or trend
+reversals that the noise-ratio estimate has not yet adapted to.
 
 \subsection{Kalman Gain Computation}
 \label{sec:kalman_gain}
 
-The base Kalman gain follows from the $Q/(Q+R)$ ratio:
+The base Kalman gain is derived from the $Q/(Q+R)$ noise ratio, which is the
+classical steady-state formula from estimation theory:
 \begin{equation}
-    K_\text{base,t} = \frac{Q_t}{Q_t + R_t + \varepsilon}.
+    K_\text{base,t} = \frac{Q_t}{Q_t + R_t + \varepsilon},
     \label{eq:K_base}
 \end{equation}
-A content-dependent correction from $K_\text{net}$ is added:
+where $\varepsilon = 10^{-6}$ prevents division by zero.
+When $Q \gg R$, meaning the state changes rapidly, $K \to 1$ and the model follows the
+current observation closely; when $R \gg Q$, meaning the observations are noisy, $K \to 0$
+and the prior state dominates.
+This provides an interpretable, physics-grounded prior that aligns with
+classical control theory.
+
+A content-dependent correction from $K_\text{net}$ is added to handle rapid
+regime changes that the slowly-adapting $Q/R$ ratio may not immediately
+capture:
 \begin{equation}
     K_t = \mathrm{clamp}\bigl(K_\text{base,t} +
           0.3(\sigma(K_\text{net}(x_\text{core})) - 0.5),\;
           [10^{-4},\; 0.999]\bigr).
     \label{eq:K_final}
 \end{equation}
-The $0.3(\sigma(\cdot) - 0.5)$ term is centred around zero, stabilising early
-training.
+The $-0.5$ shift centres the correction at zero at initialisation, so early
+training starts from the $Q/R$ prior rather than a random offset.
+The clamp to $[10^{-4},\, 0.999]$ guards against degenerate extremes.
+$K_t \approx 0$ would freeze state updates with no new information integrated,
+while $K_t \approx 1$ would discard all memory from the previous step.
 
 \subsection{State Update with Parallel Scan}
 
@@ -88,12 +134,21 @@ discrete Kalman recurrence is:
     h_t &= A_t \odot h_{t-1} + K_t \odot v_t, \label{eq:kc_recurrence}\\
     v_t &= \mathrm{LayerNorm}(W_v \, x_\text{core,t}). \nonumber
 \end{align}
+where $A_t \in (0,1)^{d_\text{inner}}$ is the forgetting factor vector,
+with $A_t \to 1$ indicating strong memory and $A_t \to 0$ indicating a strong
+update, $\odot$ is the element-wise Hadamard product, $h_{t-1} \in \mathbb{R}^{d_\text{inner}}$
+is the previous step's latent state, $v_t$ is the current value vector, and
+$W_v \in \mathbb{R}^{d_\text{inner} \times d_\text{inner}}$ is a learnable projection.
+
 Efficient evaluation uses the Blelloch parallel prefix-scan~\cite{blelloch1990prefix}:
 \begin{align}
     A_\text{new}[t] &\leftarrow A[t] \cdot A[t-\text{step}], \\
     B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
 \end{align}
-where the stride $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ doubles each pass.
+where $A[t]$ and $B[t]$ are the associative prefix-pair $(a_t, b_t)$: $a_t$ is
+the accumulated forgetting factor, $b_t$ is the accumulated input sum.
+These are \emph{not} the same as the SSM matrices $A$, $B$.
+The stride $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ doubles each pass.
 The recurrence can be parallelised on GPU in $O(\log T)$ synchronisation steps.
 
 \begin{figure}[H]
@@ -118,25 +173,33 @@ A scalar-gated residual connection preserves the gradient path:
     \text{out} = y_\text{KC} + \sigma(b_\text{res}) \cdot
                  (W_\text{res}\,x - y_\text{KC}),
 \end{equation}
-where $b_\text{res} = -1.0$ gives a small initial $\sigma$ value
-($\sigma(-1) \approx 0.27$), so the SSM path dominates by default.
+where $b_\text{res}$ is a learnable scalar initialised at $-1.0$,
+giving $\sigma(b_\text{res}) \approx 0.27$, so the SSM path dominates by default.
 
 \section{KCMamba Stack}
 \label{sec:kc_stack}
 
 The stack consists of $N$ blocks with pre-norm LayerNorm layers that prevent
-activation-scale drift. A \emph{multi-scale cross-attention} ($\mathrm{MHA}$)
-layer is appended after the final block:
+activation-scale drift.
+A \emph{multi-scale cross-attention} layer is appended after the final block.
+The reason is that Mamba's recurrent dynamics encode recent time steps more
+strongly than distant ones in the hidden state.
+For long-horizon forecasting, however, slow trends must also be accessible.
+The cross-attention queries the current state against the subsampled key/value
+set, so both short and long time scales are taken into account:
 \begin{equation}
     \text{out}[T] = h[T] + \mathrm{MHA}\bigl(h[T],\; h[{::s}],\; h[{::s}]\bigr),
 \end{equation}
-where $h[{::s}]$ selects every $s$-th position (slow, coarser time scale).
-This lets the model consider long-term trends alongside the current fast
-dynamics.
+where $h[T] \in \mathbb{R}^{1 \times d}$ is the last time step's representation,
+serving as the query; $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$
+is the every-$s$-th subsampled sequence, representing the slower, coarser time
+scale as keys and values; and $\mathrm{MHA}(\text{query}, \text{key}, \text{value})$
+denotes multi-head cross-attention in the standard
+sense~\cite{vaswani2017attention}.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram_en.pdf}
+  \includegraphics[width=0.55\textwidth, height=0.65\textheight, keepaspectratio]{images/kc_stack_diagram_en.png}
   \caption{KCMamba stack structure. From input to output: input projection,
            2 KC-blocks with LayerNorm, output normalisation, and cross-attention
            for the slow ($s=4$) time scale.}

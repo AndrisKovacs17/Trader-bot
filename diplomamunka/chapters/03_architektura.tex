@@ -22,11 +22,11 @@ cross-attention réteggel a végén.
 A cross-attention réteg szerepe, hogy ellensúlyozza a Mamba SSM
 rekurrens dinamikájából adódó, az utolsó időlépések irányába mutató
 reprezentációs torzítást, így a végső predikcióba a lassabb időskálájú
-(hosszú távú) trendek is bevonhatók.
+hosszú távú trendek is bevonhatók.
 
 \begin{figure}[H]
   \centering
-  \includegraphics[width=\textwidth]{images/fig08_architecture_hu.pdf}
+  \includegraphics[width=\textwidth, height=0.85\textheight, keepaspectratio]{images/fig08_architecture_hu.png}
   \caption{A KCMamba blokk teljes adatfolyam-diagramja. A sárga blokkok
            ($Q_\text{net}$, $R_\text{net}$, $K_\text{net}$) tanítják a Kalman-statisztikákat,
            a lila blokkban történik a párhuzamos prefix-scan GPU-n $O(\log T)$
@@ -37,8 +37,8 @@ reprezentációs torzítást, így a végső predikcióba a lassabb időskáláj
 \section{KCMamba blokk}
 \label{sec:kc_block}
 
-Legyen a bemenő szekvencia $x \in \mathbb{R}^{B \times T \times d}$
-($B$: kötegméret, $T$: szekvenciahossz, $d$: jellemzők száma).
+Legyen a bemenő szekvencia $x \in \mathbb{R}^{B \times T \times d}$,
+ahol $B$ a kötegméret, $T$ a szekvenciahossz, és $d$ a jellemzők száma.
 
 \subsection{Bemeneti projekció és 1D-konvolúció}
 
@@ -49,58 +49,90 @@ majd SiLU aktivációs kapuzást alkalmazunk:
     \text{gate} &= \mathrm{SiLU}(x_\text{gate}),
 \end{align}
 ahol $W_\text{in} \in \mathbb{R}^{2d_\text{inner} \times d}$ a bemeneti projekciós
-mátrix ($d_\text{inner}$ a belső csatornadimenzió), $x_\text{cw}$ a
+mátrix, $d_\text{inner}$ a belső csatornadimenzió, $x_\text{cw}$ a
 Kalman-szűrési ághoz, $x_\text{gate}$ a kapuzáshoz továbbított csatorna,
-és $\mathrm{SiLU}(z) = z \cdot \sigma(z)$ a Sigmoid Linear Unit aktiváció
-($\sigma(z) = 1/(1+e^{-z})$ a logisztikus szigmoid).
-Az $x_\text{cw}$ csatornán egy depthwise 1D-konvolúció ($k=4$ kernel) biztosítja
-a lokális kontextus-integrációt:
+és $\mathrm{SiLU}(z) = z \cdot \sigma(z)$ a Sigmoid Linear Unit aktiváció,
+ahol $\sigma(z) = 1/(1+e^{-z})$ a logisztikus szigmoid.
+A kétágú projekció két különböző szerepet tölt be.
+Az $x_\text{cw}$ csatorna a Kalman-szűrési ág bemenete, míg az $x_\text{gate}$
+csatorna a kimenet amplitúdójának független modulálásáért felel.
+Ez a szétválasztás megakadályozza, hogy a kapuzási jel beavatkozzon a
+Kalman-állapot dinamikájába.
+A SiLU aktiváció ReLU-val szemben azért előnyös, mert sima és kis negatív
+értékeket is megenged, ami a korai tanítás során javítja a gradiens-átmenetet.
+
+A globális szekvenciális scan előtt az $x_\text{cw}$ csatornán egy depthwise
+1D-konvolúció ($k=4$ kernel) biztosítja a lokális kontextus-integrációt:
 \begin{equation}
     x_\text{core} = \mathrm{SiLU}\bigl(\mathrm{Conv1D}(x_\text{cw})\bigr).
 \end{equation}
+A konvolúció csatornánként egy szűrőt alkalmaz (depthwise), ezért mindössze
+$k \cdot d_\text{inner}$ extra paramétert igényel, miközben
+rövid-horizontú mintázatokat, például rövid-távú lendületet és trendirányokat,
+ragad meg, mielőtt a Kalman-szűrő a teljes szekvenciát feldolgozza.
 
 \subsection{Kalman-paraméter hálózatok}
 
-Három kis MLP-alhálózat tanítja meg a Kalman-szűrő statisztikáit:
+Három kis, kétrétegű, teljesen összekötött MLP-alhálózat tanítja meg a Kalman-szűrő statisztikáit.
+A $Q_\text{net}$ és $R_\text{net}$ hálózatok az időlépésenkénti
+zajvarianciákat becslik:
 \begin{align}
     Q_t &= \mathrm{softplus}(Q_\text{net}(x_\text{core})) \cdot
            \mathrm{softplus}(q_\text{scale}), \label{eq:Q_net}\\
     R_t &= \mathrm{softplus}(R_\text{net}(x_\text{core})) \cdot
            \mathrm{softplus}(r_\text{scale}). \label{eq:R_net}
 \end{align}
-ahol $Q_t > 0$ a \emph{folyamatzaj} becsült varianciája (az állapot-
-dinamikára vonatkozó bizonytalanság), $R_t > 0$ a \emph{mérési zaj}
-becsült varianciája (a bemeneti megfigyelés bizonytalansága),
+ahol $Q_t > 0$ a \emph{folyamatzaj} becsült varianciája, vagyis az állapot-dinamikára
+vonatkozó bizonytalanság, $R_t > 0$ a \emph{mérési zaj} becsült varianciája,
+vagyis a bemeneti megfigyelés bizonytalansága,
 $q_\text{scale},\, r_\text{scale} \in \mathbb{R}$ tanítható skalár
 paraméterek, és $\mathrm{softplus}(z) = \ln(1+e^z) > 0$
 garantálja a pozitivitást.
 A $q_\text{scale} = -2{,}0$, $r_\text{scale} = 1{,}5$ inicializációk biztosítják,
-hogy kezdetben $R \gg Q$, vagyis $K_\text{base} \approx 0.07$
-(erős szűrés alap eset).
+hogy kezdetben $R \gg Q$, vagyis $K_\text{base} \approx 0.07$, ami erős szűrési
+módot jelent alapértelmezésként.
+
+Egy harmadik alhálózat, a $K_\text{net}$, szintén kétrétegű, teljesen összekötött Multi-Layer Perceptron,
+és közvetlen reziduál-korrekciót nyújt a végső gainhez, ahogy azt a
+\ref{sec:kalman_gain}.\ szakasz részletezi.
+A $Q_\text{net}$/$R_\text{net}$ pár a lassan változó zajkörnyezetet modellezi,
+míg a $K_\text{net}$ azonnali reakcióra képes gyors, tartalomfüggő eseményekre,
+például hirtelen volatilitásnövekedésre vagy trendfordulóra, amelyekre
+a zaj-arány becslése még nem alkalmazkodott.
 
 \newpage
 \subsection{Kalman-gain számítás}
 \label{sec:kalman_gain}
 
-Az alap Kalman-gain a folyamat- és mérési zaj \emph{arányából} következik:
+Az alap Kalman-gain a folyamat- és mérési zaj \emph{arányából} következik,
+ami a becsléselméleti steady-state Kalman-gain klasszikus képlete:
 \begin{equation}
     K_{\text{base},t} = \frac{Q_t}{Q_t + R_t + \varepsilon},
     \label{eq:K_base}
 \end{equation}
-ahol $\varepsilon = 10^{-8}$ egy kis numerikus stabilitási konstans,
-amelynek célja megakadályozni a nullával való osztást.
-Ehhez járul egy tartalom-függő korrekció, amelyet a $K_\text{net}$
-alhálózat biztosít:
+ahol $\varepsilon = 10^{-6}$ a nullával való osztást megelőző numerikus
+stabilitási konstans.
+Ha $Q \gg R$, azaz az állapot gyorsan változik, akkor $K \to 1$, és a modell szorosan
+követi az aktuális megfigyelést; ha $R \gg Q$, azaz a mérés zajos, akkor $K \to 0$,
+és az előző állapot dominál.
+Ez egy fizikailag értelmes, kontrollelméleti elvekre támaszkodó prior.
+
+Ehhez járul egy tartalom-függő korrekció a $K_\text{net}$ alhálózattól,
+ami olyan gyors rezsimváltások kezelésére képes, amelyekre a lassan
+alkalmazkodó $Q/R$ arány még nem reagált:
 \begin{equation}
-    K_t = K_{\text{base},t} +
-          0.3\bigl(\sigma_\text{sig}(K_\text{net}(x_\text{core})) - 0.5\bigr),
+    K_t = \mathrm{clamp}\Bigl(K_{\text{base},t} +
+          0.3\bigl(\sigma_\text{sig}(K_\text{net}(x_\text{core})) - 0.5\bigr),\;
+          [10^{-4},\; 0{,}999]\Bigr),
     \label{eq:K_final}
 \end{equation}
 ahol $\sigma_\text{sig}(\cdot) = 1/(1+e^{-(\cdot)})$ a logisztikus szigmoid
-függvény (értéke $(0,1)$-ben van), a $-0.5$ eltolás nullára centrálja
-a korrekciót, és a $0.3$ szorzó $(-0{,}15, +0{,}15)$-re korlátozza hatókörét.
-A végeredmény numerikusan stabil marad a fizikailag értelmes tartományban,
-ezért szoftveresen (a felhasználói kódban) nem kell külön beavatkozni.
+függvény, amelynek értékkészlete a $(0,1)$ nyílt intervallum, a $-0{,}5$ eltolás nullára centrálja
+a korrekciót inicializáláskor, és a $0{,}3$ szorzó $(-0{,}15,\, +0{,}15)$-re
+korlátozza a hatókörét.
+A $[10^{-4},\, 0{,}999]$-re való vágás két degenerált esetet zár ki.
+$K_t \approx 0$ befagyasztaná az állapotfrissítést, nem integrálódna
+új információ; $K_t \approx 1$ pedig eldobná az előző lépés teljes memóriáját.
 
 \subsection{Állapotfrissítés párhuzamos scan-nel}
 
@@ -110,8 +142,8 @@ a diszkrét Kalman-rekurzió:
     h_t &= A_t \odot h_{t-1} + K_t \odot v_t, \label{eq:kc_recurrence}\\
     v_t &= \mathrm{LayerNorm}(W_v \, x_\text{core,t}), \nonumber
 \end{align}
-ahol $A_t \in (0,1)^{d_\text{inner}}$ a felejtési faktor vektora
-($A_t \to 1$: erős memória, $A_t \to 0$: erős frissítés),
+ahol $A_t \in (0,1)^{d_\text{inner}}$ a felejtési faktor vektora,
+amelynél $A_t \to 1$ erős memóriát, $A_t \to 0$ erős frissítést jelent,
 $\odot$ az elem-szintű (Hadamard) szorzás, $h_{t-1} \in \mathbb{R}^{d_\text{inner}}$
 az előző lépés látens állapota, $v_t$ az aktuális értékvektor, és
 $W_v \in \mathbb{R}^{d_\text{inner} \times d_\text{inner}}$ tanítható projekció.
@@ -121,9 +153,9 @@ algoritmussal~\cite{blelloch1990prefix} valósul meg:
     A_\text{new}[t] &\leftarrow A[t] \cdot A[t-\text{step}], \\
     B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
 \end{align}
-ahol $A[t]$ és $B[t]$ a prefixek asszociatív páros eleme ($(a_t, b_t)$, ahol
-$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg,
-ami \emph{nem} azonos az SSM $A$, $B$ mátrixaival),
+ahol $A[t]$ és $B[t]$ az asszociatív prefix-pár $(a_t, b_t)$ tagjai,
+$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg;
+ezek \emph{nem} azonosak az SSM $A$, $B$ mátrixaival,
 és a lépésköz $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ duplázódik.
 A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
 
@@ -154,15 +186,15 @@ Egy skalárkapuzással vezérelt reziduál kapcsolat biztosítja a gradiens
     \text{out} = y_\text{KC} + \sigma(b_\text{res}) \cdot
                  (W_\text{res}\,x - y_\text{KC}),
 \end{equation}
-ahol $b_\text{res} \in \mathbb{R}$ tanítható skalár
-($b_\text{res} = -1{,}0$ inicializációval $\sigma(b_\text{res}) \approx 0{,}27$),
+ahol $b_\text{res} \in \mathbb{R}$ tanítható skalár, amelyet $-1{,}0$-ra
+inicializálunk, így $\sigma(b_\text{res}) \approx 0{,}27$,
 $W_\text{res}$ a reziduál projekció, és a kis $\sigma(b_\text{res})$
 alaphelyzetben az SSM-ágat részesíti előnyben.
 
 \section{KCMamba verem}
 \label{sec:kc_stack}
 
-A verem $N$ rétegből áll, köztük LayerNorm rétegekkel (pre-norm stílus),
+A verem $N$ rétegből áll, pre-norm elrendezésű LayerNorm rétegekkel,
 amelyek megakadályozzák az aktivációs skála sodródását.
 
 A verem végére egy \emph{multi-scale cross-attention} réteget illesztünk.
@@ -170,20 +202,21 @@ Ennek oka, hogy a Mamba rekurrens dinamikája a rejtett állapotba a közelmúlt
 lépéseit súlyozottan erősebben kódolja, mint a régmúlt szegmenseket.
 Egy hosszú-horizontú
 előrejelzéshez azonban a lassú trendeket is hozzá kell férni.
-A cross-attention a jelenlegi állapotot (lekérdezést) összeveti a szekvencia
+A cross-attention lekérdezésként a jelenlegi állapotot összeveti a szekvencia
 $s$-edik alminta (key/value) halmazával, így rövid és hosszú időskálákat egyaránt
 számításba vesz:
 \begin{equation}
     \text{out}[T] = h[T] + \mathrm{MHA}\bigl(h[T],\; h[{::s}],\; h[{::s}]\bigr),
 \end{equation}
 ahol $h[T] \in \mathbb{R}^{1 \times d}$ a legutolsó időlépés reprezentációja
-(lekérdezés), $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$ az
-$s$-adik minden pozícióból vett alámintavétel (kulcs és érték, lassú időskála),
+és egyben a lekerdezés, $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$ az
+$s$-adik minden pozícióból vett alámintávétel, amely a lassabb, durvább
+időskálát képviselik kulcsként és értékként,
 és $\mathrm{MHA}(\text{lekérdezés},\text{kulcs},\text{érték})$ a multi-head
 cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 \begin{figure}[H]
   \centering
-  \includegraphics[width=0.95\textwidth]{images/kc_stack_diagram_hu.pdf}
+  \includegraphics[width=0.55\textwidth, height=0.65\textheight, keepaspectratio]{images/kc_stack_diagram_hu.png}
   \caption{A KCMamba verem (stack) felépítése. A bemenettől a kimenetig az
            input projekció, 2 KC-blokk LayerNorm rétegekkel, output
            normalizáció, majd cross-attention réteg követi egymást a lassú ($s=4$)

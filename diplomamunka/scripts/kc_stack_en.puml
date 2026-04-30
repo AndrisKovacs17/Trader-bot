@@ -1,0 +1,33 @@
+@startuml KC_Stack_Architecture
+skinparam backgroundColor white
+skinparam defaultFontName "DejaVu Serif"
+skinparam defaultFontSize 12
+skinparam dpi 200
+skinparam shadowing false
+
+skinparam rectangle {
+  BackgroundColor #F2F2F2
+  BorderColor #444444
+  BorderThickness 1
+  RoundCorner 6
+  FontSize 11
+}
+skinparam arrow {
+  Color #444444
+  FontSize 9
+}
+
+top to bottom direction
+
+rectangle " <b>input</b> " as IN #F2F2F2
+rectangle " <b>KCA-Mamba block</b>  (×L) " as KCAM #E8F0F9
+rectangle " Cross-attention layer " as CA #DDEBD1
+rectangle " <b>prediction</b> " as PRED #F7D9C9
+
+IN   -down-> KCAM
+KCAM -down-> CA
+CA   -down-> PRED
+
+IN -[#888888,dashed]right-> PRED : " residual\n bypass "
+
+@enduml

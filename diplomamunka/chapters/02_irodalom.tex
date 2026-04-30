@@ -14,11 +14,12 @@ Az állapotfrissítés:
     \hat{x}_{t|t} = \hat{x}_{t|t-1} + K_t (y_t - H \hat{x}_{t|t-1}),
     \label{eq:kalman_update}
 \end{equation}
-ahol $\hat{x}_{t|t} \in \mathbb{R}^n$ az a posteriori állapotbecslés
-($t$ időpont összes mérése alapján), $\hat{x}_{t|t-1}$ az a priori becslés
-(az előző állapotból prediktálva), $y_t \in \mathbb{R}^m$ a $t$-edik mérés,
-$H \in \mathbb{R}^{m \times n}$ a mérési mátrix (állapotból megfigyelést
-számít), és $(y_t - H\hat{x}_{t|t-1})$ az \emph{innováció}: a tényleges
+ahol $\hat{x}_{t|t} \in \mathbb{R}^n$ az a posteriori állapotbecslés,
+amely a $t$ időpontban rendelkezésre álló összes mérés alapján áll elő,
+$\hat{x}_{t|t-1}$ az a priori becslés, amelyet az előző állapotból prediktálunk,
+$y_t \in \mathbb{R}^m$ a $t$-edik mérés,
+$H \in \mathbb{R}^{m \times n}$ a mérési mátrix, amely az állapotból számítja a megfigyelést,
+és $(y_t - H\hat{x}_{t|t-1})$ az \emph{innováció}: a tényleges
 és a becsült mérés különbsége.
 A $K_t$ Kalman-gain mátrix értékét a predikciós és mérési kovariancia aránya
 adja meg:
@@ -26,8 +27,8 @@ adja meg:
     K_t = P_{t|t-1} H^\top (H P_{t|t-1} H^\top + R)^{-1},
     \label{eq:kalman_gain}
 \end{equation}
-ahol $P_{t|t-1} \in \mathbb{R}^{n \times n}$ az a priori állapot-kovariancia
-(a becslés bizonytalansága), $R \in \mathbb{R}^{m \times m}$ a mérési zaj
+ahol $P_{t|t-1} \in \mathbb{R}^{n \times n}$ az a priori állapot-kovariancia,
+amelynek nagysága a becslés bizonytalanságát jelzi, $R \in \mathbb{R}^{m \times m}$ a mérési zaj
 kovarianciája, és $H^\top$ a mérési mátrix transzponáltja.
 Ha $R \to \infty$, akkor $K \to 0$: a szűrő a mérésnek alacsony súlyt
 tulajdonít és az előzmény-állapotra támaszkodik.

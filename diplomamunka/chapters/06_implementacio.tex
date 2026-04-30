@@ -230,7 +230,7 @@ adaptereket (Binance, WebSocket) stub-ok helyettesítik.
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \begin{tabular}{|p{4.5cm}|l|p{7cm}|}
     \hline
     \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
     \hline\hline
@@ -240,7 +240,7 @@ adaptereket (Binance, WebSocket) stub-ok helyettesítik.
     \texttt{test\_risk\_policy.py}      & 12 & Stop-loss, pozícióméret-korlát, napi limit \\
     \texttt{test\_execution.py}        & 9  & Megbízás-végrehajtás, slippage-modell \\
     \texttt{test\_strategy.py}         & 7  & Jelzésgenerálás, küszöb-logika \\
-    \texttt{test\_signal\_diagnostics.py} & 8 & Diagnosztikai metrikák pontossága \\
+    \texttt{test\_signal\_}\newline\texttt{diagnostics.py} & 8 & Diagnosztikai metrikák pontossága \\
     \hline
   \end{tabular}
   \caption{A fehérdoboz tesztesetek áttekintése.}
@@ -254,12 +254,12 @@ valódi interfészek mögött.
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \begin{tabular}{|p{4.5cm}|l|p{7cm}|}
     \hline
     \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
     \hline\hline
     \texttt{test\_binance\_feed.py}    & 6  & Binance feed üzenetfeldolgozás, újracsatlakozás \\
-    \texttt{test\_signal\_diagnostics.py} & 8 & Teljes előrejelzési lánc end-to-end \\
+    \texttt{test\_signal\_}\newline\texttt{diagnostics.py} & 8 & Teljes előrejelzési lánc end-to-end \\
     \hline
   \end{tabular}
   \caption{A feketedoboz (integrációs) tesztesetek áttekintése.}

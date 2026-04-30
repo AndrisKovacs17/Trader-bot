@@ -78,7 +78,7 @@ if nn is not None:
             # Previously: 0.5*(K_net+1.0) init=0.5  →  K_seq = 0.7*0.07+0.3*0.5 = 0.199 (3× K_base!)
             # Also fixes: old formula could go negative when K_net<-1, killing gradients at clamp.
             K_delta = 0.3 * (torch.sigmoid(self.K_net(x_core).unsqueeze(-1).to(dtype)) - 0.5)
-            K_seq = torch.clamp(K_base + K_delta, 1e-4, 0.999)
+            K_seq = torch.clamp(K_base + K_delta, 1e-4, 0.999) 
 
             # A = 1 - K: high gain → fast update (forgets past), low gain → slow update (long memory).
             # Old formula (1 - 0.5*K) with clamp 0.5 blocked fast updates AND capped memory depth.

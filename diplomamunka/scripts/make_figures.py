@@ -490,7 +490,7 @@ def fig04(lang):
     ax1.set_xlabel(L["noise"])
     ax1.set_ylabel(L["mse"] + " (log)")
     ax1.set_xticks(SIGMAS)
-    ax1.legend()
+    ax1.legend(loc="upper left")
 
     ax2.plot(SIGMAS, K_VAL, "o-", color=C_KLA, label=L["kalman_gain"])
     ax2.plot(SIGMAS, A_VAL, "s--", color=C_FAIR, label=L["forget"])
@@ -500,10 +500,7 @@ def fig04(lang):
     ax2.set_ylabel(L["value"])
     ax2.set_ylim(0, 1.0)
     ax2.set_xticks(SIGMAS)
-    ax2.legend(loc="center right")
-    ax2.annotate("", xy=(5, K_VAL[-1]), xytext=(3.4, 0.24),
-                 arrowprops=dict(arrowstyle="->", color="0.4"))
-    ax2.text(3.4, 0.20, L["strong_kla"], color="0.4", style="italic")
+    ax2.legend(loc="upper left")
     return save(fig, "fig04_exchange_and_kalman", lang)
 
 
@@ -727,14 +724,14 @@ def _arrow(ax, p0, p1, color="0.4"):
 
 def fig08(lang):
     L = LBL[lang]
-    fig, ax = plt.subplots(figsize=(7, 9.5), constrained_layout=True)
+    fig, ax = plt.subplots(figsize=(8.0, 9.5), constrained_layout=True)
     ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off")
     ax.set_title(L["arch_title"])
-    # Clean stack design: data path on the left, Kalman parameter net on the right
+    # Main path: x=0.23, w=0.36  (right edge 0.41)
+    # Param net: x=0.77           (left edges 0.59-0.60, gap 0.41-0.59 = 0.18)
     c_main = "#E8F0F9"; c_param = "#FCF1D6"; c_gain = "#F7D9C9"
     c_scan = "#E4DAF0"; c_out  = "#DDEBD1"
     ec = "0.25"
-    # Main path nodes (x = 0.32)
     main_nodes = [
         (0.92, "in_proj (d -> 2E)", c_main),
         (0.82, "DepthwiseConv1d + SiLU", c_main),
@@ -744,30 +741,41 @@ def fig08(lang):
         (0.12, r"out_proj ($E \to d$) + residual", c_out),
     ]
     for y, t, c in main_nodes:
-        _box(ax, (0.32, y), 0.44, 0.05, t, fc=c, ec=ec, fs=8.5)
+        _box(ax, (0.23, y), 0.36, 0.05, t, fc=c, ec=ec, fs=8.5)
     for y0, y1 in [(0.92, 0.82), (0.82, 0.55),
                    (0.55, 0.38), (0.38, 0.22), (0.22, 0.12)]:
-        _arrow(ax, (0.32, y0 - 0.025), (0.32, y1 + 0.025))
-    # Parameter net (x = 0.78)
-    _box(ax, (0.78, 0.72), 0.32, 0.05,
+        _arrow(ax, (0.23, y0 - 0.025), (0.23, y1 + 0.025))
+    # Parameter net column: x=0.77
+    _box(ax, (0.77, 0.72), 0.34, 0.05,
          r"Param net: $Q_t, R_t, K_\Delta$", fc=c_param, ec=ec, fs=8.5)
-    _box(ax, (0.78, 0.62), 0.36, 0.05,
+    _box(ax, (0.77, 0.62), 0.30, 0.05,
          r"$K_{\rm base} = Q/(Q+R)$", fc=c_param, ec=ec, fs=8.5)
-    _box(ax, (0.78, 0.52), 0.42, 0.05,
+    _box(ax, (0.77, 0.52), 0.38, 0.05,
          r"$K = {\rm clamp}(K_{\rm base}+K_\Delta,\,10^{-4}, 0.999)$",
-         fc=c_gain, ec=ec, fs=8.5)
-    _box(ax, (0.78, 0.42), 0.38, 0.05,
+         fc=c_gain, ec=ec, fs=7.5)
+    _box(ax, (0.77, 0.42), 0.36, 0.05,
          r"$A = {\rm clamp}(1-K,\,0.01, 0.99)$", fc=c_gain, ec=ec, fs=8.5)
-    _arrow(ax, (0.54, 0.82), (0.68, 0.74), color="0.55")
-    _arrow(ax, (0.78, 0.70), (0.78, 0.64))
-    _arrow(ax, (0.78, 0.60), (0.78, 0.54))
-    _arrow(ax, (0.78, 0.50), (0.78, 0.44))
-    _arrow(ax, (0.62, 0.42), (0.48, 0.40), color="0.55")
-    # I/O
-    ax.text(0.32, 0.975,
+    # Internal param net arrows (vertical)
+    _arrow(ax, (0.77, 0.695), (0.77, 0.645))
+    _arrow(ax, (0.77, 0.595), (0.77, 0.545))
+    _arrow(ax, (0.77, 0.495), (0.77, 0.445))
+    # Cross-column arrow 1: right of conv box -> top of param-net box
+    # path: (0.41, 0.82) right -> (0.65, 0.82) down -> (0.65, 0.745)
+    ax.add_patch(FancyArrowPatch(
+        (0.41, 0.82), (0.65, 0.745),
+        arrowstyle="->", connectionstyle="angle,angleA=0,angleB=90",
+        color="0.55", mutation_scale=12, lw=0.9))
+    # Cross-column arrow 2: left of A-box -> right of scan box
+    # path: (0.59, 0.42) left -> (0.37, 0.42) down -> (0.37, 0.38)
+    ax.add_patch(FancyArrowPatch(
+        (0.59, 0.42), (0.37, 0.38),
+        arrowstyle="->", connectionstyle="angle,angleA=180,angleB=90",
+        color="0.55", mutation_scale=12, lw=0.9))
+    # I/O labels
+    ax.text(0.23, 0.975,
             r"$x \in \mathbb{R}^{B \times T \times d}$",
             ha="center", fontsize=9)
-    ax.text(0.32, 0.065,
+    ax.text(0.23, 0.065,
             r"$y \in \mathbb{R}^{B \times T \times d}$",
             ha="center", fontsize=9)
     return save(fig, "fig08_architecture", lang)
@@ -820,21 +828,23 @@ def fig09(lang):
 def kc_stack(lang):
     L = LBL[lang]
     labels = L["kc_boxes"]
-    fig, ax = plt.subplots(figsize=(5.5, 6), constrained_layout=True)
-    ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off")
+    fig, ax = plt.subplots(figsize=(6.0, 6.0), constrained_layout=True)
+    ax.set_xlim(-0.02, 1.12); ax.set_ylim(0, 1); ax.axis("off")
     palette = ["#F2F2F2", "#E8F0F9", "#DDEBD1", "#FCF1D6", "#F7D9C9"]
     ys = [0.88, 0.70, 0.52, 0.34, 0.16]
     for y, lab, c in zip(ys, labels, palette):
-        _box(ax, (0.45, y), 0.7, 0.10, lab, fc=c, ec="0.3", fs=9)
+        _box(ax, (0.45, y), 0.78, 0.11, lab, fc=c, ec="0.25", fs=9)
     for y0, y1 in zip(ys[:-1], ys[1:]):
-        _arrow(ax, (0.45, y0 - 0.055), (0.45, y1 + 0.055))
-    a = FancyArrowPatch((0.82, 0.88), (0.82, 0.16),
-                        connectionstyle="arc3,rad=0.35",
-                        arrowstyle="->", color=C_FAIR,
-                        lw=1.0, mutation_scale=10)
-    ax.add_patch(a)
-    ax.text(0.95, 0.52, labels[3], color=C_FAIR, ha="center",
-            rotation=90, fontsize=8, style="italic")
+        _arrow(ax, (0.45, y0 - 0.06), (0.45, y1 + 0.06))
+    # Right-side residual bypass: from input box -> residual bypass merge node
+    bx = 0.92
+    ax.plot([0.84, bx], [0.88, 0.88], color=C_FAIR, lw=1.2,
+            solid_capstyle="round")
+    ax.plot([bx, bx], [0.88, 0.34], color=C_FAIR, lw=1.2,
+            solid_capstyle="round")
+    ax.annotate("", xy=(0.84, 0.34), xytext=(bx, 0.34),
+                arrowprops=dict(arrowstyle="-|>", color=C_FAIR,
+                               mutation_scale=10, lw=1.2))
     return save(fig, "kc_stack_diagram", lang)
 
 
@@ -947,10 +957,14 @@ def fig16(lang: str) -> str:
             if mname not in row:
                 continue
             ys = row[mname]
-            ax.plot(xs, ys, ls, color=color,
+            # Mask values above the hard clip to avoid marker overflow
+            if sparse and ymax_hard is not None:
+                ys_plot = [y if y <= ymax_hard else float("nan") for y in ys]
+            else:
+                ys_plot = ys
+            ax.plot(xs, ys_plot, ls, color=color,
                     label=mname if mname != "Fair" else "Fair Mamba",
-                    linewidth=1.4, markersize=5,
-                    clip_on=sparse)  # clip Fair's off-scale values in s=16
+                    linewidth=1.4, markersize=5)
 
         ax.set_xticks(xs)
         ax.set_xlabel(L["longseq_x"], fontsize=9)
@@ -972,7 +986,7 @@ def fig16(lang: str) -> str:
                 ax.set_ylim(0, min(max(all_vals) * 1.5, 4.0))
 
         if stride == 1 and sig == 5:
-            ax.legend(fontsize=8, loc="upper right")
+            ax.legend(fontsize=8, loc="upper left")
 
     return save(fig, "fig16_stride_seq", lang)
 
@@ -983,9 +997,10 @@ def fig16(lang: str) -> str:
 
 ALL = {
     "fig01": fig01, "fig02": fig02, "fig03": fig03, "fig04": fig04,
-    "fig05": fig05, "fig06": fig06, "fig07": fig07, "fig08": fig08,
+    "fig05": fig05, "fig06": fig06, "fig07": fig07,
+    # fig08 and kc_stack excluded: replaced by PlantUML PNGs in images/
     "fig09": fig09, "fig11": fig11, "fig12": fig12,
-    "fig13": fig13, "kc_stack": kc_stack, "kca_stack": kca_stack,
+    "fig13": fig13, "kca_stack": kca_stack,
     "fig14": fig14, "fig15": fig15, "fig16": fig16,
 }
 

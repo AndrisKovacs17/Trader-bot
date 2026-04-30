@@ -7,26 +7,61 @@
 \section{The Kalman Filter and Its Extensions}
 \label{sec:kalman}
 
-The Kalman filter~\cite{kalman1960new} is the optimal Bayesian estimator for
-linear dynamical systems under additive Gaussian noise. The state update is:
+The Kalman filter~\cite{kalman1960new} is the minimum-variance, unbiased, linear
+estimator for systems whose state $x_t \in \mathbb{R}^n$ evolves according to
+a linear dynamical model perturbed by Gaussian noise:
+\begin{align}
+    x_t &= F x_{t-1} + w_t, & w_t &\sim \mathcal{N}(0, Q), \label{eq:kf_process}\\
+    y_t &= H x_t   + v_t,   & v_t &\sim \mathcal{N}(0, R), \label{eq:kf_measure}
+\end{align}
+where $F$ is the state-transition matrix, $H$ the observation matrix,
+$Q \in \mathbb{R}^{n \times n}$ the process-noise covariance, and
+$R \in \mathbb{R}^{m \times m}$ the measurement-noise covariance. The filter
+operates in two alternating half-steps.
+In the prediction step (time update), before the measurement $y_t$ arrives,
+the filter propagates the state estimate and the error covariance forward
+in time:
+\begin{align}
+    \hat{x}_{t|t-1} &= F \hat{x}_{t-1|t-1}, \label{eq:kf_predict_x}\\
+    P_{t|t-1}       &= F P_{t-1|t-1} F^\top + Q, \label{eq:kf_predict_P}
+\end{align}
+where $P_{t|t-1} \in \mathbb{R}^{n \times n}$ is the predicted error
+covariance. A large $P_{t|t-1}$ indicates high prediction uncertainty;
+a large $Q$ means the system state changes rapidly and unpredictably.
+
+In the correction step (measurement update), once the observation $y_t$
+arrives, the filter corrects its estimate by the
+\emph{innovation} $e_t = y_t - H\hat{x}_{t|t-1}$, weighted by the Kalman
+gain $K_t$:
+\begin{align}
+    K_t           &= P_{t|t-1} H^\top \bigl(H P_{t|t-1} H^\top + R\bigr)^{-1},
+                     \label{eq:kalman_gain}\\
+    \hat{x}_{t|t} &= \hat{x}_{t|t-1} + K_t e_t, \label{eq:kalman_update}\\
+    P_{t|t}       &= (I - K_t H)\,P_{t|t-1}. \label{eq:kf_update_P}
+\end{align}
+Equation~\eqref{eq:kalman_gain} encodes the fundamental noise-balance
+intuition. When the measurement noise $R$ is large relative to the predicted
+covariance $H P_{t|t-1} H^\top$, the denominator dominates and $K_t \to 0$:
+the filter distrusts the observation and relies on its prior state. When $R
+\to 0$, $K_t \to H^{-1}$ and the observation nearly overwrites the state
+entirely.
+
+For the scalar case ($F = H = 1$), the gain simplifies to
 \begin{equation}
-    \hat{x}_{t|t} = \hat{x}_{t|t-1} + K_t (y_t - H \hat{x}_{t|t-1}),
-    \label{eq:kalman_update}
+    K_t = \frac{P_{t|t-1}}{P_{t|t-1} + R}.
+    \label{eq:kalman_gain_scalar}
 \end{equation}
-where the gain $K_t$ is determined by the ratio of prediction and measurement
-covariance:
-\begin{equation}
-    K_t = P_{t|t-1} H^\top (H P_{t|t-1} H^\top + R)^{-1}.
-    \label{eq:kalman_gain}
-\end{equation}
-When $R \to \infty$, $K \to 0$: the filter distrusts the measurement.
-When $R \to 0$, $K \to 1$: the measurement nearly overwrites the state.
-KCMamba is built on this same ratio.
+Under steady-state conditions the error covariance $P_{t|t-1}$ converges to a
+fixed value $\bar{P}$, and the steady-state gain depends only on the ratio
+$Q/R$: a high process noise relative to measurement noise drives $K$
+towards~1 (trust the measurement), while a low $Q/R$ ratio drives $K$
+towards~0 (trust the model). This $Q/(Q+R)$ ratio is the structural basis
+for the KCMamba gain computation (Section~\ref{sec:kalman_gain}).
 
 \subsection{Learned Kalman Filters}
 
 In the neural Kalman literature, the matrices $F, H, Q, R$ are parameterised
-by networks~\cite{krishnan2015deep,fraccaro2017disentangled}.
+by neural networks~\cite{krishnan2015deep,fraccaro2017disentangled}.
 The \emph{Deep Kalman Filter}~\cite{krishnan2015deep} allows non-linear
 transitions, and the \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
 learns disentangled representations of latent states.
@@ -38,21 +73,66 @@ than as an autoencoder.
 
 \subsection{S4}
 
-S4~\cite{gu2021s4} models a $d$-dimensional input sequence via an
-$N$-dimensional latent dynamic:
+S4~\cite{gu2021s4} reformulates a sequence model as a parameterised ordinary
+differential equation (ODE) over a latent state $h(t) \in \mathbb{R}^N$:
 \begin{align}
-    h'(t) &= A h(t) + B u(t), \\
-    y(t) &= C h(t).
+    h'(t) &= A h(t) + B u(t), \label{eq:s4_continuous}\\
+    y(t)  &= C h(t). \label{eq:s4_output}
 \end{align}
-After discretisation: $h_t = \bar{A} h_{t-1} + \bar{B} u_t$, $y_t = C h_t$,
-where $\bar{A} = e^{\Delta A}$.
+Here $u(t)$ is the scalar input, $A \in \mathbb{R}^{N \times N}$ is the
+state matrix, and $B, C \in \mathbb{R}^N$ are the input and output projections.
+The critical insight of Gu et al.\ is that $A$ can be initialised as the
+\emph{HiPPO} (High-order Polynomial Projection Operator) matrix, which is
+designed to compress the history of $u$ into the current state $h(t)$ with
+optimal polynomial approximation. This initialisation avoids the
+vanishing-gradient problem that plagues vanilla RNNs over long sequences,
+since the HiPPO structure preserves information from the distant past without
+exponential decay.
+
+To apply the model to discrete sequences the continuous system is discretised
+with step size $\Delta$ using the zero-order hold (ZOH) rule:
+\begin{align}
+    h_t &= \bar{A} h_{t-1} + \bar{B} u_t, \label{eq:s4_discrete_h}\\
+    y_t &= C h_t, \label{eq:s4_discrete_y}
+\end{align}
+where $\bar{A} = e^{\Delta A}$ and $\bar{B} = (e^{\Delta A} - I)A^{-1}B$.
+Because $\bar{A}$ is diagonal in the frequency domain the entire convolution
+$y = \bar{C} * u$ can be computed as a single element-wise product after an
+FFT, reducing sequence-level complexity to $O(T \log T)$.
+
+A fundamental limitation of S4 is that $A$, $B$, $C$, and $\Delta$ are
+\emph{input-independent}: the same learned parameters are applied at every
+time step regardless of the input content. The model therefore cannot adapt
+its memory or forgetting behaviour in response to what it actually observes
+in the current sequence.
 
 \subsection{Mamba}
 
-Mamba~\cite{gu2023mamba} introduces input-dependent selectivity:
-$B$, $C$, and $\Delta$ depend on the input $u_t$. This lets the model decide
-what to remember and what to forget. A hardware-efficient parallel scan achieves
-$O(T)$ memory and time complexity.
+Mamba~\cite{gu2023mamba} addresses this limitation directly by making the
+state-space parameters \emph{input-dependent}. The matrices $B$, $C$, and the
+time step $\Delta$ are no longer fixed scalars but functions of the current
+input $u_t$:
+\begin{align}
+    B_t      &= \mathrm{Linear}(u_t),  \\
+    C_t      &= \mathrm{Linear}(u_t),  \\
+    \Delta_t &= \mathrm{softplus}\bigl(\mathrm{Linear}(u_t) + \delta_\mathrm{bias}\bigr).
+\end{align}
+The time step $\Delta_t$ determines the discrete transition matrices
+$\bar{A}_t = e^{\Delta_t A}$, $\bar{B}_t = (\bar{A}_t - I) A^{-1} B_t$.
+This mechanism, called the \emph{Selective State Space} (S6) layer, lets the
+model selectively remember or forget content at each step. When
+$\Delta_t \to 0$ the state barely changes ($\bar{A}_t \approx I$),
+preserving memory. When $\Delta_t$ is large the state is updated strongly,
+discarding older information.
+
+The input-dependent parameters break the global convolution trick that made
+S4 efficient, because there is no longer a single kernel to FFT. Gu and Dao
+solve this with a \emph{hardware-efficient parallel scan} (the Blelloch
+prefix-scan algorithm), applied on the GPU's SRAM to avoid expensive
+high-bandwidth memory round-trips. The scan runs in $O(\log T)$
+synchronisation steps on $T$ parallel threads, achieving $O(T)$ total
+work and $O(T)$ memory while avoiding the sequential bottleneck of recurrent
+models.
 
 \subsection{Fair Mamba}
 
@@ -66,37 +146,70 @@ results comes solely from the architecture.
 
 \subsection{Problem Formulation}
 
-Given $\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$, the goal
-is to predict $\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H})$
-by minimising normalised MSE.
+Long-term time series forecasting (LTSF) considers an input window
+$\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$ of $L$
+historical steps across $d$ channels, and requires producing a prediction
+$\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H}) \in \mathbb{R}^{H \times d}$
+for the next $H$ steps. The objective is to minimise the normalised mean
+squared error
+\begin{equation}
+    \mathrm{MSE} = \frac{1}{H d}
+        \sum_{h=1}^{H} \sum_{j=1}^{d}
+        \frac{(x_{L+h,j} - \hat{x}_{L+h,j})^2}{\mathrm{Var}(x_{\cdot,j})},
+    \label{eq:mse}
+\end{equation}
+where normalisation by the per-channel variance makes results comparable
+across datasets with different scales. The \emph{long-term} qualifier refers
+to the common regime $H \geq L$ or $H$ comparable to $L$: the model must
+extrapolate well beyond the lookback window, which is substantially harder
+than short-term forecasting where $H \ll L$.
 
 \subsection{Reference Models}
 
-\begin{itemize}
-    \item \emph{Informer} reduces Transformer complexity to
-          $O(L \log L)$ via ProbSparse
-          attention~\cite{zhou2021informer}.
-    \item \emph{Autoformer} applies series decomposition and
-          auto-correlation-based attention~\cite{wu2021autoformer}.
-    \item \emph{DLinear} achieves surprisingly strong results with a
-          plain linear projection, questioning the necessity of complex
-          architectures~\cite{zeng2023transformers}. Simpler models are
-          not always worse.
-\end{itemize}
+\emph{Informer}~\cite{zhou2021informer} was the first Transformer variant
+specifically designed for long-term forecasting. Standard self-attention has
+$O(L^2)$ time and memory complexity, which becomes prohibitive for long input
+windows. Informer addresses this with \emph{ProbSparse attention}: it
+identifies the $O(\log L)$ most informative query positions via a KL-divergence
+estimate, reducing complexity to $O(L \log L)$. A distilling operation
+halves the sequence length between encoder layers so the model can handle
+lookback windows of several thousand steps.
+
+\emph{Autoformer}~\cite{wu2021autoformer} decomposes each series into a
+trend component (estimated with a moving-average kernel) and a seasonal
+residual, applying the Transformer only to the residuals. Rather than
+dot-product attention it uses an \emph{Auto-Correlation} mechanism: it
+identifies the lag $\tau$ maximising the autocorrelation of the query
+signal and aggregates values at those lag offsets. The resulting mechanism
+is $O(L \log L)$ via FFT and provides an inductive bias suited to periodic
+data.
+
+\emph{DLinear}~\cite{zeng2023transformers} discards all of this complexity
+and applies a single linear layer to each lookback window to produce the
+forecast, optionally after trend-seasonal decomposition. Despite its
+simplicity, DLinear matched or outperformed many Transformer variants on
+standard benchmarks, demonstrating that architectural complexity is not
+always necessary for good forecasting performance. It remains a relevant
+baseline because any new model must justify its additional overhead relative
+to this linear reference.
 
 \subsection{Datasets}
 \label{sec:datasets}
 
-\begin{itemize}
-    \item \textbf{Exchange-Rate}~\cite{lai2018modeling}: 8 currency exchange
-          rates, 7\,588 daily samples. Its near-unit-root dynamics make the
-          Kalman structure particularly effective.
-    \item \textbf{ETTh1 / ETTh2}~\cite{zhou2021informer}: Hourly transformer-station
-          electricity data ($d=7$, 17\,420 steps). ETTh1 is strongly periodic,
-          whereas ETTh2 is noisier.
-    \item \textbf{Weather, ECL}: Not included in our experiments but are
-          standard benchmarks in the LTSF literature.
-\end{itemize}
+The Exchange-Rate dataset~\cite{lai2018modeling} contains eight foreign exchange
+rates sampled daily from 1990 to 2016, giving 7\,588 time steps per channel.
+Exchange-rate data has near-unit-root dynamics: each daily increment is
+close to a random walk with very little mean reversion. This makes it a
+challenging benchmark for autoregressive models, and a natural setting
+for evaluating the Kalman structure where the signal-to-noise ratio is
+intrinsically low.
+
+ETTh1 and ETTh2~\cite{zhou2021informer} are both collected from
+Chinese transformer stations, recording hourly electricity load and oil
+temperature for two years (17\,420 steps, $d=7$ channels). ETTh1 has a
+clear daily periodicity, while ETTh2 is noisier and more irregular. The two
+datasets provide contrasting difficulty levels for noise-robustness
+evaluation.
 
 \section{Noise Robustness}
 \label{sec:robustness}
@@ -104,8 +217,6 @@ by minimising normalised MSE.
 The noise sensitivity of time series models is rarely studied in
 a systematic way. PatchTST~\cite{nie2022patchtst} indirectly improves noise
 tolerance through patch tokenisation, but robustness is not its primary goal.
-Augmentation-based noise robustness (training models on corrupted data)
-has received little attention in the LTSF community.
 
 In this work the evaluation protocol is:
 $\tilde{x}_t = x_t + \varepsilon_t$,

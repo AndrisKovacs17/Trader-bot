@@ -1,0 +1,65 @@
+@startuml KCMamba_Blokk_Architektura
+skinparam backgroundColor white
+skinparam defaultFontName "DejaVu Serif"
+skinparam defaultFontSize 11
+skinparam dpi 200
+skinparam shadowing false
+
+skinparam package {
+  BackgroundColor white
+  BorderColor #555555
+  BorderThickness 1.5
+  FontSize 12
+  FontStyle bold
+}
+skinparam rectangle {
+  BackgroundColor #E8F0F9
+  BorderColor #444444
+  BorderThickness 1
+  RoundCorner 6
+  FontSize 10
+}
+skinparam arrow {
+  Color #444444
+  FontSize 9
+}
+
+top to bottom direction
+
+' ── Adatút (bal oszlop) ───────────────────────────────────────
+package " Adatút " #E8F4FF {
+  rectangle " x ∈ ℝ<sup>B×T×d</sup> " as XIn  #FFFCE8
+  rectangle " <b>in_proj</b>  (d → 2E) " as InProj #E8F0F9
+  rectangle " <b>DepthwiseConv1d</b> + SiLU " as Conv #E8F0F9
+  rectangle " v = LN(W<sub>v</sub> · x<sub>mag</sub>) " as VProj #E8F0F9
+  rectangle " <b>prefix-scan</b>\n h<sub>t</sub> = A · h<sub>t-1</sub> + K · v<sub>t</sub> " as Scan #E4DAF0
+  rectangle " μ ⊙ g  <i>(kapuzás)</i> " as Gate #E8F0F9
+  rectangle " <b>out_proj</b>  (E → d)  +  reziduál " as OutProj #DDEBD1
+  rectangle " y ∈ ℝ<sup>B×T×d</sup> " as YOut  #FFFCE8
+
+  XIn    -down-> InProj
+  InProj -down-> Conv
+  Conv   -down-> VProj
+  VProj  -down-> Scan
+  Scan   -down-> Gate
+  Gate   -down-> OutProj
+  OutProj -down-> YOut
+}
+
+' ── Kalman paraméter háló (jobb oszlop) ──────────────────────
+package " Kalman paraméter háló " #FFF8EC {
+  rectangle " <b>Paraméter háló:</b>  Q<sub>t</sub>, R<sub>t</sub>, K<sub>Δ</sub> " as ParamNet #FCF1D6
+  rectangle " K<sub>alap</sub> = Q / (Q + R) " as KBase #FCF1D6
+  rectangle " K = clamp(K<sub>alap</sub> + K<sub>Δ</sub>,  10<sup>-4</sup>,  0.999) " as KClamp #F7D9C9
+  rectangle " A = clamp(1 − K,  0.01,  0.99) " as AClamp #F7D9C9
+
+  ParamNet -down-> KBase
+  KBase   -down-> KClamp
+  KClamp  -down-> AClamp
+}
+
+' ── Kereszt-kapcsolatok ───────────────────────────────────────
+Conv    -[#666666]right-> ParamNet : " aktiválja "
+AClamp  -[#666666]left->  Scan     : " A, K injektálása "
+
+@enduml

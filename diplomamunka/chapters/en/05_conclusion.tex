@@ -57,89 +57,42 @@ KCMamba does not win in every configuration, and the experimental
 framework contains several simplifications that meaningfully restrict the
 generalisability of our conclusions.
 
-\begin{itemize}
-    \item At $\sigma=0$, $s=16$ Fair Mamba nearly memorises and achieves
-          a much better MSE. This suggests that in noise-free settings the
-          explicit Kalman structure imposes unnecessary overhead: the
-          always-present filtering term causes mild underfitting, and the
-          architecture cannot fully switch the filter off.
+At $\sigma=0$, $s=16$ Fair Mamba nearly memorises and achieves a much better
+MSE. This suggests that in noise-free settings the explicit Kalman structure
+imposes unnecessary overhead: the always-present filtering term causes mild
+underfitting, and the architecture cannot fully switch the filter off.
 
-    \item On ETTh1/$s=1$ LSTM is the best, since its gating mechanism exploits
-          the large data volume. The forget/input gate pair realises a
-          similar adaptive filter, but more flexibly, because it is not
-          tied to the $K = Q/(Q+R)$ structure. This is not a KCMamba
-          failure but illustrates that the utility of the inductive prior
-          decreases in data-rich regimes.
+On ETTh1/$s=1$ LSTM is the best, since its gating mechanism exploits the large
+data volume. The forget/input gate pair realises a similar adaptive filter, but
+more flexibly, because it is not tied to the $K = Q/(Q+R)$ structure. This is
+not a KCMamba failure but illustrates that the utility of the inductive prior
+decreases in data-rich regimes.
 
-    \item Only 5 epochs were run, and every configuration used a single
-          seed. This guarantees neither convergence nor statistical
-          significance: the reported results are point estimates without
-          confidence intervals. A publication-grade study would require
-          at least three repetitions and early stopping.
+Only 5 epochs were run with a single random seed, so the reported results are
+point estimates without confidence intervals.
 
-    \item Only $L = H = 96$ was evaluated. At 336, 720 and 960-step
-          horizons, Mamba's $O(T)$ complexity may yield a substantive
-          advantage over $O(T^2)$ Transformers, and LSTM's memory
-          limitations also begin to dominate, and the conclusions here thus
-          formally apply only to short horizons.
+The noise model is exclusively isotropic Gaussian
+($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$). In real applications noise is
+typically heteroscedastic, temporally correlated, sometimes non-Gaussian, and
+often structural (sensor dropouts, missing values). Robustness measured here
+does not automatically generalise to those noise forms.
 
-    \item The noise model is exclusively isotropic Gaussian
-          ($\varepsilon \sim \mathcal{N}(0, \sigma^2 I)$). In real
-          applications noise is typically heteroscedastic, temporally
-          correlated, sometimes non-Gaussian, and often structural
-          (sensor dropouts, missing values). Robustness measured here
-          does not automatically generalise to those noise forms.
+Scalar $Q_t$, $R_t$ estimation assumes per-channel independent noise
+components. Estimating a diagonal or full covariance matrix would yield a
+richer noise model at the cost of a noticeably larger parameter count.
 
-    \item Scalar $Q_t$, $R_t$ estimation assumes per-channel independent
-          noise components. Estimating a diagonal or full covariance
-          matrix would yield a richer noise model at the cost of a
-          noticeably larger parameter count.
-
-    \item Two benchmarks (Weather, ECL) were excluded from this round
-          because of training-time scaling, so dimensional sensitivity
-          (7 vs.\ 21 vs.\ 321 channels) is therefore not \emph{a priori}
-          substantiated.
-
-    \item A broader hyperparameter-sensitivity study (hidden dimension,
-          number of heads, layers, kernel size, learning rate) was not
-          performed. The configuration presented is a reasonable default
-          that is not guaranteed to be Pareto-optimal.
-
-    \item On the trading side (Chapter~\ref{ch:implementacio}) the
-          system is validated in backtests. Live-market effects,
-          slippage variance, outages and partial-fill ordering lie
-          outside the scope of this thesis.
-\end{itemize}
+A broader hyperparameter-sensitivity study (hidden dimension, number of heads,
+layers, kernel size, learning rate) was not performed. The configuration
+presented is a reasonable default that is not guaranteed to be Pareto-optimal.
 
 \section{Future Work}
 
-\begin{itemize}
-    \item A systematic sweep over $s \in \{1, 4, 8, 16, 32, 64\}$ would
-          identify the data-scarcity threshold at which the Kalman
-          structure's regularising effect first emerges.
-
-    \item At prediction horizons of 336, 720, or 960 steps, Mamba's
-          $O(T \log T)$ complexity may confer a meaningful advantage
-          over $O(T^2)$ Transformer baselines.
-
-    \item Replacing simulated Gaussian perturbations with sensor
-          dropouts, missing values, and outliers would bring the
-          evaluation closer to real-world deployment conditions.
-
-    \item Introducing a meta-network that estimates $\sigma$ as a
-          trainable parameter would allow the model to adapt
-          automatically to environments with unknown noise levels.
-
-    \item Replacing the scalar $Q_t$, $R_t$ with a diagonal Cholesky
-          factorisation would yield richer uncertainty estimates and
-          potentially improve calibration.
-\end{itemize}
-
-\section{Closing Remarks}
-
-KCMamba demonstrates that classical Kalman filtering principles and modern
-sequence models are not mutually exclusive. The explicit noise model provides
-a strong inductive bias, particularly where data is scarce or noise is high.
-The trading system described in Chapter~\ref{ch:implementacio}
-shows that this model is not just an experimental prototype but a solution
-integrable into a real trading environment.
+A systematic sweep over $s \in \{1, 4, 8, 16, 32, 64\}$ would identify the
+data-scarcity threshold at which the Kalman structure's regularising effect
+first emerges. Replacing simulated Gaussian perturbations with sensor dropouts,
+missing values, and outliers would bring the evaluation closer to real-world
+deployment conditions. Introducing a meta-network that estimates $\sigma$ as a
+trainable parameter would allow the model to adapt automatically to environments
+with unknown noise levels. Replacing the scalar $Q_t$, $R_t$ with a diagonal
+Cholesky factorisation would yield richer uncertainty estimates and potentially
+improve calibration.
