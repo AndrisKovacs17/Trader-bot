@@ -46,6 +46,7 @@ class EventTapHandler(IEventHandlerPort):
                 prob_up=float(event.payload.get("prob_up", 0.5)),
                 regime=str(event.payload.get("regime", "normal")),
                 horizon=int(event.payload.get("horizon", 1)),
+                confirm_score=float(event.payload.get("confirm_score", 0.0)),
             )
             symbol = str(event.payload.get("symbol", "UNKNOWN"))
             self.performance_tracker.on_prediction(pred)

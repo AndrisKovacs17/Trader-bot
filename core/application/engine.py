@@ -120,6 +120,7 @@ class TradingEngine(IEventHandlerPort):
                         "prob_up": pred.prob_up,
                         "regime": pred.regime,
                         "horizon": pred.horizon,
+                        "confirm_score": pred.confirm_score,
                     },
                     source="engine",
                     correlation_id=ctx.correlation_id,
