@@ -100,8 +100,11 @@ detailed in Chapters~\ref{ch:architektura} and~\ref{ch:kiserletek}.
 \begin{verbatim}
 cd diplomamunkakod
 python -m venv .venv
-.venv\Scripts\Activate.ps1          # Windows (PowerShell)
-# source .venv/bin/activate          # Linux / macOS
+# Windows (PowerShell -- run once):
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.venv\Scripts\Activate.ps1
+# Linux / macOS:
+# source .venv/bin/activate
 \end{verbatim}
   \item Install dependencies (ML packages are optional):
 \begin{verbatim}

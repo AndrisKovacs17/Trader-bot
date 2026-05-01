@@ -107,8 +107,11 @@ döntések, a tanítási protokoll és a kísérleti értékelés részletei a
 \begin{verbatim}
 cd diplomamunkakod
 python -m venv .venv
-.venv\Scripts\Activate.ps1          # Windows (PowerShell)
-# source .venv/bin/activate          # Linux / macOS
+# Windows (PowerShell -- egyszer kell futtatni):
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.venv\Scripts\Activate.ps1
+# Linux / macOS:
+# source .venv/bin/activate
 \end{verbatim}
   \item Függőségek telepítése (ML-csomagok opcionálisak):
 \begin{verbatim}
