@@ -113,10 +113,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Linux / macOS:
 # source .venv/bin/activate
 \end{verbatim}
-  \item Függőségek telepítése (ML-csomagok opcionálisak):
+  \item Függőségek telepítése:
 \begin{verbatim}
 pip install -r requirements.txt
-pip install -r requirements-ml.txt   # GPU-ra: CUDA-kompatibilis PyTorch
+\end{verbatim}
+  ML-csomagok (\textbf{opcionális} -- csak GPU-s benchmark futtatáshoz,
+  Python~3.9--3.12 és NVIDIA CUDA~12.4 szükséges):
+\begin{verbatim}
+pip install -r requirements-ml.txt
 \end{verbatim}
   \item API-kulcsok beállítása (csak élő/paper módban szükséges):
 \begin{verbatim}

@@ -1,2 +1,5 @@
---index-url https://download.pytorch.org/whl/cu124
+# GPU-s benchmark futtatáshoz (opcionális)
+# Feltétel: Python 3.9--3.12, NVIDIA GPU CUDA 12.4-gyel
+# Ha nincs GPU, hagyd ki ezt a fájlt teljesen.
+--extra-index-url https://download.pytorch.org/whl/cu124
 torch==2.6.0+cu124

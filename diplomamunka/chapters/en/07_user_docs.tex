@@ -106,10 +106,14 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 # Linux / macOS:
 # source .venv/bin/activate
 \end{verbatim}
-  \item Install dependencies (ML packages are optional):
+  \item Install dependencies:
 \begin{verbatim}
 pip install -r requirements.txt
-pip install -r requirements-ml.txt   # GPU: CUDA-compatible PyTorch
+\end{verbatim}
+  ML packages (\textbf{optional} -- only needed for GPU benchmarks,
+  requires Python~3.9--3.12 and NVIDIA CUDA~12.4):
+\begin{verbatim}
+pip install -r requirements-ml.txt
 \end{verbatim}
   \item Configure API keys (only required for live/paper mode):
 \begin{verbatim}
