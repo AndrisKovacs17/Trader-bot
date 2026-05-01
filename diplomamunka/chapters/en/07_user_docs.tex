@@ -242,6 +242,8 @@ recommended actions.
     \hline
     \texttt{ModuleNotFoundError: mamba\_ssm} & Error & Install \texttt{requirements-ml.txt} packages or pass \texttt{--device cpu}. \\
     \hline
+    \texttt{ModuleNotFoundError: pandas} & Error & The venv cannot see system packages; run: \texttt{pip install --ignore-installed -r requirements.txt} \\
+    \hline
     \texttt{Binance API 401/403} & Error & Invalid API key; update \texttt{.env} and verify IP whitelist on Binance. \\
     \hline
     \texttt{Not enough data (N rows)} & Warning & Extend \texttt{training\_start\_str} window or wait for more closed candles. \\
