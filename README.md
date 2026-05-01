@@ -82,7 +82,7 @@ leállítja a HTTP-szervert és kiírja a végleges pozíció-összegzést.
 python -m pytest tests/ -q
 ```
 
-Várt kimenet: `71 passed`.
+Várt kimenet: `172 passed, 7 skipped`.
 
 ## 6. Dashboard (felhasználói felület)
 
