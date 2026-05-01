@@ -106,7 +106,9 @@ döntések, a tanítási protokoll és a kísérleti értékelés részletei a
   \item Virtuális környezet létrehozása a projekt mappájában:
 \begin{verbatim}
 cd diplomamunkakod
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+.venv\Scripts\Activate.ps1          # Windows (PowerShell)
+# source .venv/bin/activate          # Linux / macOS
 \end{verbatim}
   \item Függőségek telepítése (ML-csomagok opcionálisak):
 \begin{verbatim}

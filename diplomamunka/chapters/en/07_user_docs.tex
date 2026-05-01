@@ -99,7 +99,9 @@ detailed in Chapters~\ref{ch:architektura} and~\ref{ch:kiserletek}.
   \item Create a virtual environment in the project folder:
 \begin{verbatim}
 cd diplomamunkakod
-python -m venv .venv && source .venv/bin/activate
+python -m venv .venv
+.venv\Scripts\Activate.ps1          # Windows (PowerShell)
+# source .venv/bin/activate          # Linux / macOS
 \end{verbatim}
   \item Install dependencies (ML packages are optional):
 \begin{verbatim}
