@@ -114,8 +114,8 @@ nagy mértékben kiszűri.
   \centering
   \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{images/fig04_exchange_and_kalman_hu.pdf}
   \caption{\textbf{Bal:} MSE a zajszint függvényében, Exchange/$s=16$ konfiguráció.
-           A Fair Mamba a legjobb zajmentes MSE-t adja ($\sigma=0$), de $\sigma=5$-nél
-           $+152\,350\%$-os degradációval összeomlik. A KCMamba degradációja $+66\%$.
+           A Fair Mamba a legjobb zajmentes MSE-t adja ($\sigma=0$), de jelentős degradációt mutat $\sigma=5$-nél.
+            A KCMamba degradációja $+66\%$ -nál stabilizálódik.
            \textbf{Jobb:} A KCMamba Kalman-gain ($K$), felejtési faktor ($A=1-K$)
            és zajbecslés ($R$) automatikus adaptációja a zajszint növekedésével.
            Magas zajnál $K$ meredék esést mutat ($0{,}706 \to 0{,}073$).}
@@ -214,8 +214,7 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
   \centering
   \includegraphics[width=\textwidth, height=0.28\textheight, keepaspectratio]{images/fig02_mse_heatmap_hu.pdf}
   \caption{MSE hőtérkép mind a négy modellre (ARIMA, LSTM, Fair Mamba, KCMamba),
-           minden konfigurációra és zajszintre. A sötétpiros mezők katasztrofikus
-           összeomlást jeleznek ($\text{MSE} > 4$). Az ARIMA és a Fair Mamba
+           minden konfigurációra és zajszintre. A sötétpiros mezők magas hibát jeleznek, $\text{MSE} > 4$. Az ARIMA és a Fair Mamba
            a $s{=}16$ konfigurációkban összességében $\sigma{\geq}3$-nál csődöt
            vallanak, míg a KCMamba végig stabil marad.}
   \label{fig:mse_heatmap}
@@ -225,7 +224,7 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
   \centering
   \includegraphics[width=\textwidth, height=0.45\textheight, keepaspectratio]{images/fig03_degradation_hu.pdf}
   \caption{MSE-degradáció logaritmikus skálán ($\sigma=0 \to \sigma=5$) az összes
-           konfigurációban. A Fair Mamba három esetben katasztrofikus összeomlást
+           konfigurációban. A Fair Mamba három esetben erős degradációt
            mutat ($>10\,000\%$). A KCMamba (zöld) és az LSTM (kék) lényegesen
            stabilabbak. A kiemelten jelölt mező az Exchange/$s=16$ esetet jelöli.}
   \label{fig:degradation}
@@ -234,8 +233,7 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
 \section{A Kalman-gain dinamikája}
 \label{sec:k_dynamics}
 
-A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamikája
-(\ref{tab:k_dynamics}.~táblázat):
+A legmeggyőzőbb bizonyíték az Exchange/$s=16$ konfiguráció $K/A/R$ dinamikája, ahogy a \ref{tab:k_dynamics} táblázat mutatja:
 
 \begin{table}[H]
     \centering
@@ -403,14 +401,13 @@ $T \in \{96, 192, 336, 512\}$ szekvenciahosszakkal, az ETTm1
 A \ref{tab:longseq_ettm1}.~táblázat és a \ref{fig:longseq}.~ábra
 alapján három mintázat figyelhető meg:
 
-\begin{itemize}
-    \item \textbf{KCMamba}: $\sigma{=}3$-nál MSE $0{,}673$-ról $0{,}466$-ra
-          csökken, ahogy $T$ 96-ról 512-re nő ($-31\%$). Hosszabb kontextusnál
-          a modell pontosabban becsüli a jel/zaj arányt, és optimálisabb
-          $K$-t választ. Az Exchange adatkészleten ($T{=}512$, $\sigma{=}3$)
-          a KCMamba MSE-je $0{,}773$ a Fair Mamba $2{,}121$-jével szemben ($+174\%$ előny).
-    \item \textbf{Fair Mamba}: instabil $\sigma \geq 3$-nál és $T \geq 336$-nál.
-\end{itemize}
+\textbf{KCMamba}: $\sigma{=}3$-nál MSE $0{,}673$-ról $0{,}466$-ra
+csökken, ahogy $T$ 96-ról 512-re nő ($-31\%$). Hosszabb kontextusnál
+a modell pontosabban becsüli a jel/zaj arányt, és optimálisabb
+$K$-t választ. Az Exchange adatkészleten ($T{=}512$, $\sigma{=}3$)
+a KCMamba MSE-je $0{,}773$ a Fair Mamba $2{,}121$-jével szemben ($+174\%$ előny).
+
+\textbf{Fair Mamba}: instabil $\sigma \geq 3$-nál és $T \geq 336$-nál.
 
 \begin{figure}[H]
   \centering
@@ -432,7 +429,7 @@ Kérdés, hogy az $s{=}16$ stride-dal (ritka ablakozás) is megmarad-e a KCMamba
 előnye növekvő szekvenciahossz mellett. Kiegészítő méréseket végeztem
 $T \in \{192, 336, 512\}$ és $s \in \{1, 16\}$ értékekkel az Exchange
 adatkészleten (10 epoch, FastAI LR-kereső). A $T{=}96$ referencia az eredeti
-ltsf\_benchmark futásból való.
+benchmark futásból való a ~\ref{sec:results} szekcióból.
 
 \begin{table}[H]
     \centering
@@ -474,18 +471,16 @@ ltsf\_benchmark futásból való.
 Két főmintázat olvasható le a \ref{tab:stride_longseq}.~táblázatból
 és a \ref{fig:stride_longseq}.~ábrából:
 
-\begin{itemize}
-    \item \textbf{$s{=}1$, $\sigma{=}3$}: A KCMamba $T{=}96$-tól $T{=}512$-ig
-          konzisztensen nyer a Fair Mambával szemben ($0{,}895 \to 0{,}836$).
-          Ez közvetlenül alátámasztja az adaptív $K$ hipótézist: elegendő
-          tanítóadattal és hosszabb kontextussal a KCMamba zajmodellje egyre pontosabb lesz.
+\textbf{$s{=}1$, $\sigma{=}3$}: A KCMamba $T{=}96$-tól $T{=}512$-ig
+könzisztensen nyer a Fair Mambával szemben ($0{,}895 \to 0{,}836$).
+Ez közvetlenül alátámasztja az adaptív $K$ hipótézist: elegendő
+tanítóadattal és hosszabb kontextussal a KCMamba zajmodellje egyre pontosabb lesz.
 
-    \item \textbf{$s{=}16$, $\sigma{\geq}3$}: A Fair Mamba teljesen összeomlik
-          (MSE $8{,}1$--$8{,}5$, kb.\ $7$--$9\times$-es többlet a KCMambához
-          képest). Az extrém ritka konfiguráció
-          ($s{=}16$, $T{=}512$) mindössze $\sim{}10$ tanítóablakot jelent.
-          A KCMamba az egyetlen architektúra, amely nem omlik össze.
-\end{itemize}
+\textbf{$s{=}16$, $\sigma{\geq}3$}: A Fair Mamba teljesen összeomlik
+(MSE $8{,}1$--$8{,}5$, kb.\ $7$--$9\times$-es többlet a KCMambához
+képest). Az extrém ritka konfiguráció
+($s{=}16$, $T{=}512$) mindössze $\sim{}10$ tanítóablakot jelent.
+A KCMamba az egyetlen architektúra, amely nem omlik össze.
 
 \begin{figure}[H]
   \centering

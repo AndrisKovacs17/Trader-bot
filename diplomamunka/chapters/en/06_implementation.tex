@@ -212,16 +212,16 @@ cd diplomamunkakod
 pytest tests/ -v
 \end{verbatim}
 
-All 71 test cases pass. They are divided into two categories.
+All \textbf{179 test cases} pass across four categories.
 
-\noindent\textbf{Unit (white-box) tests}\\
+\noindent\textbf{1. Unit (white-box) tests}\\
 Test isolated business-logic components; infrastructure adapters
 (Binance, WebSocket) are replaced by stubs.
 
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \begin{tabular}{|l|l|p{6.5cm}|}
     \hline
     \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
     \hline\hline
@@ -232,28 +232,72 @@ Test isolated business-logic components; infrastructure adapters
     \texttt{test\_execution.py}           & 9  & Order execution, slippage model \\
     \texttt{test\_strategy.py}            & 7  & Signal generation, threshold logic \\
     \texttt{test\_signal\_diagnostics.py} & 8  & Diagnostic metric accuracy \\
+    \texttt{test\_model\_store.py}         & 20 & ModelStore save/load atomicity, versioning, metadata \\
+    \texttt{test\_contracts\_unit.py}      & 11 & HealthStatus, SimpleMetrics (counter, gauge, histogram) \\
+    \texttt{test\_state\_estimator.py}     & 16 & KCAStateEstimator OHLCV processing, symbol isolation, reset \\
+    \texttt{test\_strategy\_advanced.py}  & 35 & ThresholdStrategy: stop-loss, flip, scale-in, cooldown, diagnostics \\
+    \hline
+    \textbf{Total} & \textbf{139} & \\
     \hline
   \end{tabular}
   \caption{White-box unit test overview.}
   \label{tab:unit_tests}
 \end{table}
 
-\noindent\textbf{Integration (black-box) tests}\\
-Test the full pipeline end-to-end on real historical data.
+\noindent\textbf{2. Integration (black-box) tests}\\
+Test the full pipeline across wired-up components.
 
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|l|l|p{7cm}|}
+  \begin{tabular}{|l|l|p{6.5cm}|}
     \hline
     \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
     \hline\hline
-    \texttt{test\_binance\_feed.py}       & 6 & Binance feed message processing, reconnect \\
-    \texttt{test\_signal\_diagnostics.py} & 8 & Full prediction chain end-to-end \\
+    \texttt{test\_binance\_feed.py}        & 6 & Binance feed message processing, reconnect \\
+    \texttt{test\_integration\_pipeline.py}& 9 & Strategy + risk + execution wired pipeline \\
+    \texttt{test\_e2e\_pipeline.py}        & 1 & Buy-sell round-trip through full pipeline \\
+    \texttt{test\_e2e\_integration.py}     & 4 & TradingEngine + EventBus, full fill cycle \\
+    \hline
+    \textbf{Total} & \textbf{20} & \\
     \hline
   \end{tabular}
   \caption{Black-box integration test overview.}
   \label{tab:integration_tests}
+\end{table}
+
+\noindent\textbf{3. System tests (E2E scenarios)}\\
+Execute complete real-wiring scenarios across the entire system.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{6.5cm}|}
+    \hline
+    \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
+    \hline\hline
+    \texttt{test\_system\_scenarios.py} & 8 & Profitable long/short trades, multi-asset, risk blocking \\
+    \hline
+  \end{tabular}
+  \caption{System-level (E2E) test overview.}
+  \label{tab:system_tests}
+\end{table}
+
+\noindent\textbf{4. Load tests}\\
+Measure throughput and thread safety under large data volumes.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{6.5cm}|}
+    \hline
+    \textbf{Test file} & \textbf{Cases} & \textbf{What it checks} \\
+    \hline\hline
+    \texttt{test\_load.py} & 9 & 10\,000 strategy predictions, 5\,000 risk evaluations, thread safety, throughput \\
+    \hline
+  \end{tabular}
+  \caption{Load test overview.}
+  \label{tab:load_tests}
 \end{table}
 
 Several implementation decisions were revised based on test findings:
@@ -261,6 +305,8 @@ the original one-sided \texttt{prob\_up > 0.5} threshold was replaced
 by an asymmetric \texttt{[0.45, 0.55]} neutral band
 (\texttt{test\_signal\_diagnostics.py} exposed excessive BUY-bias),
 and a fee-calculation bug was uncovered by \texttt{test\_fee\_fix.py}.
+Load tests confirm that both the strategy and the risk layer are
+deterministic and free of race conditions under concurrent execution.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Backtesting Framework}

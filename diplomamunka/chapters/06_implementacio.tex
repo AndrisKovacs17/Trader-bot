@@ -170,7 +170,7 @@ A $K$-gain értéke magas volatilitású periódusban csökken (a modell
 kevésbé bízik az aktuális mérésben), míg alacsony zajú időszakban
 nő (gyors tanulás). Ez a viselkedés konzisztens az elméleti
 Kalman-szűrő várható működésével, és a~\ref{ch:kiserletek}.~fejezetben
-bemutatott $0{,}706 \to 0{,}073$ $K$-gain trajektóriával összhangban
+bemutatott $K$-gain trajektóriával összhangban
 van.
 
 % · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·
@@ -212,7 +212,7 @@ formájában, különböző zajszintekre és stride-konfigurációkra lebontva.
 \label{sec:testing}
 % ─────────────────────────────────────────────────────────────────────────────
 
-A rendszer egységtesztjei a \texttt{tests/} mappában találhatók, és
+A rendszer tesztjei a \texttt{tests/} mappában találhatók, és
 \texttt{pytest}-tel futtathatók:
 
 \begin{verbatim}
@@ -220,19 +220,19 @@ cd diplomamunkakod
 pytest tests/ -v
 \end{verbatim}
 
-A tesztek összesen 71 tesztesetet fednek le, amelyek mindegyike
-sikeresen lefut. A tesztesetek két fő kategóriába sorolhatók.
+A tesztek összesen \textbf{179 tesztesetet} fednek le négy
+kategóriában, és mindegyik sikeresen lefut.
 
-\noindent\textbf{Moduláris (fehérdoboz) tesztek}\\
+\noindent\textbf{1. Egységtesztek (fehérdoboz)}\\
 Az üzleti logika izolált egységeit tesztelik; az infrastrukturális
 adaptereket (Binance, WebSocket) stub-ok helyettesítik.
 
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|p{4.5cm}|l|p{7cm}|}
+  \begin{tabular}{|p{4.8cm}|l|p{6.7cm}|}
     \hline
-    \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
+    \textbf{Tesztfájl} & \textbf{Db} & \textbf{Mit ellenőriz} \\
     \hline\hline
     \texttt{test\_equity.py}           & 8  & Egyenleg-kalkuláció BUY/SELL fill-ek után \\
     \texttt{test\_fee\_fix.py}          & 6  & Díj mindig csökkenti az equity-t \\
@@ -240,30 +240,75 @@ adaptereket (Binance, WebSocket) stub-ok helyettesítik.
     \texttt{test\_risk\_policy.py}      & 12 & Stop-loss, pozícióméret-korlát, napi limit \\
     \texttt{test\_execution.py}        & 9  & Megbízás-végrehajtás, slippage-modell \\
     \texttt{test\_strategy.py}         & 7  & Jelzésgenerálás, küszöb-logika \\
-    \texttt{test\_signal\_}\newline\texttt{diagnostics.py} & 8 & Diagnosztikai metrikák pontossága \\
+    \texttt{test\_signal\_diagnostics.py} & 8 & Diagnosztikai metrikák pontossága \\
+    \texttt{test\_model\_store.py}      & 20 & ModelStore mentés/betöltés atomicitása, verziókezelés, metaadat \\
+    \texttt{test\_contracts\_unit.py}   & 11 & HealthStatus, SimpleMetrics (counter, gauge, histogram) \\
+    \texttt{test\_state\_estimator.py}  & 16 & KCAStateEstimator OHLCV-feldolgozás, szimbólum-izoláció, visszaállítás \\
+    \texttt{test\_strategy\_advanced.py}& 35 & ThresholdStrategy: stop-loss, flip, scale-in, cooldown, diagnosztika \\
+    \hline
+    \textbf{Összesen} & \textbf{139} & \\
     \hline
   \end{tabular}
-  \caption{A fehérdoboz tesztesetek áttekintése.}
+  \caption{A fehérdoboz egységtesztek áttekintése.}
   \label{tab:unit_tests}
 \end{table}
 
-\noindent\textbf{Rendszer- és integrációs (feketedoboz) tesztek}\\
-Az egész pipeline-t tesztelik valódi (historikus) adatokon a
-valódi interfészek mögött.
+\noindent\textbf{2. Integrációs tesztek (feketedoboz)}\\
+Az egész pipeline-t tesztelik összefűzött komponenseken, valódi
+interfészek mögött.
 
 \begin{table}[H]
   \centering
   \small
-  \begin{tabular}{|p{4.5cm}|l|p{7cm}|}
+  \begin{tabular}{|p{4.8cm}|l|p{6.7cm}|}
     \hline
-    \textbf{Tesztfájl} & \textbf{Tesztesetek} & \textbf{Mit ellenőriz} \\
+    \textbf{Tesztfájl} & \textbf{Db} & \textbf{Mit ellenőriz} \\
     \hline\hline
-    \texttt{test\_binance\_feed.py}    & 6  & Binance feed üzenetfeldolgozás, újracsatlakozás \\
-    \texttt{test\_signal\_}\newline\texttt{diagnostics.py} & 8 & Teljes előrejelzési lánc end-to-end \\
+    \texttt{test\_binance\_feed.py}       & 6 & Binance feed üzenetfeldolgozás, újracsatlakozás \\
+    \texttt{test\_integration\_pipeline.py}& 9 & Stratégia + kockázat + végrehajtás összefűzött pipeline \\
+    \texttt{test\_e2e\_pipeline.py}       & 1 & Buy-Sell körforgalom teljes pipeline-on \\
+    \texttt{test\_e2e\_integration.py}    & 4 & TradingEngine + EventBus, teljes kitöltési ciklus \\
+    \hline
+    \textbf{Összesen} & \textbf{20} & \\
     \hline
   \end{tabular}
-  \caption{A feketedoboz (integrációs) tesztesetek áttekintése.}
+  \caption{Az integrációs (feketedoboz) tesztesetek áttekintése.}
   \label{tab:integration_tests}
+\end{table}
+
+\noindent\textbf{3. Rendszertesztek (E2E forgatókönyvek)}\\
+Teljes, valós bekötésű forgatókönyveket hajtanak végre a rendszer
+egészén keresztül.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|p{4.8cm}|l|p{6.7cm}|}
+    \hline
+    \textbf{Tesztfájl} & \textbf{Db} & \textbf{Mit ellenőriz} \\
+    \hline\hline
+    \texttt{test\_system\_scenarios.py} & 8 & Nyereséges long/short kereskedés, több eszköz, kockázati blokkolás \\
+    \hline
+  \end{tabular}
+  \caption{A rendszer-szintű (E2E) tesztesetek áttekintése.}
+  \label{tab:system_tests}
+\end{table}
+
+\noindent\textbf{4. Terhelési tesztek}\\
+Nagy adatmennyiség melletti viselkedést és szálbiztonságot mérnek.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|p{4.8cm}|l|p{6.7cm}|}
+    \hline
+    \textbf{Tesztfájl} & \textbf{Db} & \textbf{Mit ellenőriz} \\
+    \hline\hline
+    \texttt{test\_load.py} & 9 & 10\,000 stratégia-predikció, 5\,000 kockázatértékelés, szálbiztonság, throughput-mérés \\
+    \hline
+  \end{tabular}
+  \caption{A terhelési tesztesetek áttekintése.}
+  \label{tab:load_tests}
 \end{table}
 
 A tesztelés során szerzett tapasztalatok alapján több implementációs
@@ -272,6 +317,9 @@ küszöb helyett aszimmetrikus \texttt{[0.45, 0.55]} neutral-sávot
 vezettem be (\texttt{test\_signal\_diagnostics.py} fedte fel a
 túlzott BUY-bias-t), és a díjszámítási hibát a
 \texttt{test\_fee\_fix.py} tárta fel.
+A terhelési tesztek megerősítik, hogy a stratégia és a kockázatkezelő
+réteg több szálon párhuzamosan futtatva is determinisztikus és
+versenyfeltétel-mentes eredményt ad.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{A visszatesztelő keretrendszer}

@@ -156,9 +156,13 @@ trading adapter.
 \input{chapters/05_osszegzes}
 \cleardoublepage
 
-% Köszönetnyilvánítás, elhagyva
-% \chapter*{\acklabel}
-% \addcontentsline{toc}{chapter}{\acklabel}
+% Köszönetnyilvánítás
+\chapter*{\acklabel}
+\addcontentsline{toc}{chapter}{\acklabel}
+A szerző köszönetét fejezi ki a témavezetőnek a szakmai iránymutatásért,
+valamint az ELTE Informatikai Karának a kutatási infrastruktúra biztosításáért.
+Külön köszönet illeti az idősor-előrejelzési közösséget a nyílt adatkészletekért
+(ETTh1, ETTh2, Exchange-Rate), amelyek nélkül az empirikus értékelés nem lett volna lehetséges.
 
 % ============================================================
 %  FÜGGELÉKEK
@@ -174,6 +178,12 @@ trading adapter.
 \phantomsection
 \addcontentsline{toc}{chapter}{\biblabel}
 \printbibliography[title=\biblabel]
+\cleardoublepage
+
+% Ábrajegyzék
+\phantomsection
+\addcontentsline{toc}{chapter}{Ábrajegyzék}
+\listoffigures
 \cleardoublepage
 
 % ============================================================
