@@ -107,7 +107,7 @@ döntések, a tanítási protokoll és a kísérleti értékelés részletei a
 \begin{verbatim}
 cd diplomamunkakod
 python -m venv .venv
-# Windows (PowerShell -- egyszer kell futtatni):
+# Windows (PowerShell):
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .venv\Scripts\Activate.ps1
 # Linux / macOS:
@@ -117,8 +117,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 \begin{verbatim}
 pip install -r requirements.txt
 \end{verbatim}
-  ML-csomagok (\textbf{opcionális} -- csak GPU-s benchmark futtatáshoz,
-  Python~3.9--3.12 és NVIDIA CUDA~12.4 szükséges):
+  ML-csomagok (opcionális, GPU-s benchmark futtatáshoz):
 \begin{verbatim}
 pip install -r requirements-ml.txt
 \end{verbatim}

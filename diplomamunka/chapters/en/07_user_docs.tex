@@ -100,7 +100,7 @@ detailed in Chapters~\ref{ch:architektura} and~\ref{ch:kiserletek}.
 \begin{verbatim}
 cd diplomamunkakod
 python -m venv .venv
-# Windows (PowerShell -- run once):
+# Windows (PowerShell):
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 .venv\Scripts\Activate.ps1
 # Linux / macOS:
@@ -110,8 +110,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 \begin{verbatim}
 pip install -r requirements.txt
 \end{verbatim}
-  ML packages (\textbf{optional} -- only needed for GPU benchmarks,
-  requires Python~3.9--3.12 and NVIDIA CUDA~12.4):
+  ML packages (optional, for GPU benchmarks):
 \begin{verbatim}
 pip install -r requirements-ml.txt
 \end{verbatim}
