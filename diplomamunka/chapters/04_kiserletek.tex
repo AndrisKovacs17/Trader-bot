@@ -13,9 +13,9 @@ A futtatási környezet: NVIDIA GeForce RTX 3060 (12~GB VRAM), PyTorch~2.x,
 CUDA~12, float32 pontosság.
 
 \subsection{Adatkészletek}
-\label{sec:datasets}
+\label{sec:exp_datasets}
 
-A fő kíserleti vizsgálat három adatkészletre terjedt ki (részletes leírás a
+A fő kísérleti vizsgálat három adatkészletre terjedt ki (részletes leírás a
 \ref{sec:datasets}.~alfejezetben):
 
 \begin{itemize}
@@ -27,13 +27,6 @@ A fő kíserleti vizsgálat három adatkészletre terjedt ki (részletes leírá
           (17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
 \end{itemize}
 
-A \textbf{Weather} (21 meteorológiai változó, 52\,696 lépés) és az \textbf{ECL}
-(321 csatorna, 26\,304 lépés) benchmarkok a nagyobb dimenzióság és a hosszú
-periodicitás vizsgálatára következő mérési lépésben skálázandók. A jelen
-dolgozat keretein belül csak a három fenti adatkészleten futó eredmények
-szerepelnek, mert a tanulási futamok száma ($4$ zajszint $\times$ $2$ stride
-$\times$ $4$ modell $\times$ $3$ adat = $96$ futam) már így is nagyobb, mint
-amit egyetlen RTX 3060 hardverrel ésszerű időn belül elvégezhettem.
 
 \subsection{Zajmodell}
 
@@ -78,25 +71,9 @@ probléma nem domain-shift, hanem egységes adatminőség-romlás.
 A stride ($s$) az ablak-eltolás lépése: $s=1$ esetén minden pozíció
 tréningpéldává válik, $s=16$-nál nagyjából tizenhatszor kevesebb ablak keletkezik.
 
-A fix $3\times 10^{-3}$ tanulási sebesség választását egy Smith-féle
-\emph{learning rate range test}~\cite{smith2017cyclical} előzte meg: a
-loss érzékeny tartománya mindhárom modellnél a $[10^{-3}, 10^{-2}]$
-intervallumra esett, így ennek alsó felét választottam konzervatív
-alapértéknek. Mivel a három modell loss-görbéje hasonló minőségű volt,
-a továbbiakban azonos LR-rel tanítottam mindet az összevethetőség
-kedvéért.
 
 \section{Eredmények}
 \label{sec:results}
-
-A bemutatást azzal a konfigurációval kezdem, ahol a KCMamba előnye a legnagyobb,
-vagyis az Exchange-Rate adatkészleten, $s=16$ stride mellett. Ez a beállítás két szerkezeti tényezőt
-kombinál: (i) a dataset kis méretű (7\,588 napi megfigyelés, mindegyik változónál
-erős trend és gyenge periódus) és (ii) a $s=16$ stride további tizenhatszoros
-ablakritkítást tesz, vagyis a zajmodell feltanításához eleve kevés példa áll
-rendelkezésre. Így az az architekturális döntés, hogy a zaj/jel szétválasztást
-explicit $Q/R$ paraméterezéssel végezzük a Mamba szelektív gate-jei helyett,
-komoly induktív többletet jelent.
 
 \subsection{Exchange-Rate adatkészlet}
 
@@ -144,6 +121,8 @@ nagy mértékben kiszűri.
            Magas zajnál $K$ meredék esést mutat ($0{,}706 \to 0{,}073$).}
   \label{fig:exchange_s16}
 \end{figure}
+
+\subsection{ETTh1 adatkészlet}
 
 \begin{table}[H]
     \centering
@@ -193,7 +172,24 @@ a Fair Mamba $\sigma \ge 3$ esetén összeomlik ($+1\,817\%$), a KCMamba $+492\%
     \label{tab:etth2}
 \end{table}
 
-\subsection{Összefoglaló degradációs statisztika}
+\subsection{Összefoglaló statisztika}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|}
+        \hline
+        \textbf{Zajszint} & \textbf{KC nyer} & \textbf{Fair nyer} & \textbf{Átl.\ diff (KCMamba$-$Fair)} \\
+        \hline\hline
+        $\sigma = 0$ & 4/6 & 2/6 & $\approx{-}11\%$ (KCMamba kicsit jobb) \\
+        $\sigma = 1$ & 3/6 & 3/6 & $-6{,}4\%$ (KCMamba kicsit jobb) \\
+        $\sigma = 3$ & 4/6 & 2/6 & $-26{,}8\%$ (KCMamba jobb) \\
+        $\sigma = 5$ & 4/6 & 2/6 & $-40{,}2\%$ (KCMamba jobb) \\
+        \hline
+    \end{tabular}
+    \caption{KCMamba vs.\ Fair Mamba győzelmi statisztika az összes 24 konfigurációban.
+             Negatív átlagos különbség azt jelenti, hogy a KCMambának kisebb az MSE-je (jobb).}
+    \label{tab:win_stats}
+\end{table}
 
 A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5$
 átmenet relatív MSE-romlása adja a zajrobusztussági mérőszámot
@@ -291,13 +287,52 @@ adatból, explicit paraméterezés nélkül sajátítja el.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.95\textwidth, height=0.40\textheight, keepaspectratio]{images/fig07_efficiency_hu.pdf}
-  \caption{\textbf{Bal:} Paraméterszam vs.\ MSE ($\sigma{=}3$ átlag). A KCMamba
+  \caption{\textbf{Bal:} Paraméterszám vs.\ MSE ($\sigma{=}3$ átlag). A KCMamba
            egyszerre a legkisebb paraméterszámú és a legjobb MSE-jű, optimális
            Pareto-pozícióban van.
            \textbf{Jobb:} Epoch-tanítási idők (másodpercben). A PyTorch
            implementáció KCMamba-t $\approx{}40\%$-kal lassítja, de Triton-kernellel
            gyorsabb lesz az LSTM-nél.}
   \label{fig:efficiency}
+\end{figure}
+
+Nagy szekvenciahosszon a Mamba egyértelmű sebességelőnyt mutat az LSTM-mel szemben:
+a szelektív scan párhuzamosítható az időtengelyen $O(\log T)$ mélységgel,
+míg minden LSTM-lépés az előző rejtett állapottól függ, ezért szigorúan
+szekvenciális ($O(T)$ mélység). Gu és Dao~\cite{gu2023mamba} egy A100-on azt
+mérték, hogy CUDA-kerneles implementáció esetén a Mamba $\approx 5\times$-ös
+következtetési sebességet ér el egy azonos paraméterszámú optimalizált
+Transformerhez képest, és az előny a szekvenciahosszal nő, mivel a
+Transformer figyelme kvadratikus, míg a Mamba $T$-ben lineáris.
+A szakirodalomban közzétett hosszú-szekvencia benchmarkok szerint
+hardverérzékeny szelektív-scan kernelekkel $2$--$10\times$-es
+áteresztőképesség-előny mérhető cuDNN-optimalizált LSTM-hez képest
+$T \in [1024, 8192]$ esetén; a különbség $T$ növekedésével tágul, mert
+az LSTM szekvenciális rekurziója a GPU-t alulkihasználtan hagyja.
+
+Saját $T{=}96$ benchmarkunk (\ref{fig:speed_triton}.~ábra) ennek a tartománynak
+az alsó részébe esik, ahol a cuDNN fúzionált LSTM-cella rendkívül versenyképes:
+a naív PyTorch szelektív scan kb.\ $3{,}4\times$-os lassulást mutat az LSTM-hez képest,
+egy Triton-kernelre írt változat viszont $\approx 1{,}08\times$-ra hozza le az arányt.
+Ez összhangban van az irodalommal: $T=96$-nál a scan csupán
+$\log_2 96 \approx 7$ szinkronizációs lépésből áll, ezért a párhuzamos
+scan-előny alig tud érvényesülni a kernel-indítás járulékos költségével szemben.
+Előrejelzési feladatoknál lényeges, hogy a KCMamba futási ideje alig nő
+$T$-vel (a belső ciklus GPU-párhuzamos), míg az LSTM futási
+ideje lineárisan nő. Rövid szekvenciákon a kettő összemérhető,
+$T \ge 2000$ hosszú szekvenciákon azonban a KCMamba várhatóan dominál.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth, height=0.38\textheight, keepaspectratio]{images/fig12_speed_triton_hu.pdf}
+  \caption{\textbf{Bal:} Áteresztőképesség (minta/s) $T=96$-nál, kötegméret$=32$, RTX~3060-on.
+           A cuDNN-optimalizált LSTM a referencia; a naív PyTorch szelektív scan $3{,}4\times$ lassabb,
+           egy Triton-kernelre írt KCMamba viszont LSTM-szintű sebességet ér el.
+           \textbf{Jobb:} LSTM-hez normált relatív sebesség. A Triton-kernel
+           rövid szekvenciákon szükséges, de nem elégséges optimalizáció.
+           $T \ge 2000$-nél a scan $O(\log T)$ mélysége várhatóan $2$--$10\times$-es
+           előnyt ad a szelektív SSM-ek irodalmában~\cite{gu2023mamba}.}
+  \label{fig:speed_triton}
 \end{figure}
 
 \section{Diszkusszió}
@@ -320,7 +355,7 @@ viselkedik: a modellnek nem kell a zajmodellt tisztán az adatból
 előállítania, mert az architekturális szinten be van építve. Ez magyarázza
 a $+66\%$ vs Fair $+152\,350\%$ különbséget ugyanazon a futásokon.
 
-\section{Hosszú szekvencia vizsgálat}
+\section{Hosszú szekvenciák vizsgálata}
 \label{sec:longseq}
 
 A fenti kísérletek rögzített $T=96$ szekvenciahosszal futottak.

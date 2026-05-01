@@ -97,8 +97,8 @@ with step size $\Delta$ using the zero-order hold (ZOH) rule:
 \end{align}
 where $\bar{A} = e^{\Delta A}$ and $\bar{B} = (e^{\Delta A} - I)A^{-1}B$.
 Because $\bar{A}$ is diagonal in the frequency domain the entire convolution
-$y = \bar{C} * u$ can be computed as a single element-wise product after an
-FFT, reducing sequence-level complexity to $O(T \log T)$.
+$y = \bar{C} * u$ can be computed as a single element-wise product after a
+Fast Fourier Transform (FFT), reducing sequence-level complexity to $O(T \log T)$.
 
 A fundamental limitation of S4 is that $A$, $B$, $C$, and $\Delta$ are
 \emph{input-independent}: the same learned parameters are applied at every
@@ -126,7 +126,7 @@ preserving memory. When $\Delta_t$ is large the state is updated strongly,
 discarding older information.
 
 The input-dependent parameters break the global convolution trick that made
-S4 efficient, because there is no longer a single kernel to FFT. Gu and Dao
+S4 efficient, because there is no longer a single kernel to transform via FFT. Gu and Dao
 solve this with a \emph{hardware-efficient parallel scan} (the Blelloch
 prefix-scan algorithm), applied on the GPU's SRAM to avoid expensive
 high-bandwidth memory round-trips. The scan runs in $O(\log T)$
@@ -181,7 +181,7 @@ residual, applying the Transformer only to the residuals. Rather than
 dot-product attention it uses an \emph{Auto-Correlation} mechanism: it
 identifies the lag $\tau$ maximising the autocorrelation of the query
 signal and aggregates values at those lag offsets. The resulting mechanism
-is $O(L \log L)$ via FFT and provides an inductive bias suited to periodic
+is $O(L \log L)$ via FFT and provides an inductive bias well suited to periodic
 data.
 
 \emph{DLinear}~\cite{zeng2023transformers} discards all of this complexity

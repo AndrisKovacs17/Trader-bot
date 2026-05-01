@@ -19,10 +19,6 @@ A modell két szintből épül fel: az alap feldolgozó egység a
 \texttt{KCMambaBlock} (tartalom-függő Kalman-szűrés és állapotfrissítés),
 fölötte a \texttt{KCMambaStack}: $N$ egymás utáni KC-blokk
 cross-attention réteggel a végén.
-A cross-attention réteg szerepe, hogy ellensúlyozza a Mamba SSM
-rekurrens dinamikájából adódó, az utolsó időlépések irányába mutató
-reprezentációs torzítást, így a végső predikcióba a lassabb időskálájú
-hosszú távú trendek is bevonhatók.
 
 \begin{figure}[H]
   \centering
@@ -73,7 +69,7 @@ ragad meg, mielőtt a Kalman-szűrő a teljes szekvenciát feldolgozza.
 
 \subsection{Kalman-paraméter hálózatok}
 
-Három kis, kétrétegű, teljesen összekötött MLP-alhálózat tanítja meg a Kalman-szűrő statisztikáit.
+Három kis, kétrétegű, teljesen összekötött alhálózat tanítja meg a Kalman-szűrő statisztikáit.
 A $Q_\text{net}$ és $R_\text{net}$ hálózatok az időlépésenkénti
 zajvarianciákat becslik:
 \begin{align}
@@ -113,7 +109,7 @@ ami a becsléselméleti steady-state Kalman-gain klasszikus képlete:
 ahol $\varepsilon = 10^{-6}$ a nullával való osztást megelőző numerikus
 stabilitási konstans.
 Ha $Q \gg R$, azaz az állapot gyorsan változik, akkor $K \to 1$, és a modell szorosan
-követi az aktuális megfigyelést; ha $R \gg Q$, azaz a mérés zajos, akkor $K \to 0$,
+követi az aktuális megfigyelést. Ha $R \gg Q$, azaz a mérés zajos, akkor $K \to 0$,
 és az előző állapot dominál.
 Ez egy fizikailag értelmes, kontrollelméleti elvekre támaszkodó prior.
 
@@ -131,12 +127,12 @@ függvény, amelynek értékkészlete a $(0,1)$ nyílt intervallum, a $-0{,}5$ e
 a korrekciót inicializáláskor, és a $0{,}3$ szorzó $(-0{,}15,\, +0{,}15)$-re
 korlátozza a hatókörét.
 A $[10^{-4},\, 0{,}999]$-re való vágás két degenerált esetet zár ki.
-$K_t \approx 0$ befagyasztaná az állapotfrissítést, nem integrálódna
-új információ; $K_t \approx 1$ pedig eldobná az előző lépés teljes memóriáját.
+$K_t \approx 0$ befagyasztaná az állapotfrissítést, mivel nem integrálódna
+új információ. $K_t \approx 1$ esetén a modell az előző lépés teljes memóriáját eldobná.
 
 \subsection{Állapotfrissítés párhuzamos scan-nel}
 
-Az $A_t = 1 - K_t$ felejtési faktorral
+Az $A_t = \mathrm{clamp}(1 - K_t, 0{,}01, 0{,}99)$ felejtési faktorral
 a diszkrét Kalman-rekurzió:
 \begin{align}
     h_t &= A_t \odot h_{t-1} + K_t \odot v_t, \label{eq:kc_recurrence}\\
@@ -154,8 +150,8 @@ algoritmussal~\cite{blelloch1990prefix} valósul meg:
     B_\text{new}[t] &\leftarrow B[t] + A_\text{orig}[t] \cdot B[t-\text{step}],
 \end{align}
 ahol $A[t]$ és $B[t]$ az asszociatív prefix-pár $(a_t, b_t)$ tagjai,
-$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg;
-ezek \emph{nem} azonosak az SSM $A$, $B$ mátrixaival,
+$a_t$ a halmozódó felejtési faktor, $b_t$ a halmozódó bemenet-összeg.
+Ezek \emph{nem} azonosak az SSM $A$, $B$ mátrixaival,
 és a lépésköz $\text{step} \in \{1, 2, 4, \ldots, T/2\}$ duplázódik.
 A rekurzió $O(\log T)$ szinkronizációs lépéssel párhuzamosítható GPU-n.
 
@@ -200,18 +196,18 @@ amelyek megakadályozzák az aktivációs skála sodródását.
 A verem végére egy \emph{multi-scale cross-attention} réteget illesztünk.
 Ennek oka, hogy a Mamba rekurrens dinamikája a rejtett állapotba a közelmúlt
 lépéseit súlyozottan erősebben kódolja, mint a régmúlt szegmenseket.
-Egy hosszú-horizontú
-előrejelzéshez azonban a lassú trendeket is hozzá kell férni.
+Hosszú horizontú előrejelzésnél azonban a lassú trendekhez is hozzáférést
+kell biztosítani.
 A cross-attention lekérdezésként a jelenlegi állapotot összeveti a szekvencia
-$s$-edik alminta (key/value) halmazával, így rövid és hosszú időskálákat egyaránt
-számításba vesz:
+minden $s$-edik pozíciójából vett mintázatok (key/value) halmazával,
+így rövid és hosszú időskálákat egyaránt számításba vesz:
 \begin{equation}
     \text{out}[T] = h[T] + \mathrm{MHA}\bigl(h[T],\; h[{::s}],\; h[{::s}]\bigr),
 \end{equation}
 ahol $h[T] \in \mathbb{R}^{1 \times d}$ a legutolsó időlépés reprezentációja
-és egyben a lekerdezés, $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$ az
-$s$-adik minden pozícióból vett alámintávétel, amely a lassabb, durvább
-időskálát képviselik kulcsként és értékként,
+és egyben a lekérdezés, $h[{::s}] \in \mathbb{R}^{\lfloor T/s \rfloor \times d}$
+minden $s$-edik pozícióból vett alminta, amely a lassabb, durvább
+időskálát képviseli kulcsként és értékként,
 és $\mathrm{MHA}(\text{lekérdezés},\text{kulcs},\text{érték})$ a multi-head
 cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
 \begin{figure}[H]
@@ -240,7 +236,7 @@ cross-attention a megszokott értelemben~\cite{vaswani2017attention}.
   \centering
   \includegraphics[width=\textwidth]{images/fig13_memory_retention_hu.pdf}
   \caption{\textbf{Bal:} Impulzus-válasz függvény: az állapot exponenciális csökkenése
-           $h_k = A^k$ a késő $k$ függvényében. A KCMamba $A$-értéke adaptívan
+           $h_k = A^k$ a $k$ késleltetés függvényében. A KCMamba $A$-értéke adaptívan
            nő a zajszinttel ($0.294 \to 0.926$), ezzel a memória-horizont
            is növekszik.
            \textbf{Jobb:} Effektív memória-horizont (az a lépésszám, ameddig

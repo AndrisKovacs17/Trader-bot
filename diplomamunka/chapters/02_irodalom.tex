@@ -7,37 +7,57 @@
 \section{Kalman-szűrő és általánosításai}
 \label{sec:kalman}
 
-A Kalman-szűrő~\cite{kalman1960new} lineáris dinamikus rendszerek
-optimális Bayes-becslője, ha additív Gauss-zajt feltételezünk.
-Az állapotfrissítés:
+A Kalman-szűrő~\cite{kalman1960new} minimális varianciájú, torzítatlan,
+lineáris becslő olyan rendszerekre, amelyek $x_t \in \mathbb{R}^n$ állapota
+Gauss-zajjal perturbált lineáris dinamikai modell szerint fejlődik:
+\begin{align}
+    x_t &= F x_{t-1} + w_t, & w_t &\sim \mathcal{N}(0, Q), \label{eq:kf_process}\\
+    y_t &= H x_t   + v_t,   & v_t &\sim \mathcal{N}(0, R), \label{eq:kf_measure}
+\end{align}
+ahol $F$ az állapotátmeneti mátrix, $H$ a mérési mátrix,
+$Q \in \mathbb{R}^{n \times n}$ a folyamatzaj-kovariancia, és
+$R \in \mathbb{R}^{m \times m}$ a mérési-zaj-kovariancia.
+A szűrő két felváltva ismétlődő fázisban működik.
+
+Az \emph{előrejelzési lépésben} (időfrissítés), mielőtt a $y_t$ mérés
+megérkezne, a szűrő az állapotbecslést és a hibakovariancát előrevetíti:
+\begin{align}
+    \hat{x}_{t|t-1} &= F \hat{x}_{t-1|t-1}, \label{eq:kf_predict_x}\\
+    P_{t|t-1}       &= F P_{t-1|t-1} F^\top + Q, \label{eq:kf_predict_P}
+\end{align}
+ahol $P_{t|t-1} \in \mathbb{R}^{n \times n}$ az előrejelzett hibakováriancia.
+Nagy $P_{t|t-1}$ értéke magas előrejelzési bizonytalanságot jelez. Nagy $Q$ azt jelenti,
+hogy az állapot gyorsan és kiszámíthatatlanul változik.
+
+A \emph{korrekciós lépésben} (mérésfrissítés), amint a $y_t$ megfigyelés
+megérkezik, a szűrő az \emph{innováció} $e_t = y_t - H\hat{x}_{t|t-1}$
+alapján korrigálja becslését, a Kalman-gain $K_t$ által súlyozva:
+\begin{align}
+    K_t           &= P_{t|t-1} H^\top \bigl(H P_{t|t-1} H^\top + R\bigr)^{-1},
+                     \label{eq:kalman_gain}\\
+    \hat{x}_{t|t} &= \hat{x}_{t|t-1} + K_t e_t, \label{eq:kalman_update}\\
+    P_{t|t}       &= (I - K_t H)\,P_{t|t-1}. \label{eq:kf_update_P}
+\end{align}
+A~\eqref{eq:kalman_gain}. egyenlet a zaj--jel-egyensúly alapvető összefüggését tükrözi.
+Ha az $R$ mérési zaj nagy az előrejelzett $H P_{t|t-1} H^\top$
+kovarianciához képest, a nevező dominál és $K_t \to 0$: a szűrő nem bízik
+a mérésben, és az előzmény-állapotra támaszkodik. Ha $R \to 0$, akkor
+$K_t \to H^{-1}$, és a megfigyelés majdnem teljesen felülírja az állapotot.
+
+A skaláris esetben ($F = H = 1$) a gain egyszerűsödik:
 \begin{equation}
-    \hat{x}_{t|t} = \hat{x}_{t|t-1} + K_t (y_t - H \hat{x}_{t|t-1}),
-    \label{eq:kalman_update}
+    K_t = \frac{P_{t|t-1}}{P_{t|t-1} + R}.
+    \label{eq:kalman_gain_scalar}
 \end{equation}
-ahol $\hat{x}_{t|t} \in \mathbb{R}^n$ az a posteriori állapotbecslés,
-amely a $t$ időpontban rendelkezésre álló összes mérés alapján áll elő,
-$\hat{x}_{t|t-1}$ az a priori becslés, amelyet az előző állapotból prediktálunk,
-$y_t \in \mathbb{R}^m$ a $t$-edik mérés,
-$H \in \mathbb{R}^{m \times n}$ a mérési mátrix, amely az állapotból számítja a megfigyelést,
-és $(y_t - H\hat{x}_{t|t-1})$ az \emph{innováció}: a tényleges
-és a becsült mérés különbsége.
-A $K_t$ Kalman-gain mátrix értékét a predikciós és mérési kovariancia aránya
-adja meg:
-\begin{equation}
-    K_t = P_{t|t-1} H^\top (H P_{t|t-1} H^\top + R)^{-1},
-    \label{eq:kalman_gain}
-\end{equation}
-ahol $P_{t|t-1} \in \mathbb{R}^{n \times n}$ az a priori állapot-kovariancia,
-amelynek nagysága a becslés bizonytalanságát jelzi, $R \in \mathbb{R}^{m \times m}$ a mérési zaj
-kovarianciája, és $H^\top$ a mérési mátrix transzponáltja.
-Ha $R \to \infty$, akkor $K \to 0$: a szűrő a mérésnek alacsony súlyt
-tulajdonít és az előzmény-állapotra támaszkodik.
-Ha $R \to 0$, akkor $K \to 1$: a mérés döntő súlyt kap az állapotfrissítésben.
-Ez az arány-alapú dinamikus súlyozás a KCMamba mechanizmusának is kiindulópontja.
+Stacionárius feltételek mellett a $P_{t|t-1}$ hibakováriancia egy fix
+$\bar{P}$ értékre konvergál, és az egyensúlyi gain kizárólag a $Q/R$
+aránytól függ: magas folyamatzaj ($Q$) a $K$-t $1$ felé tolja (bízzunk
+a mérésben), alacsony $Q/R$ arány $K$-t $0$ felé tolja (bízzunk
+a modellben). (\ref{sec:kalman_gain}. szakasz).
 
 \subsection{Tanult Kalman-szűrők}
 
-A neurális Kalman-irodalomban a $F, H, Q, R$ mátrixokat hálózatokkal
+A neurális Kalman-irodalomban a $F, H, Q, R$ mátrixokat neurális hálózatokkal
 paraméterezik~\cite{krishnan2015deep,fraccaro2017disentangled}.
 A \emph{Deep Kalman Filter}~\cite{krishnan2015deep} nemlineáris átmenetet
 enged meg, a \emph{Kalman Variational Autoencoder}~\cite{fraccaro2017disentangled}
@@ -68,8 +88,8 @@ ahol $\bar{A} = e^{\Delta A}$ és $\bar{B} \approx (\Delta A)^{-1}(e^{\Delta A} 
 Az S4 kulcsinnovációja az $A$ mátrix HiPPO-inicializációja, amely
 az állapotnak polinomiális bázisú hosszú távú memóriát biztosít.
 A konvolúciós nézet, $\bar{K} = (C\bar{B}, C\bar{A}\bar{B}, \ldots, C\bar{A}^{T-1}\bar{B})$
-kernel, lehetővé teszi, hogy a tanítás $O(T \log T)$-ben FFT-vel
-végezhető, míg az inferencia a rekurrens formában $O(1)$ memóriával
+kernel, lehetővé teszi, hogy a tanítás $O(T \log T)$-ben
+gyors Fourier-transzformációval (FFT) végezhető, míg az inferencia a rekurrens formában $O(1)$ memóriával
 fut lépésenként.
 
 \subsection{Mamba}
@@ -98,65 +118,85 @@ tárolja tartósan az állapotban, és melyiket hagyja figyelmen kívül.
 Hardver-barát párhuzamos prefix-scan implementációval $O(T)$ memória- és
 időkomplexitást ér el.
 
-Kísérleteinkben a Mamba egy csatornánkénti (\emph{channel-wise}) változatát
-alkalmazzuk összehasonlítási alapként: minden bemeneti változót önállóan,
-azonos $N$-dimenziós állapottérben dolgoz fel, a KCMamba-éval azonos
-hiperparaméterekkel és tanítási protokoll szerint.
-A konfiguráció közös tartásával az eredménykülönbség kizárólag
-az architekturális eltérésnek tulajdonítható, a paraméterszámnak
-vagy az adatmennyiségnek nem.
-Az irodalom ezt a beállítást \emph{Fair Mamba} néven hivatkozza.
+\subsection{Fair Mamba}
+
+Az összehasonlítási alap, amelyet \emph{Fair Mamba} névvel illetünk,
+egy csatornánkénti (\emph{channel-wise}) Mamba, amelyet a KCMamba-éval
+azonos hiperparaméterekkel és tanítási protokoll szerint tanítunk.
+A \emph{fair} jelző arra utal, hogy a paraméterbudget és az adatmennyiség
+azonos, így az eredménybeli különbség kizárólag az architektúrából fakad.
 
 \section{Hosszú távú idősor-előrejelzés}
 \label{sec:ltsf}
 
 \subsection{Problémaformulázás}
 
-Adott $\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$.
-A cél $\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H})$
-előrejelzése nMSE minimalizálásával.
+A hosszú távú idősor-előrejelzés (LTSF) egy
+$\mathbf{X} = (x_1, \ldots, x_L) \in \mathbb{R}^{L \times d}$
+bemeneti ablakot tekint, amelynek $L$ historikus lépése $d$ csatornán van megadva,
+és $\hat{\mathbf{X}} = (\hat{x}_{L+1}, \ldots, \hat{x}_{L+H}) \in \mathbb{R}^{H \times d}$
+előrejelzését kívánja adni a következő $H$ lépésre.
+A cél a normált átlagos négyzetes hiba minimalizálása:
+\begin{equation}
+    \mathrm{MSE} = \frac{1}{H d}
+        \sum_{h=1}^{H} \sum_{j=1}^{d}
+        \frac{(x_{L+h,j} - \hat{x}_{L+h,j})^2}{\mathrm{Var}(x_{\cdot,j})},
+    \label{eq:mse}
+\end{equation}
+ahol a csatornánkénti varianciával való normálás különböző skálájú
+adatkészletek eredményeit összehasonlíthatóvá teszi.
+A \emph{hosszú távú} jelző a $H \geq L$, illetve $H$ és $L$ hasonló nagyságrendű esetét jelöli:
+az ilyen feladatban a modellnek a visszatekintési ablakán jócskán túlra kell előrejelezni,
+ez pedig lényegesen nehezebb, mint a rövid távú eset, ahol $H \ll L$.
 
 \subsection{Referenciamodellek}
 
-\subsubsection*{LSTM}
-A Long Short-Term Memory~\cite{hochreiter1997lstm} hálózat a rekurrens
-modellek közül a legszélesebb körben alkalmazott idősor-előrejelző
-architektúra. A \emph{forget gate} $f_t = \sigma(W_f [h_{t-1}, x_t] + b_f)$
-szabályozza, hogy az előző cellaállapot mekkora hányada maradjon meg.
-Az \emph{input gate} $i_t = \sigma(W_i [h_{t-1}, x_t] + b_i)$ határozza
-meg az új információ beáramlásának mértékét. Ez a kapuzási mechanizmus
-adaptív szűrést valósít meg, ami funkcionálisan rokon a Kalman-gain
-szerepével, azzal a különbséggel, hogy az LSTM-ben nincs explicit
-zajmodell. Kísérleteinkben az LSTM erős referenciamodell, különösen sok adat és
-magas zaj esetén.
+\emph{Informer}~\cite{zhou2021informer} volt az első, kifejezetten hosszú
+távú előrejelzésre tervezett Transformer-változat. A standard önfigyelés
+$O(L^2)$ idő- és memóriakomplexitása hosszú bemeneti ablakoknál
+elfogadhatatlanul magas. Az Informer ezt \emph{ProbSparse attention}\textrm{-}tel
+orvosolja: KL-divergencia-becslés alapján azonosítja az $O(\log L)$
+leginformatívabb lekérdező pozíciót, ezzel $O(L \log L)$-re csökkenti
+a komplexitást. Disztillációs művelet felezi a szekvenciahosszat az
+enkoderblokkok között, így több ezer lépéses visszatekintési ablakok is
+kezelhetők.
 
-\subsubsection*{ARIMA}
-Az ARIMA($p,d,q$) modell a Box--Jenkins-eljárás klasszikus statisztikai
-módszere~\cite{box2015time}. A $d$-szeres differenciálás stacionerizálja az
-idősort, az AR($p$) tag lineáris autoregressziót, az MA($q$) tag mozgóátlagot
-modellez. Az ARIMA zajtalan adatokon rendkívül hatékony, és a legkisebb
-MSE-t éri el $\sigma=0$ mellett. Ugyanakkor $\sigma \ge 3$ felett
-katasztrofálisan összeomlik, mert a lineáris struktúra nem képes szétválasztani
-a jelet és a zajt.
+\emph{Autoformer}~\cite{wu2021autoformer} minden sorozatot egy
+trendkomponensre (mozgóátlag-kernellel becsülve) és egy szezonális
+maradéktagra bont, és a Transformert kizárólag a maradéktagokra alkalmazza.
+Pontszorzat-figyelem helyett \emph{Auto-Korrelációs} mechanizmust
+használ: megkeresi azt a $\tau$ késleltetést, amely maximalizálja
+a lekérdező jel autokorrelációját, majd ezeken a késleltetési pozíciókon
+összesíti az értékeket. A mechanizmus FFT-vel $O(L \log L)$ komplexitású,
+és periodikus jelekre illeszkedő induktív torzítással rendelkezik.
+
+\emph{DLinear}~\cite{zeng2023transformers} elveti az architekturális
+bonyolultságot, és az előrejelzést minden visszatekintési ablakra
+egyetlen lineáris réteggel állítja elő, opcionálisan trend-szezonális
+felbontás után. Egyszerűsége ellenére a DLinear számos Transformer-változattal
+azonos szinten teljesített, sőt azokat felülmúlta szabványos benchmarkokon,
+bizonyítva, hogy az architekturális bonyolultság nem feltétele a jó
+előrejelzési teljesítménynek. Referenciamodellként releváns marad, mert
+minden új modellnek igazolnia kell, hogy a magasabb számítási ráfordítás
+indokolt ehhez az egyszerű alapmodellhez képest.
 
 \subsection{Adatkészletek}
 \label{sec:datasets}
 
-\begin{itemize}
-    \item \textbf{Exchange-Rate}~\cite{lai2018modeling}: 8 valutaárfolyam,
-          7\,588 napi minta. Majdnem egységgyök-közelítő dinamikája miatt
-          a Kalman-struktúra különösen hatékony rajta.
-    \item \textbf{ETTh1 / ETTh2}~\cite{zhou2021informer}: Transzformátor-állomás
-          óránkénti hőmérsékleti adatai ($d=7$, 17\,420 lépés).
-          Az ETTh1 erősen periodikus, az ETTh2 zajosabb.
-    \item \textbf{Weather}: 21 meteorológiai változó (hőmérséklet, páratartalom,
-          légnyomás stb.) 10 perces mintavételezéssel, összesen 52\,696 lépés.
-          A magas dimenzió és a változók közötti erős korreláció teszteli
-          a modellek többváltozós kezelőképességét.
-    \item \textbf{ECL} (Electricity Consuming Load): 321 ügyfél óránkénti
-          villamosenergia-fogyasztása, 26\,304 lépés. A sok csatorna
-          és az erős napi/heti periodikusság miatt gyakori LTSF-benchmark.
-\end{itemize}
+Az Exchange-Rate adatkészlet~\cite{lai2018modeling} nyolc valutaárfolyamot
+tartalmaz, amelyeket 1990 és 2016 között napi szinten vettek fel,
+csatornánként 7\,588 időlépéssel. Az árfolyam-adatok dinamikája majdnem egységgyök-jellegű: minden napi
+változás véletlenszerű bolyongáshoz közelít, szinte elhanyagolható
+vissza-átlagolással. Ez kemény feladatot jelent az autoregresszív modelleknek,
+és természetes tesztkörnyezetet jelöl a Kalman-struktúra számára,
+ahol a jel-zaj arány eleve alacsony.
+
+Az ETTh1 és ETTh2 adatkészletek~\cite{zhou2021informer} kínai
+transzformátorállomásokból gyűjtöttek óránkénti villamosenergia-terhelést
+és olajhőmérsékletet két éven keresztül (17\,420 lépés, $d=7$ csatorna).
+Az ETTh1 egyértelmű napi periodicitást mutat, az ETTh2 zajosabb és
+szabálytalanabb. A két adatkészlet eltérő nehézségű tesztkörnyezetet
+nyújt a zajrobusztusság kiértékeléséhez.
 
 \section{Zajrobusztusság}
 \label{sec:robustness}
@@ -165,9 +205,7 @@ Az idősor-modellek zajérzékenységének szisztematikus elemzése az
 LTSF-irodalomban aláreprezentált terület.
 A PatchTST~\cite{nie2022patchtst} patch-tokenizálással csökkenti a
 szomszédos mintavételezési torzítást. Ennek közvetett zajcsökkentő hatása
-van, bár nem ez az eljárás fő célkitűzése. A zajos adatokkal
-augmentált tanításon alapuló robusztusság-növelés az LTSF-kutatásban
-eddig kevés figyelmet kapott.
+van, bár nem ez az eljárás fő célkitűzése.
 
 A jelen munkában az értékelési protokoll: $\tilde{x}_t = x_t + \varepsilon_t$,
 ahol $x_t \in \mathbb{R}^d$ az eredeti idősorjel, $\varepsilon_t \sim \mathcal{N}(0, \sigma^2 I)$

@@ -1,0 +1,247 @@
+% ============================================================
+%  Chapter 7, User Documentation
+% ============================================================
+\chapter{User Documentation}
+\label{ch:user_docs}
+
+\section{Use Cases}
+\label{sec:usecases}
+
+The system distinguishes two actors. The \textbf{User} (researcher, developer)
+operates the trading engine and the web dashboard, while \textbf{Binance}
+acts as an external system providing market data and accepting orders.
+Figure~\ref{fig:usecases} summarises the supported use cases.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\textwidth}{!}{%
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      actor/.style={draw, thick, minimum width=2.2cm, align=center},
+      uc/.style={draw, ellipse, thick, minimum width=3.6cm, minimum height=0.9cm, align=center, inner sep=2pt}
+    ]
+    \node[actor] (user) at (0,0) {\textbf{User}\\(researcher, developer)};
+    \node[actor] (binance) at (12,0) {\textbf{Binance}\\(external system)};
+
+    \node[uc] (uc1) at (6, 3.5)  {Run backtest};
+    \node[uc] (uc2) at (6, 2.2)  {Start paper trading};
+    \node[uc] (uc3) at (6, 0.9)  {Start live trading};
+    \node[uc] (uc4) at (6,-0.4)  {Train model offline};
+    \node[uc] (uc5) at (6,-1.7)  {Inspect dashboard};
+    \node[uc] (uc6) at (6,-3.0)  {Configure risk policy};
+
+    \node[draw, thick, dashed, fit=(uc1)(uc2)(uc3)(uc4)(uc5)(uc6),
+          inner sep=10pt, label=above:{\textbf{KCMamba trading system}}] {};
+
+    \foreach \u in {uc1,uc2,uc3,uc4,uc5,uc6} {
+      \draw (user) -- (\u);
+    }
+    \draw (uc2) -- (binance);
+    \draw (uc3) -- (binance);
+  \end{tikzpicture}%
+  }
+  \caption{Use case diagram of the KCMamba system. The user has six main
+           operations available; Binance participates as an external system
+           on the paper- and live-trading paths (market data, order
+           execution).}
+  \label{fig:usecases}
+\end{figure}
+
+\section{Purpose and Audience}
+
+The system is designed for automated analysis of cryptocurrency time series
+and generation of trading signals, primarily on BTCUSDT and ETHUSDT pairs.
+Its target audience is developers and researchers who want to backtest or
+live-run ML-based trading strategies.
+
+\section{Overview of the Methods Used}
+
+The system relies on the \textbf{KCMamba} architecture for price forecasting,
+which embeds a differentiable Kalman filter layer into the Mamba selective
+state space model (SSM): learned $Q_\text{net}$, $R_\text{net}$, and
+$K_\text{net}$ subnetworks estimate the per-step ratio of process and
+measurement noise, and the resulting adaptive $K$-gain controls how much
+the model trusts the current observation versus the prior state (full
+description in Chapter~\ref{ch:architektura}). The input OHLCV candles are
+turned into sliding-window feature vectors, from which the model produces a
+96-step forecast based on a 96-step lookback. A threshold-based strategy
+(\texttt{ThresholdStrategy}) converts the forecasts into
+\textsc{Buy}/\textsc{Sell}/\textsc{Hold} signals, which a risk-management
+layer (position-size cap, stop-loss, daily loss limit) filters before
+the order is dispatched through the Binance Futures REST endpoint. The
+architectural decisions, training protocol, and experimental evaluation are
+detailed in Chapters~\ref{ch:architektura} and~\ref{ch:kiserletek}.
+
+\section{System Requirements}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|l|}
+    \hline
+    \textbf{Component} & \textbf{Minimum} & \textbf{Recommended} \\
+    \hline\hline
+    Operating system & Linux/macOS/Windows 10+ & Ubuntu 22.04 LTS \\
+    Python           & 3.10                   & 3.11 \\
+    RAM              & 4~GB                   & 8~GB \\
+    Disk             & 2~GB                   & 5~GB \\
+    GPU (optional)   & n.a.                   & NVIDIA $\ge$6~GB VRAM \\
+    Network          & n.a. (backtest mode)   & Stable internet (live) \\
+    \hline
+  \end{tabular}
+  \caption{Minimum and recommended hardware/software requirements.}
+  \label{tab:sysreq}
+\end{table}
+
+\section{Installation Guide}
+
+\begin{enumerate}
+  \item Clone and create a virtual environment:
+\begin{verbatim}
+git clone <repo_url> && cd diplomamunkakod
+python -m venv .venv && source .venv/bin/activate
+\end{verbatim}
+  \item Install dependencies (ML packages are optional):
+\begin{verbatim}
+pip install -r requirements.txt
+pip install -r requirements-ml.txt   # GPU: CUDA-compatible PyTorch
+\end{verbatim}
+  \item Configure API keys (only required for live/paper mode):
+\begin{verbatim}
+cp .env.example .env
+# Edit .env: BINANCE_API_KEY, BINANCE_SECRET
+\end{verbatim}
+\end{enumerate}
+
+\section{Usage Guide}
+
+\subsubsection*{First run (paper-trading demo)}
+
+The default way to run the system is the foreground paper-trading demo.
+Executing \texttt{main.py} launches three background services concurrently,
+namely the offline trainer, the Binance WebSocket feed, and the web dashboard.
+
+\begin{verbatim}
+source .venv/bin/activate
+python main.py
+\end{verbatim}
+
+On a successful start, the console prints the following blocks in order: the
+\texttt{core} module imports, adapter initialisation, a historical warm-up
+download (by default 3 days of BTCUSDT 5-minute candles, controlled by
+\texttt{warmup\_start\_str}), and finally the
+\texttt{[BOOT] TradingEngine started} banner, after which the dashboard is
+available at \texttt{http://127.0.0.1:8080}.
+
+\subsubsection*{Dashboard views}
+
+The top navigation bar exposes eight views grouped into three categories:
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|p{7.2cm}|}
+    \hline
+    \textbf{Category} & \textbf{Page} & \textbf{Content} \\
+    \hline\hline
+    Financial & \texttt{/}              & Equity curve, open positions, live price chart \\
+    Financial & \texttt{/signals.html}  & Generated signal stream with risk status \\
+    Financial & \texttt{/model.html}    & Model version, calibration and diagnostic metrics \\
+    Financial & \texttt{/training.html} & Offline training progress, loss curves \\
+    Benchmark & \texttt{/benchmark.html}     & Synthetic noisy benchmark results \\
+    Benchmark & \texttt{/ltsf\_benchmark.html}& LTSF (Exchange, ETTh) benchmark results \\
+    KCA analysis & \texttt{/kla\_kalman.html}   & Live Kalman parameter ($K$, $A$, $R$) traces \\
+    KCA analysis & \texttt{/complexity.html}    & Parameter count $\times$ performance heatmap \\
+    \hline
+  \end{tabular}
+  \caption{Role of each dashboard view.}
+  \label{tab:dashboard_pages}
+\end{table}
+
+A context-sensitive help dialog opens on clicking the \texttt{?} button in the
+bottom-right corner of every page. Page-to-page navigation happens through the
+top bar, and the browser's \emph{back} button also works.
+
+\subsubsection*{Usage patterns}
+
+The system supports four typical scenarios. The paper-trading demo (default)
+runs on the Binance live feed with simulated execution. The backtest mode
+runs the same pipeline against historical data without a Binance connection
+via \texttt{adapters/testing/backtest.py}, writing results to the console and
+CSV. The offline training mode ingests a full dataset (by default 3 days of
+BTCUSDT 5-minute candles) in a single pass and persists the weights to a
+\texttt{*.pt} file. Finally, a \emph{dashboard-only} mode is useful for
+reviewing a previous run: the Binance feed can be disabled and the dashboard
+browsed offline.
+
+\subsubsection*{Runtime logging and shutdown}
+
+\texttt{stdout} contains normal status messages
+(\texttt{[BOOT]}, \texttt{[SIGNAL]}, \texttt{[FILL]}, \texttt{[DASHBOARD]}),
+while \texttt{stderr} holds warnings and errors
+(\texttt{[WARN]}, \texttt{[FATAL ERROR]}). The two streams can be logged
+separately:
+\begin{verbatim}
+nohup python main.py > run_log.txt 2> run_err.txt &
+\end{verbatim}
+
+The run can be safely interrupted at any time with \textbf{Ctrl+C}. The
+\texttt{finally} clause guarantees that
+(i) the WebSocket connection is closed,
+(ii) in-memory event buffers are flushed,
+(iii) the HTTP server closes active connections, and
+(iv) the final state (open positions, equity, last signal) is written under
+the \texttt{FINAL DASHBOARD SNAPSHOT} header.
+
+\subsubsection*{Security considerations}
+
+The demo runs in \emph{paper-trading} mode by default and does not submit
+real Binance orders. If a production key is nonetheless placed in the
+\texttt{.env} file, it is recommended to (a) grant only read and Futures
+trading permissions on the Binance side, and (b) restrict the key by
+IP whitelist. The dashboard listens on \texttt{0.0.0.0:8080} by default, and
+exposing it on a public IP should only be done behind an external
+reverse proxy (nginx, traefik).
+
+\section{Troubleshooting}
+
+\noindent\textbf{\texttt{ModuleNotFoundError: mamba\_ssm}}\\
+Install the CUDA-compatible packages from \texttt{requirements-ml.txt}, or
+run on CPU: \texttt{python main.py --device cpu}.
+
+\noindent\textbf{Binance API 403/401}\\
+Check the \texttt{.env} keys and IP whitelist settings on the Binance trading
+interface.
+
+\noindent\textbf{WebSocket connection error}\\
+A firewall may block Binance's \texttt{wss://} endpoint (port $9443$). Set
+up a proxy if necessary.
+
+\section{Runtime Messages}
+
+The table below summarises the most common runtime messages and
+recommended actions.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|p{4.4cm}|p{2.8cm}|p{6.2cm}|}
+    \hline
+    \textbf{Message / error} & \textbf{Severity} & \textbf{Action} \\
+    \hline\hline
+    \texttt{[WARN] Offline training failed} & Warning & System continues with the previous model; check network access and data availability. \\
+    \hline
+    \texttt{[WebSocket] Connecting...} & Info & Automatic reconnect; if it fails after 5 attempts, check firewall (port $9443$). \\
+    \hline
+    \texttt{ModuleNotFoundError: mamba\_ssm} & Error & Install \texttt{requirements-ml.txt} packages or pass \texttt{--device cpu}. \\
+    \hline
+    \texttt{Binance API 401/403} & Error & Invalid API key; update \texttt{.env} and verify IP whitelist on Binance. \\
+    \hline
+    \texttt{Not enough data (N rows)} & Warning & Extend \texttt{training\_start\_str} window or wait for more closed candles. \\
+    \hline
+    \texttt{[FATAL ERROR] ...} & Critical & Stack trace on \texttt{stderr}; send the full log to the developer. \\
+    \hline
+  \end{tabular}
+  \caption{Common runtime messages and recommended troubleshooting steps.}
+  \label{tab:errortable}
+\end{table}

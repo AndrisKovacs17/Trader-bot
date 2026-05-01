@@ -67,26 +67,8 @@
 \includepdf[pages=-,scale=0.75]{temabejelento.pdf}
 
 % Önállósági nyilatkozat (kötelező)
-\chapter*{Nyilatkozat}
 \addcontentsline{toc}{chapter}{Nyilatkozat}
-\thispagestyle{empty}
-
-Alulírott \textbf{Kovács András}, az Eötvös Loránd Tudományegyetem
-programtervező informatikus BSc szakos hallgatója kijelentem, hogy a
-szakdolgozatban foglalt feladatot önállóan oldottam meg, és csak a megadott
-irodalomban felsorolt forrásokat (könyveket, folyóiratokat, az internetet stb.)
-használtam fel. Minden olyan részt, amelyet szó szerint, vagy azonos tartalomban,
-de átfogalmazva más forrásból vettem át, egyértelműen jelöltem, és a forrást
-pontosan idéztem.
-
-\vspace{2.5cm}
-Budapest, 2026. április
-
-\vspace{1.5cm}
-\noindent
-\makebox[6cm]{\dotfill} \\[4pt]
-Kovács András \\
-hallgató
+\includepdf[pages=-,fitpaper=false,width=\textwidth]{../nyilatkozat.pdf}
 
 \cleardoublepage
 
@@ -106,8 +88,8 @@ Empirikus értékelést végzünk három nyilvános LTSF-adatkészleten
 (Exchange-Rate, ETTh1, ETTh2), szintetikusan zajosított
 ($\sigma \in \{0, 1, 3, 5\}$) és alacsony adatbőségű (stride $\in \{1, 16\}$)
 körülmények között. Kísérleteink szerint a KCMamba MSE-degradációja
-$\sigma\!=\!0$-ról $\sigma\!=\!5$-re átlagosan $+1\,528\%$, míg a Fair Mamba
-baseline esetén $+28\,234\%$, ez közel $18{,}5\times$-es robusztusság-előnyt
+$\sigma\!=\!0$-ról $\sigma\!=\!5$-re átlagosan $1\,528\%$, míg a Fair Mamba
+baseline esetén $28\,234\%$, ez közel $18{,}5\times$-es robusztusság-előnyt
 jelent.
 
 A szakdolgozat a teljes szoftverrendszer leírását is tartalmazza: egy aszinkron,
@@ -134,8 +116,8 @@ We conduct empirical evaluation on three public LTSF benchmarks
 (Exchange-Rate, ETTh1, ETTh2) under synthetically injected noise
 ($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
 (stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
-MSE degradation of $+1\,528\%$ as noise increases from $\sigma\!=\!0$ to
-$\sigma\!=\!5$, compared to $+28\,234\%$ for Fair Mamba, a
+MSE degradation of $1\,528\%$ as noise increases from $\sigma\!=\!0$ to
+$\sigma\!=\!5$, compared to $28\,234\%$ for Fair Mamba, a
 $18{.}5\times$ robustness advantage.
 
 The thesis also describes the complete production software system: an
@@ -168,6 +150,9 @@ trading adapter.
 \input{chapters/06_implementacio}
 \cleardoublepage
 
+\input{chapters/07_felhasznaloi_dok}
+\cleardoublepage
+
 \input{chapters/05_osszegzes}
 \cleardoublepage
 
@@ -179,7 +164,7 @@ trading adapter.
 %  FÜGGELÉKEK
 % ============================================================
 \appendix
-% A_hyperparams és B_teljes_tablazatok elhagyva a 60 oldalas korlát miatt
+% A_hyperparams és B_teljes_tablazatok elhagyva
 % \input{chapters/A_hyperparams}
 % \cleardoublepage
 % \input{chapters/B_teljes_tablazatok}

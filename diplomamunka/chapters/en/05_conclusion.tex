@@ -20,7 +20,7 @@ SSM. The experiments on three datasets lead to the following conclusions:
           $T \in \{96,192,336,512\}$ on ETTm1 and Exchange)
           confirms KCMamba's advantage at longer contexts:
           \begin{itemize}
-              \item $T{=}336$, $\sigma{=}1$: KCMamba MSE $0.502$ vs
+              \item $T{=}336$, $\sigma{=}1$: KCMamba MSE $0.502$ vs.\
                     LSTM $0.735$ ($\mathbf{-31.7\%}$, the largest margin
                     over LSTM in the sweep).
               \item $T{=}512$, $\sigma{=}3$ (Exchange): KCMamba $0.773$,
@@ -36,7 +36,7 @@ SSM. The experiments on three datasets lead to the following conclusions:
           $T \in \{192,336,512\}$): two distinct patterns emerged.
           At $s{=}1$, $\sigma{=}3$, KCMamba's margin over LSTM grows
           monotonically with $T$, reaching $+35\%$ at $T{=}512$
-          ($0.836$ vs $1.292$). At $s{=}16$, $\sigma{\geq}3$,
+          ($0.836$ vs.\ $1.292$). At $s{=}16$, $\sigma{\geq}3$,
           Fair Mamba catastrophically collapses (MSE $8.1$--$8.5$),
           a $7$--$9\times$ stability gap vs.\ KCMamba which stays
           at $1.1$--$1.3$.
@@ -62,7 +62,7 @@ MSE. This suggests that in noise-free settings the explicit Kalman structure
 imposes unnecessary overhead: the always-present filtering term causes mild
 underfitting, and the architecture cannot fully switch the filter off.
 
-On ETTh1/$s=1$ LSTM is the best, since its gating mechanism exploits the large
+On ETTh1 at $s=1$, LSTM is the best, since its gating mechanism exploits the large
 data volume. The forget/input gate pair realises a similar adaptive filter, but
 more flexibly, because it is not tied to the $K = Q/(Q+R)$ structure. This is
 not a KCMamba failure but illustrates that the utility of the inductive prior

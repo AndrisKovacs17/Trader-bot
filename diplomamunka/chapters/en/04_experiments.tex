@@ -13,7 +13,7 @@ Training environment: NVIDIA GeForce RTX 3060 (12~GB VRAM), PyTorch~2.x,
 CUDA~12, float32 precision.
 
 \subsection{Datasets}
-\label{sec:datasets}
+\label{sec:exp_datasets}
 
 Three datasets are used (see also Sec.~\ref{sec:datasets} in Chapter~2):
 
@@ -136,7 +136,7 @@ filtering out the noisy measurement.
     \label{tab:etth1}
 \end{table}
 
-At ETTh1, $s=1$, Fair Mamba leads at higher noise ($\sigma \ge 1$) with a narrow
+On ETTh1 at $s=1$, Fair Mamba leads at higher noise ($\sigma \ge 1$) with a narrow
 margin, while KCMamba wins at $\sigma=0$. At $s=16$ Fair
 Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%$.
 
@@ -382,7 +382,7 @@ epochs and the FastAI learning-rate finder.
     \label{tab:longseq_ettm1}
 \end{table}
 
-Three patterns emerge from Table~\ref{tab:longseq_ettm1} and
+Two patterns emerge from Table~\ref{tab:longseq_ettm1} and
 Figure~\ref{fig:longseq}:
 
 \textbf{KCMamba} benefits from longer context: at $\sigma{=}3$ the MSE drops from $0.673$ to $0.466$

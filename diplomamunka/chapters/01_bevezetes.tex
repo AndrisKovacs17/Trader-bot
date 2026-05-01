@@ -36,7 +36,7 @@ architektúra.
 
 \section{Célkitűzések}
 
-Három konkrét kérdést vizsgálunk:
+Három kérdést vizsgálunk:
 
 \begin{enumerate}
     \item Versenyképes-e a KCMamba tiszta adatokon a standard LTSF
@@ -58,10 +58,10 @@ Három konkrét kérdést vizsgálunk:
           zajszinttel: $\sigma=0$-nál $K \approx 0{,}71$ (passzív átengedés),
           $\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
     \item Összehasonlítás három adatkészleten (Exchange-Rate, ETTh1, ETTh2):
-          a Fair Mamba átlag $+28\,234\%$ MSE-degradációt mutat zajjal,
-          a KCMamba $+1\,528\%$-ot ($18{,}5\times$ kisebb romlás).
+          a Fair Mamba átlag $28\,234\%$ MSE-degradációt mutat zajjal,
+          a KCMamba $1\,528\%$-ot ($18{,}5\times$ kisebb romlás).
     \item Hosszú szekvencia vizsgálat (ETTm1, Exchange, $T \in \{96, 192, 336, 512\}$,
-          10 epoch, FastAI LR-keresővel): a KCMamba $T=336$, $\sigma=1$
+          ): a KCMamba $T=336$, $\sigma=1$
           konfigurációban $\mathbf{31{,}7\%}$-kal jobb MSE-t ér el, mint az LSTM
           ($0{,}502$ vs $0{,}735$). $T=512$, $\sigma=3$-nál a KCMamba $0{,}773$,
           a Fair Mamba $2{,}121$, vagyis a KCMamba $63{,}6\%$-kal jobb.
@@ -71,9 +71,7 @@ Három konkrét kérdést vizsgálunk:
           $T \in \{192, 336, 512\}$): $s{=}1$, $\sigma{=}3$-nál a KCMamba
           $T{=}512$-nél $\mathbf{+35\%}$-kal jobb az LSTM-nél ($0{,}836$ vs $1{,}292$).
           Az előny a szekvenciahossz növekedésével monoton nő.
-          $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik
-          (a KCMamba $1{,}1$--$1{,}3$ között marad), ami $7$--$9\times$-es
-          stabilitásbeli különbséget jelent.
+          $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik amíg a KCMamba $1{,}1$--$1{,}3$ között marad.
     \item Nyílt forráskódú megvalósítás (Python/PyTorch/CUDA) és egy
           aszinkron kereskedési rendszer a modell éles környezetbe helyezéséhez.
 \end{itemize}
