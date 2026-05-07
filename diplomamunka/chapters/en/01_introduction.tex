@@ -30,48 +30,37 @@ may help in noisy conditions.
 
 \section{Research Questions}
 
-Three questions are investigated:
-
-\begin{enumerate}
-    \item Is KCMamba competitive on clean data against standard LTSF
-          models?
-    \item How much MSE degradation do models suffer under synthetically
-          injected noise ($\sigma \in \{0, 1, 3, 5\}$)?
-    \item Which architecture generalises better under scarce training data
-          (stride $\in \{1, 16\}$)?
-\end{enumerate}
+Three questions are investigated: (1)~is KCMamba competitive on clean data
+against standard LTSF models; (2)~how much MSE degradation do models suffer
+under synthetically injected noise ($\sigma \in \{0, 1, 3, 5\}$);
+and (3)~which architecture generalises better under scarce training data
+(stride $\in \{1, 16\}$).
 
 \section{Contributions}
 
-\begin{itemize}
-    \item A description of the \textbf{KCMamba} architecture: learned
-          $Q_\text{net}$, $R_\text{net}$, $K_\text{net}$ subnetworks inside
-          a differentiable Kalman filter, with a parallel prefix-scan
-          GPU implementation.
-    \item Measurements showing that the learned $K$ adapts to noise level:
-          $K \approx 0{.}71$ at $\sigma=0$ (passive pass-through) and
-          $K \approx 0{.}07$ at $\sigma=5$ (strong filtering).
-    \item Benchmark results on three datasets (Exchange-Rate, ETTh1, ETTh2):
-          Fair Mamba degrades by $28\,234\%$ under noise, whereas KCMamba
-          degrades by only $1\,528\%$ ($18.5\times$ smaller degradation).
-    \item Long-sequence analysis (ETTm1, Exchange, $T \in \{96,192,336,512\}$):
-          KCMamba achieves $\mathbf{31.7\%}$ lower
-          MSE than LSTM at $T{=}336$, $\sigma{=}1$ ($0.502$ vs $0.735$).
-          At $T{=}512$, $\sigma{=}3$, KCMamba scores $0.773$ while Fair Mamba
-          scores $2.121$ ($63.6\%$ better).
-          On ETTm1 at $\sigma{=}3$, KCMamba is the only model whose MSE
-          monotonically decreases with sequence length
-          ($0.673 \to 0.466$ as $T{:}\,96 \to 512$, $-31\%$).
-    \item Stride $\times$ sequence-length sweep (Exchange, $s \in \{1,16\}$,
-          $T \in \{192,336,512\}$): at $s{=}1$, $\sigma{=}3$, KCMamba is
-          $\mathbf{+35\%}$ better than LSTM at $T{=}512$ ($0.836$ vs $1.292$),
-          and the advantage grows monotonically with sequence length.
-          At $s{=}16$, $\sigma{\geq}3$, Fair Mamba's MSE rises to $8.1$--$8.5$
-          while KCMamba stays at $1.1$--$1.3$.
-    \item An open-source Python/PyTorch/CUDA implementation and an
-          asynchronous trading system for deploying the model in
-          live markets.
-\end{itemize}
+The thesis makes five concrete contributions.
+The \textbf{KCMamba} architecture embeds learned $Q_\text{net}$,
+$R_\text{net}$, $K_\text{net}$ subnetworks inside a differentiable Kalman
+filter, with a parallel prefix-scan GPU implementation for the recursion.
+Measurements show that the learned $K$ genuinely adapts to noise:
+$K \approx 0{.}71$ at $\sigma=0$ (passive pass-through) and
+$K \approx 0{.}07$ at $\sigma=5$ (strong filtering).
+
+Benchmark results on three datasets (Exchange-Rate, ETTh1, ETTh2) show
+that Fair Mamba degrades by $28\,234\%$ under noise, whereas KCMamba
+degrades by only $1\,528\%$ ($18.5\times$ smaller degradation).
+The long-sequence analysis ($T \in \{96,192,336,512\}$, ETTm1 and
+Exchange) confirms KCMamba's advantage at longer contexts:
+at $T{=}336$, $\sigma{=}1$ it achieves $31.7\%$ lower MSE than LSTM
+($0.502$ vs $0.735$); at $T{=}512$, $\sigma{=}3$, KCMamba scores $0.773$
+while Fair Mamba scores $2.121$. On ETTm1 at $\sigma{=}3$ KCMamba is
+the only model whose MSE monotonically decreases with sequence length
+($0.673 \to 0.466$, $-31\%$, $T{:}\,96 \to 512$).
+In the stride $\times$ sequence-length sweep ($s \in \{1,16\}$,
+$T \in \{192,336,512\}$), at $s{=}16$, $\sigma{\geq}3$,
+Fair Mamba's MSE rises to $8.1$--$8.5$ while KCMamba stays at $1.1$--$1.3$.
+All experiments are accompanied by an open-source Python/PyTorch/CUDA
+implementation integrated into an asynchronous live-trading system.
 
 \section{Thesis Structure}
 

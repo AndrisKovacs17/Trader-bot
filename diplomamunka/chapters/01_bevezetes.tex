@@ -36,45 +36,35 @@ architektúra.
 
 \section{Célkitűzések}
 
-Három kérdést vizsgálunk:
-
-\begin{enumerate}
-    \item Versenyképes-e a KCMamba tiszta adatokon a standard LTSF
-          modellekkel szemben?
-    \item Mekkora MSE-degradációt szenvednek el a modellek szintetikusan
-          zajosított adatokon ($\sigma \in \{0, 1, 3, 5\}$)?
-    \item Kevés tréning-ablak (stride $\in \{1, 16\}$) esetén melyik
-          architektúra generalizál jobban?
-\end{enumerate}
+Három kérdést vizsgálunk: (1)~versenyképes-e a KCMamba tiszta adatokon
+a standard LTSF modellekkel szemben; (2)~mekkora MSE-degradációt szenvednek
+el a modellek szintetikusan zajosított bemeneten ($\sigma \in \{0, 1, 3, 5\}$);
+és (3)~kevés tréningablak ($\text{stride} \in \{1, 16\}$) esetén melyik
+architekúra generalizál jobban.
 
 \section{Hozzájárulások}
 
-\begin{itemize}
-    \item A \textbf{KCMamba} architektúra bemutatása, amely tanult
-          $Q_\text{net}$, $R_\text{net}$ és $K_\text{net}$ alhálózatokat ágyaz
-          be egy differenciálható Kalman-szűrőbe, és a rekurzió kiértékelését
-          párhuzamos prefix-scan alapú GPU-implementációval gyorsítja.
-    \item Mérések arról, hogy a tanult $K$ valóban adaptívan változik a
-          zajszinttel: $\sigma=0$-nál $K \approx 0{,}71$ (passzív átengedés),
-          $\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
-    \item Összehasonlítás három adatkészleten (Exchange-Rate, ETTh1, ETTh2):
-          a Fair Mamba átlag $28\,234\%$ MSE-degradációt mutat zajjal,
-          a KCMamba $1\,528\%$-ot ($18{,}5\times$ kisebb romlás).
-    \item Hosszú szekvencia vizsgálat (ETTm1, Exchange, $T \in \{96, 192, 336, 512\}$,
-          ): a KCMamba $T=336$, $\sigma=1$
-          konfigurációban $\mathbf{31{,}7\%}$-kal jobb MSE-t ér el, mint az LSTM
-          ($0{,}502$ vs $0{,}735$). $T=512$, $\sigma=3$-nál a KCMamba $0{,}773$,
-          a Fair Mamba $2{,}121$, vagyis a KCMamba $63{,}6\%$-kal jobb.
-          $\sigma=3$-nál az ETTm1-en a KCMamba MSE monoton csökken
-          $T=96$-tól $T=512$-ig ($0{,}673 \to 0{,}466$, $-31\%$).
-    \item Stride $\times$ szekvenciahossz vizsgálat (Exchange, $s \in \{1, 16\}$,
-          $T \in \{192, 336, 512\}$): $s{=}1$, $\sigma{=}3$-nál a KCMamba
-          $T{=}512$-nél $\mathbf{+35\%}$-kal jobb az LSTM-nél ($0{,}836$ vs $1{,}292$).
-          Az előny a szekvenciahossz növekedésével monoton nő.
-          $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba MSE-je $8{,}1$--$8{,}5$-re ugrik amíg a KCMamba $1{,}1$--$1{,}3$ között marad.
-    \item Nyílt forráskódú megvalósítás (Python/PyTorch/CUDA) és egy
-          aszinkron kereskedési rendszer a modell éles környezetbe helyezéséhez.
-\end{itemize}
+A dolgozat öt konkrét hozzájárulást tartalmaz.
+A \textbf{KCMamba} architektúra tanult $Q_\text{net}$, $R_\text{net}$ és
+$K_\text{net}$ alhálózatokat ágyaz egy differenciálható Kalman-szűrőbe,
+a rekurzió kiértékelését párhuzamos prefix-scan alapú GPU-implementációval
+gyorsítva. Mérésekkel alátámasztjuk, hogy a tanult $K$ valóban adaptívan
+változik a zajszinttel: $\sigma=0$-nál $K \approx 0{,}71$ (passzív átengedés),
+$\sigma=5$-nél $K \approx 0{,}07$ (erős szűrés).
+
+Az összehasonlítás három adatkészleten (Exchange-Rate, ETTh1, ETTh2)
+megmutatja, hogy a Fair Mamba átlag $28\,234\%$ MSE-degradációt mutat zajjal,
+a KCMamba $1\,528\%$-ot ($18{,}5\times$ kisebb romlás).
+Hosszú szekvencia vizsgálatban ($T \in \{96, 192, 336, 512\}$,
+ETTm1 és Exchange) a KCMamba $T{=}336$, $\sigma{=}1$ konfigurációban
+$31{,}7\%$-kal jobb MSE-t ér el az LSTM-nél ($0{,}502$ vs $0{,}735$);
+$T{=}512$, $\sigma{=}3$-nál a KCMamba $0{,}773$, a Fair Mamba $2{,}121$.
+A stride $\times$ szekvenciahossz vizsgálatban ($s \in \{1, 16\}$,
+$T \in \{192, 336, 512\}$) a $s{=}16$, $\sigma{\geq}3$ tartományban
+a Fair Mamba összomló teljesítményt mutat ($8{,}1$--$8{,}5$ MSE),
+míg a KCMamba $1{,}1$--$1{,}3$ között marad.
+A kísérleteket nyílt forráskódú Python/PyTorch/CUDA implementáció kíséri,
+amelyet egy aszinkron kereskedési rendszerbe integráltunk.
 
 \section{Dolgozat felépítése}
 

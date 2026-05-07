@@ -1,265 +1,91 @@
 % ============================================================
-%  7. fejezet, Felhasználói dokumentáció
+%  7. fejezet, A szoftverrendszer rövid ismertetése
 % ============================================================
-\chapter{Felhasználói dokumentáció}
+\chapter{A szoftverrendszer rövid ismertetése}
 \label{ch:user_docs}
 
-\section{Használati esetek}
-\label{sec:usecases}
+\section{Rendszer áttekintése}
 
-A rendszer két szereplőt különböztet meg. A \textbf{Felhasználó} (kutató,
-fejlesztő) a kereskedési motort és a webes irányítópultot vezérli, míg a
-\textbf{Binance} külső rendszerként szolgáltat piaci adatot, és fogadja
-a megbízásokat. Az~\ref{fig:usecases}.~ábra a támogatott használati
-eseteket foglalja össze.
+A KCMamba-kutatás kísérleti infrastruktúrájaként egy teljes körű,
+produkciókész kereskedési rendszer készült el. A rendszer négy fő részből
+áll: (i)~\textbf{aszinkron kereskedési motor} hexagonális architektúrában,
+(ii)~\textbf{visszatesztelő keretrendszer} historikus adatokon,
+(iii)~\textbf{Binance-adapter} élő piaci adathoz és megbízás-végrehajtáshoz,
+valamint (iv)~\textbf{webes irányítópult} a valós idejű megfigyeléshez.
+
+A motor eseményvezérelt, portok és adapterek köré épített architektúrát
+(\emph{hexagonal / ports-and-adapters}) alkalmaz~\cite{cockburn2005hexagonal},
+amely biztosítja, hogy a \texttt{core} üzleti logika tesztelő és éles
+adapterrel egyaránt, változtatás nélkül futtatható. A KCMamba modell
+cserélhető: a \texttt{ModelStore} interfészen keresztül bármely
+\texttt{nn.Module} betölthető súlyok nélkül vagy előtanított
+\texttt{.pt} fájlból.
 
 \begin{figure}[H]
   \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      every node/.style={font=\small},
-      actor/.style={draw, thick, minimum width=2.2cm, align=center},
-      uc/.style={draw, ellipse, thick, minimum width=3.6cm, minimum height=0.9cm, align=center, inner sep=2pt}
-    ]
-    % Szereplők
-    \node[actor] (user) at (0,0) {\textbf{Felhasználó}\\(kutató, fejlesztő)};
-    \node[actor] (binance) at (12,0) {\textbf{Binance}\\(külső rendszer)};
-
-    % Használati esetek
-    \node[uc] (uc1) at (6, 3.5)  {Visszatesztelés futtatása};
-    \node[uc] (uc2) at (6, 2.2)  {Paper-trading indítása};
-    \node[uc] (uc3) at (6, 0.9)  {Élő kereskedés indítása};
-    \node[uc] (uc4) at (6,-0.4)  {Modell offline tanítása};
-    \node[uc] (uc5) at (6,-1.7)  {Irányítópult megtekintése};
-    \node[uc] (uc6) at (6,-3.0)  {Kockázati szabályok beállítása};
-
-    % Rendszerhatár
-    \node[draw, thick, dashed, fit=(uc1)(uc2)(uc3)(uc4)(uc5)(uc6),
-          inner sep=10pt, label=above:{\textbf{KCMamba kereskedési rendszer}}] {};
-
-    % Felhasználó kapcsolatai
-    \foreach \u in {uc1,uc2,uc3,uc4,uc5,uc6} {
-      \draw (user) -- (\u);
-    }
-    % Binance kapcsolatok
-    \draw (uc2) -- (binance);
-    \draw (uc3) -- (binance);
-  \end{tikzpicture}%
-  }
-  \caption{A KCMamba rendszer használati esetei. A felhasználó hat fő
-           művelethez fér hozzá; a Binance külső rendszerként a paper- és
-           élő-kereskedési útvonalon kapcsolódik be (piaci adat,
-           megbízás-végrehajtás).}
-  \label{fig:usecases}
-\end{figure}
-
-\section{A szoftver célja és célközönsége}
-
-A rendszer kriptovaluta idősorok automatizált elemzésére és kereskedési
-jelzések generálására készült, elsősorban BTCUSDT és ETHUSDT párokon.
-Célközönsége fejlesztők és kutatók, akik ML-alapú kereskedési stratégiákat
-szeretnének visszatesztelni vagy élőben futtatni.
-
-\section{Felhasznált módszerek áttekintése}
-
-A rendszer az árfolyam-előrejelzéshez a \textbf{KCMamba} architektúrát
-használja, amely a Mamba szelektív állapottér-modellbe (SSM) egy
-differenciálható Kalman-szűrő réteget integrál: tanult $Q_\text{net}$,
-$R_\text{net}$ és $K_\text{net}$ alhálózatok időlépésenként becsülik a
-folyamat- és mérési zaj arányát, és ennek megfelelően adaptív $K$-gainnel
-szabályozzák, hogy a modell mennyire bízzon az aktuális megfigyelésben az
-előzmény-állapottal szemben (részletes leírás:
-\ref{ch:architektura}.~fejezet). A bemeneti OHLCV-gyertyákból
-csúszóablakos jellemzővektorok készülnek, amelyeket a modell
-96 lépéses előzmény alapján 96 lépésre előre jelez. A predikciókból egy
-küszöb-alapú stratégia (\texttt{ThresholdStrategy}) generál \textsc{Buy/Sell/Hold}
-jelzéseket, amelyeket egy kockázatkezelő réteg (pozícióméret-korlát,
-stop-loss, napi veszteség-limit) szűr, mielőtt a megbízás a
-Binance Futures REST végponton kiküldésre kerülne. Az architekturális
-döntések, a tanítási protokoll és a kísérleti értékelés részletei a
-\ref{ch:architektura}. és \ref{ch:kiserletek}.~fejezetben találhatók.
-
-\section{Rendszerkövetelmények}
-
-\begin{table}[H]
-  \centering
   \small
-  \begin{tabular}{|l|l|l|}
+  \begin{tabular}{|p{3.8cm}|p{10.5cm}|}
     \hline
-    \textbf{Összetevő} & \textbf{Minimum} & \textbf{Ajánlott} \\
+    \textbf{Komponens} & \textbf{Feladat} \\
     \hline\hline
-    Operációs rendszer & Linux/macOS/Windows 10+ & Ubuntu 22.04 LTS \\
-    Python verziója    & 3.10                   & 3.11 \\
-    RAM                & 4~GB                   & 8~GB \\
-    Lemezterület       & 2~GB                   & 5~GB \\
-    GPU (opcionális)   & NVIDIA $\ge$6~GB~VRAM     & NVIDIA $\ge$12~GB~VRAM \\
-    Hálózat            & n.a. (backtest módban)    & Stabil internet (live) \\
+    \texttt{TradingEngine}    & Fő koordinátor; eseményhurkot (asyncio) futtat, állapotot karbantart \\
+    \texttt{BinanceFeed}      & WebSocket-csatornán gyertyaadatot és könyvmélységet fogad \\
+    \texttt{KCMamba} (SSM)    & 96~lépéses kontextusból 96~lépéses előrejelzést ad \\
+    \texttt{ThresholdStrategy}& Előrejelzésből \textsc{Buy/Sell/Hold} jelzést generál \\
+    \texttt{RiskPolicy}       & Pozícióméret-korlát, stop-loss, napi veszteség-limit \\
+    \texttt{BinanceBroker}    & Futures REST API; paper- és élő módban cserélhető \\
+    \texttt{Dashboard}        & aiohttp szerver, 8~nézet, valós idejű SSE frissítés \\
     \hline
   \end{tabular}
-  \caption{A rendszer minimális és ajánlott hardver/szoftvere.}
-  \label{tab:sysreq}
-\end{table}
+  \captionof{table}{A rendszer főbb komponensei és feladataik.}
+  \label{tab:components}
+\end{figure}
 
-\section{Telepítési útmutató}
+\section{Rendszerkövetelmények és telepítés}
 
-\begin{enumerate}
-  \item Virtuális környezet létrehozása a projekt mappájában:
+A rendszer Python~3.10+ környezetet igényel; GPU opcionális (CPU-n is fut).
+Telepítés:
+
 \begin{verbatim}
-cd diplomamunkakod
-python -m venv .venv
-# Windows (PowerShell):
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.venv\Scripts\Activate.ps1
-# Linux / macOS:
-# source .venv/bin/activate
-\end{verbatim}
-  \item Függőségek telepítése:
-\begin{verbatim}
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+cp .env.example .env   # BINANCE_API_KEY, BINANCE_SECRET kitöltése szükséges élő módhoz
 \end{verbatim}
-  ML-csomagok (opcionális, GPU-s benchmark futtatáshoz):
-\begin{verbatim}
-pip install -r requirements-ml.txt
-\end{verbatim}
-  \item API-kulcsok beállítása (csak élő/paper módban szükséges):
-\begin{verbatim}
-cp .env.example .env
-# Szerkeszd a .env fájlt: BINANCE_API_KEY, BINANCE_SECRET
-\end{verbatim}
-\end{enumerate}
 
-\section{Használati útmutató}
+\section{Futtatás}
 
-\subsubsection*{Első indítás (paper-trading demó)}
-
-A rendszer alap-használati módja egy előtérben futó paper-trading demó. A
-\texttt{main.py} szkript végrehajtása egyszerre három háttérszolgáltatást
-indít: egy offline tanítófolyamot, a Binance WebSocket-feed-et és a webes
-irányítópultot.
+\subsubsection*{Paper-trading demó (alapértelmezett)}
 
 \begin{verbatim}
 python main.py
 \end{verbatim}
 
-Sikeres indítás esetén a konzol az alábbi blokkokat írja ki: a \texttt{core}
-modulok betöltése, az adapterek inicializálása, a historikus adatcsomag
-letöltése (a \texttt{warmup\_start\_str} szerint, alapértelmezetten 3 napra
-visszamenőleg), majd a
-\texttt{[BOOT] TradingEngine started} szalag, amely után az irányítópult
-a \texttt{http://127.0.0.1:8080} címen érhető el.
 
-\subsubsection*{Dashboard-nézetek}
+A rendszer Binance WebSocket-adatot fog, KCMamba modellel előrejelez,
+ThresholdStrategy jelzéseket generál, de valódi megbízást \emph{nem}
+küld.
 
-Az irányítópult felső navigációs sávja nyolc nézetre tagolódik, három
-kategóriába rendezve:
+\subsubsection*{Visszatesztelés}
 
-\begin{table}[H]
-  \centering
-  \small
-  \begin{tabular}{|l|l|p{7.2cm}|}
-    \hline
-    \textbf{Kategória} & \textbf{Oldal} & \textbf{Tartalom} \\
-    \hline\hline
-    Pénzügyi  & \texttt{/}              & Tőkegörbe, nyitott pozíciók, élő ár-chart \\
-    Pénzügyi  & \texttt{/signals.html}  & Generált jelzések listája, kockázati státusszal \\
-    Pénzügyi  & \texttt{/model.html}    & Modellverzió, kalibráció, diagnosztikai metrikák \\
-    Pénzügyi  & \texttt{/training.html} & Offline tanítás előrehaladása, loss-görbe \\
-    Benchmark & \texttt{/benchmark.html}     & Szintetikus zajos teszt eredménye \\
-    Benchmark & \texttt{/ltsf\_benchmark.html}& LTSF (Exchange, ETTh) benchmark-eredmények \\
-    KCA elemzés & \texttt{/kla\_kalman.html}   & Kalman-paraméterek ($K$, $A$, $R$) valós idejű görbéi \\
-    KCA elemzés & \texttt{/complexity.html}    & Paraméterszám $\times$ teljesítmény heatmap \\
-    \hline
-  \end{tabular}
-  \caption{Az irányítópult nézeteinek szerepköre.}
-  \label{tab:dashboard_pages}
-\end{table}
-
-A jobb alsó sarokban elhelyezett \texttt{?} gombra kattintva oldal-specifikus
-súgóablak nyílik, amely röviden elmagyarázza az adott nézetet. A lapok közti
-átjárás a felső menüsávból történik, a böngésző \emph{vissza}-gombja is
-használható.
-
-\subsubsection*{Használati minták}
-
-A rendszer négy tipikus forgatókönyvben futtatható. A paper-trading demó
-(alapértelmezett) Binance-adaton szimulált végrehajtással dolgozik. A
-visszateszt-mód ugyanazt a pipeline-t futtatja historikus adatokon, Binance
-kapcsolat nélkül, \texttt{adapters/testing/backtest.py} segítségével. Az
-eredményeit a konzolra és CSV-be írja. Az offline tanítás a teljes dataset-et
-(alapértelmezetten 3 nap BTCUSDT 5 perces gyertyái) egy menetben dolgozza fel,
-majd a súlyokat \texttt{*.pt} fájlba menti. A \emph{csak-dashboard} mód végül
-akkor hasznos, ha egy korábbi futás eredményeit akarjuk áttekinteni: ekkor
-a Binance-feed kikapcsolható, és a dashboard offline módban is böngészhető.
-
-\subsubsection*{Futásidei naplózás és leállítás}
-
-A \texttt{stdout} a rendes állapotüzeneteket tartalmazza
-(\texttt{[BOOT]}, \texttt{[SIGNAL]}, \texttt{[FILL]}, \texttt{[DASHBOARD]}),
-a \texttt{stderr} pedig a figyelmeztetéseket és hibákat
-(\texttt{[WARN]}, \texttt{[FATAL ERROR]}). A két csatorna külön is
-naplózható:
 \begin{verbatim}
-nohup python main.py > run_log.txt 2> run_err.txt &
+python -m adapters.testing.backtest --symbol BTCUSDT --start 2024-01-01 --end 2024-06-01
 \end{verbatim}
 
-A futtatás \textbf{Ctrl+C}-vel bármikor biztonságosan megszakítható.
-A \texttt{finally} ág garantálja, hogy (i) a WebSocket-kapcsolat lezárul,
-(ii) az in-memory esemény-pufferek kiürülnek,
-(iii) a HTTP-szerver lezárja az aktív kapcsolatokat, és
-(iv) a végleges állapot (nyitott pozíciók, tőkeállás, utolsó jelzés)
-kiírásra kerül a \texttt{FINAL DASHBOARD SNAPSHOT} fejléc alatt.
+Binance-kapcsolat nélkül fut; eredményt konzolra és CSV-be ír.
 
-\subsubsection*{Biztonsági megfontolások}
+\subsubsection*{Offline benchmark (kísérleti kiértékelés)}
 
-A demó alapértelmezés szerint \emph{paper-trading} módban fut, valódi
-Binance-rendelést nem küld. Ha mégis éles kulcs kerül a \texttt{.env} fájlba,
-a Binance-oldalon ajánlott (a) csak olvasási és Futures-kereskedési
-jogosultságot adni, és (b) IP-whitelisttel megszorítani a kulcs használatát.
-Az irányítópult alapértelmezetten a \texttt{0.0.0.0:8080} címen hallgat.
-nyilvános IP-n csak külső \texttt{reverse proxy} (nginx, traefik) mögött
-ajánlott közzétenni.
+\begin{verbatim}
+python tdk_sweep.py --resume    # TDK sweep: Exchange, ETTh1, ETTh2 + szintetikus zajok
+\end{verbatim}
 
-\section{Hibaelhárítás}
+Ez a parancs reprodukálja a~\ref{ch:kiserletek}.~fejezetben bemutatott
+összes kísérleti eredményt; a kimenet \texttt{tdk\_results.json}-ba kerül.
 
-\noindent\textbf{\texttt{ModuleNotFoundError: mamba\_ssm}}\\
-Telepítsd a \texttt{requirements-ml.txt}-ben szereplő CUDA-kompatibilis csomagjait,
-vagy futtasd CPU-n: \texttt{python main.py --device cpu}.
+\section{Biztonsági megfontolások}
 
-\noindent\textbf{Binance API 403/401}\\
-Ellenőrizd a \texttt{.env} fájl kulcsait és az
-IP-whitelist beállításait a Binance kereskedési felületén.
-
-\noindent\textbf{WebSocket kapcsolódási hiba}\\
-A tűzfal blokkolhatja a Binance \texttt{wss://}
-végpontját ($9443$ port). Szükség esetén proxyt kell beállítani.
-
-\section{Futásidei üzenetek és hibaelhárítás}
-
-Az alábbi táblázat a leggyakoribb futásidei üzeneteket és a javasolt
-teendőket foglalja össze.
-
-\begin{table}[H]
-  \centering
-  \small
-  \begin{tabular}{|p{4.4cm}|p{3.2cm}|p{5.8cm}|}
-    \hline
-    \textbf{Üzenet / hibaüzenet} & \textbf{Súlyosság} & \textbf{Teendő} \\
-    \hline\hline
-    \texttt{[WARN] Offline training failed} & Figyelmeztetés & A rendszer az előző modellel folytatja; ellenőrizd az internet-kapcsolatot és az adatok elérhetőségét. \\
-    \hline
-    \texttt{[WebSocket] Connecting...} & Tájékoztató & Automatikus újracsatlakozás; ha 5 kísérlet után sem sikerül, ellenőrizd a tűzfalat ($9443$ port). \\
-    \hline
-    \texttt{ModuleNotFoundError: mamba\_ssm} & Hiba & Telepítsd a \texttt{requirements-ml.txt} csomagjait, vagy adj meg \texttt{--device cpu} kapcsolót. \\
-    \hline
-    \texttt{ModuleNotFoundError: pandas} & Hiba & A venv nem látja a rendszer csomagjait; futtasd: \texttt{pip install --ignore-installed -r requirements.txt} \\
-    \hline
-    \texttt{Binance API 401/403} & Hiba & Érvénytelen API-kulcs; frissítsd a \texttt{.env} fájlt és ellenőrizd az IP-whitelistet. \\
-    \hline
-    \texttt{Not enough data (N rows)} & Figyelmeztetés & Növeld a \texttt{training\_start\_str} ablakot, vagy várj, amíg több zárt gyertya gyűlik össze. \\
-    \hline
-    \texttt{[FATAL ERROR] ...} & Kritikus & Verem-nyomat a \texttt{stderr}-en; küldd el a teljes naplót a fejlesztőnek. \\
-    \hline
-  \end{tabular}
-  \caption{A leggyakoribb futásidei üzenetek és a javasolt hibaelhárítási lépések.}
-  \label{tab:errortable}
-\end{table}
+A demó alapértelmezés szerint paper-trading módban fut, valódi megbízást
+nem küld. Éles kulcs esetén a Binance-oldalon (a)~csak olvasási és
+Futures-kereskedési jogot adjunk, és (b)~IP-whitelistet alkalmazzunk.
+Az irányítópult alapértelmezetten \texttt{localhost:8080}-on hallgat;
+nyilvános IP-n csak fordított proxy (nginx) mögött ajánlott.

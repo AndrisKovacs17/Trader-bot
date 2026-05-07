@@ -17,14 +17,13 @@ CUDA~12, float32 precision.
 
 Three datasets are used (see also Sec.~\ref{sec:datasets} in Chapter~2):
 
-\begin{itemize}
-    \item \textbf{Exchange-Rate}: 8 currency exchange rates, 1990--2016
-          (7\,588 days, 8 variables)~\cite{lai2018modeling}.
-    \item \textbf{ETTh1}: Chinese transformer-station hourly load and
-          temperature (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
-    \item \textbf{ETTh2}: same station, different channel sequence
-          (17\,420 steps, 7 variables)~\cite{zhou2021informer}.
-\end{itemize}
+The \textbf{Exchange-Rate} dataset covers 8 currency exchange rates from
+1990 to 2016 (7\,588 days, 8 variables)~\cite{lai2018modeling};
+\textbf{ETTh1} contains hourly transformer-station load and temperature data
+from a Chinese substation (17\,420 steps,
+7 variables)~\cite{zhou2021informer}; and \textbf{ETTh2} is a different
+channel sequence from the same station
+(17\,420 steps, 7 variables)~\cite{zhou2021informer}.
 
 \subsection{Noise Injection}
 
@@ -162,6 +161,61 @@ Mamba collapses for $\sigma \ge 3$ ($+1\,817\%$), while KCMamba stays at $+492\%
     \caption{MSE on ETTh2. KCMamba wins all $s=16$ noise levels (MSE 0.05--0.59 vs.\ Fair 0.05--3.11).}
     \label{tab:etth2}
 \end{table}
+
+\subsection{DLinear Baseline and Synthetic Noise Robustness}
+\label{sec:dlinear_synth}
+
+Synthetic datasets provide a stronger controlled evaluation, since Kalman-based filtering
+is \emph{theoretically optimal} on linear dynamical systems.
+\textbf{SynthLDS} is an 8-dimensional LDS with $\mathbf{A}=0{.}9\mathbf{I}$,
+process noise $Q=0{.}1$, and observation noise $R=1{.}0$ (theoretical
+Kalman gain $K_\text{ss}\approx0{.}072$).
+The \textbf{Lorenz attractor} provides chaotic dynamics with added Gaussian
+observation noise ($\sigma_\text{obs}=0{.}5$).
+We additionally include \textbf{DLinear}~\cite{zeng2023transformers}, a strong
+linear-decomposition baseline, for all three datasets
+($T{=}96$, $s{=}64$, 3 seeds, 5 epochs).
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|ccc|}
+    \hline
+    \textbf{Dataset} & \textbf{Model} &
+    $\sigma=0$ & $\sigma=3$ & $\sigma=5$ \\
+    \hline\hline
+    \multirow{3}{*}{SynthLDS}
+      & DLinear    & $1{.}891_{\pm1{.}00}$ & $3{.}650_{\pm2{.}36}$ & $6{.}750_{\pm7{.}10}$ \\
+      & Fair Mamba & $0{.}939_{\pm0{.}00}$ & $10{.}027_{\pm0{.}04}$ & $5{.}214_{\pm0{.}18}$ \\
+      & KCMamba    & $\mathbf{0{.}903}_{\pm0{.}00}$ & $\mathbf{1{.}035}_{\pm0{.}01}$ & $\mathbf{1{.}117}_{\pm0{.}01}$ \\
+    \hline
+    \multirow{3}{*}{Lorenz}
+      & DLinear    & $1{.}938_{\pm1{.}26}$ & $4{.}299_{\pm2{.}54}$ & $8{.}542_{\pm8{.}64}$ \\
+      & Fair Mamba & $\mathbf{0{.}010}_{\pm0{.}00}$ & $6{.}976_{\pm0{.}22}$ & $11{.}551_{\pm0{.}84}$ \\
+      & KCMamba    & $0{.}326_{\pm0{.}04}$ & $\mathbf{0{.}697}_{\pm0{.}01}$ & $\mathbf{0{.}841}_{\pm0{.}01}$ \\
+    \hline
+  \end{tabular}
+  \caption{MSE mean~$\pm$~std on synthetic datasets (3 seeds, 5 epochs).
+           Bold: lowest MSE per noise level.
+           On SynthLDS at $\sigma{=}5$, KCMamba is $\mathbf{6\times}$ better than
+           DLinear ($1{.}117$ vs $6{.}750$) and $\mathbf{4.7\times}$ better than
+           Fair Mamba ($5{.}214$).
+           On Lorenz at $\sigma{=}5$, KCMamba is $\mathbf{10\times}$ better than
+           DLinear ($8{.}542$) and $\mathbf{14\times}$ better than Fair Mamba ($11{.}551$).}
+  \label{tab:synth_noise}
+\end{table}
+
+On Lorenz at $\sigma=0$, Fair Mamba substantially outperforms KCMamba ($0{.}010$ vs
+$0{.}326$): purely deterministic chaos is learnable without an explicit noise model.
+However, at $\sigma{\geq}3$ the Kalman decomposition becomes decisive.
+On SynthLDS, Fair Mamba's MSE increases tenfold at $\sigma=3$
+($0{.}939 \to 10{.}027$), while KCMamba remains nearly constant
+($0{.}903 \to 1{.}035$, $+12\%$).
+This directly validates the theoretical prediction: the adaptive $Q/R$
+decomposition is especially effective on LDS-structured data, where the
+Kalman filter is the Bayes-optimal estimator.
+The high variance of DLinear results (${\pm}7{.}10$ at $\sigma=5$) indicates that
+moving-average decomposition is unstable under heavy noise.
 
 \subsection{Win Statistics Summary}
 
@@ -472,3 +526,90 @@ KCMamba is the only architecture that remains stable.
            collapses at $s{=}16$, $\sigma{\geq}3$.}
   \label{fig:stride_longseq}
 \end{figure}
+
+\section{Ablation Study and Statistical Significance}
+\label{sec:ablation}
+
+KCMamba's robustness is built on three mechanisms:
+(1) the $Q_\text{net}$/$R_\text{net}$ subnetworks performing adaptive noise estimation;
+(2) the $K_\text{net}$ content-dependent correction that fine-tunes $K$ based
+on the current input; and (3) the cross-attention layer at the top of the stack.
+The ablations below examine the first two components:
+
+Three configurations are compared: \textbf{KCMamba (full)} contains the
+complete $Q_\text{net}/R_\text{net}/K_\text{net}$ subnetworks;
+\textbf{w/o $K_\text{net}$} (\texttt{kca\_kbase}) removes the
+content-dependent $K$-correction so that $K = Q/(Q+R)$ (pure Kalman prior,
+no fine-tuning); and \textbf{fixed $K$} (\texttt{kca\_fixed\_k}) freezes
+all three Kalman networks, making the $K$-gain a non-learnable constant.
+
+Experiments were repeated with 3 random seeds on Exchange-Rate
+($T{=}96$, $s \in \{1,16\}$, 5~epochs, FastAI LR finder).
+Results are reported as mean~$\pm$~std in Tables~\ref{tab:ablation_s1}
+and~\ref{tab:ablation_s16}.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Model} & $\sigma{=}0$ & $\sigma{=}1$ & $\sigma{=}3$ & $\sigma{=}5$ \\
+    \hline\hline
+    KCMamba (full)     & $0.037_{\pm0.021}$ & $\mathbf{0.518}_{\pm0.007}$ & $0.902_{\pm0.046}$ & $\mathbf{1.414}_{\pm0.024}$ \\
+    w/o $K_\text{net}$ & $0.033_{\pm0.015}$ & $0.553_{\pm0.008}$ & $\mathbf{0.892}_{\pm0.044}$ & $1.423_{\pm0.024}$ \\
+    fixed $K$          & $\mathbf{0.022}_{\pm0.005}$ & $0.768_{\pm0.035}$ & $1.450_{\pm0.013}$ & $2.164_{\pm0.044}$ \\
+    Fair Mamba         & $0.064_{\pm0.018}$ & $0.789_{\pm0.202}$ & $1.479_{\pm0.054}$ & $3.200_{\pm0.094}$ \\
+    \hline
+  \end{tabular}
+  \caption{Ablation study, Exchange/$s{=}1$, MSE mean~$\pm$~std (3 seeds).
+           Bold: lowest MSE per noise level.
+           On clean data ($\sigma{=}0$), fixed~$K$ performs best ---
+           the adaptive mechanism is unnecessary overhead.
+           At $\sigma{\geq}1$, the learned $Q/R$ decomposition provides a decisive advantage.}
+  \label{tab:ablation_s1}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Model} & $\sigma{=}0$ & $\sigma{=}1$ & $\sigma{=}3$ & $\sigma{=}5$ \\
+    \hline\hline
+    KCMamba (full)     & $0.531_{\pm0.079}$ & $\mathbf{0.730}_{\pm0.092}$ & $1.129_{\pm0.052}$ & $\mathbf{1.409}_{\pm0.055}$ \\
+    w/o $K_\text{net}$ & $0.653_{\pm0.077}$ & $0.788_{\pm0.081}$ & $\mathbf{1.087}_{\pm0.050}$ & $1.509_{\pm0.051}$ \\
+    fixed $K$          & $0.507_{\pm0.094}$ & $0.764_{\pm0.099}$ & $1.268_{\pm0.011}$ & $1.800_{\pm0.011}$ \\
+    Fair Mamba         & $\mathbf{0.005}_{\pm0.001}$ & $0.844_{\pm0.113}$ & $8.035_{\pm0.073}$ & $22.716_{\pm0.239}$ \\
+    \hline
+  \end{tabular}
+  \caption{Ablation study, Exchange/$s{=}16$, MSE mean~$\pm$~std (3 seeds).
+           At $\sigma{=}0$ Fair Mamba achieves near-perfect fit ($0.005$),
+           which is the source of its $+152\,350\%$ degradation.
+           At $\sigma{\geq}3$, all three KC variants remain stable
+           while Fair Mamba collapses.}
+  \label{tab:ablation_s16}
+\end{table}
+
+\paragraph{Bootstrap confidence intervals.}
+Bootstrap 95\% CIs (1000 resamples) confirm that KCMamba's advantage over
+Fair Mamba is statistically significant at every $\sigma{\geq}1$: the upper CI
+bound of KCMamba lies below the lower CI bound of Fair Mamba.
+For example, at $s{=}1$, $\sigma{=}3$: KCMamba $[0.872,\,0.956]$ vs
+Fair Mamba $[1.421,\,1.528]$ --- non-overlapping.
+At $s{=}16$, $\sigma{=}3$: KCMamba $[1.089,\,1.188]$ vs Fair $[7.976,\,8.117]$.
+
+\paragraph{Conclusions.}
+Two main findings emerge.
+
+\textbf{(i) The $Q/R$ networks are the most critical component.}
+With fixed~$K$ ($s{=}1$, $\sigma{=}5$), MSE rises from $1.414$ to $2.164$ ($+53\%$).
+Removing the $K_\text{net}$ correction (kca\_kbase) causes negligible degradation:
+$1.423 \approx 1.414$.
+Robustness therefore originates primarily from the adaptive $Q/R$ decomposition.
+
+\textbf{(ii) Adaptivity is especially valuable at $s{=}16$.}
+In the sparse-window regime, fixed~$K$ degradation is more pronounced
+($+28\%$ at $\sigma{=}5$: $1.800$ vs $1.409$), while kca\_kbase
+surprisingly wins at $\sigma{=}3$ ($1.087$ vs $1.129$) ---
+suggesting that with very few training examples, the $K_\text{net}$
+fine-tuning can overfit.

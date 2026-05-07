@@ -1,6 +1,6 @@
 % ============================================================
 %  KCMamba: Kalman-Guided State-Space Model for Time Series Forecasting
-%  ELTE Faculty of Informatics, BSc Thesis (English version)
+%  ELTE Faculty of Informatics – TDK paper (37th OTDK)
 %  Template: mcserep/elteikthesis v2.4  (MIT Licence)
 % ============================================================
 \documentclass[
@@ -15,10 +15,10 @@
 % Document metadata
 \title{KCMamba: Kalman-Guided Selective State-Space Model\\
        for Robust Time Series Forecasting}
-\date{2026}
+\date{May 2026}
 
-\author{András Kovács (K2WEMI)}
-\degree{Computer Science BSc}
+\author{András Kovács}
+\degree{Computer Science BSc, Year 3}
 
 \supervisor{Kristian Fenech Arian}
 \affiliation{lecturer}
@@ -31,6 +31,8 @@
 
 \PassOptionsToPackage{table}{xcolor}
 \usepackage{colortbl}
+
+
 
 % Long verbatim/command lines: enable automatic line breaking
 \usepackage{fvextra}
@@ -51,10 +53,25 @@
 
 \documentlang{english}
 
-\maketitle
+% ─── EXTERNAL COVER (OTDK requirement: "TDK-dolgozat" label + author name) ───
+\begin{titlepage}
+    \vspace*{\fill}
+    \begin{center}
+        {\Huge\bfseries TDK-dolgozat}\\[2.5cm]
+        {\LARGE KCMamba: Kalman-Guided Selective\\[0.4em]
+                State-Space Model for Robust\\[0.4em]
+                Time Series Forecasting}\\[3cm]
+        {\Large András Kovács}\\[0.5cm]
+        {\large Computer Science BSc, Year 3}\\[2cm]
+        {\large Eötvös Loránd University\\[0.3em]
+                Faculty of Informatics}\\[0.8cm]
+        {\large Budapest, May 2026}
+    \end{center}
+    \vspace*{\fill}
+\end{titlepage}
 
-% Topic announcement (required), PDF attached
-\includepdf[pages=-,scale=0.75]{temabejelento.pdf}
+% Internal title page (required: institution, faculty, dept, author, year, supervisor)
+\maketitle
 
 % Abstract
 \chapter*{Abstract}
@@ -72,10 +89,15 @@ conditions.
 We conduct empirical evaluation on three public LTSF benchmarks
 (Exchange-Rate, ETTh1, ETTh2) under synthetically injected noise
 ($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
-(stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
-MSE degradation of $1\,528\%$ as noise increases from $\sigma\!=\!0$ to
-$\sigma\!=\!5$, compared to $28\,234\%$ for Fair Mamba, a
-$18{.}5\times$ robustness advantage.
+(stride $\in \{1, 16\}$).
+
+In the Exchange-Rate benchmark ($s=16$, 3-seed experiment), KCMamba's average
+MSE degradation from $\sigma{=}0$ to $\sigma{=}5$ is $+1\,528\%$, compared
+to $+28\,234\%$ for Fair Mamba, an $18.5\times$ stability gap; in the
+hardest configuration ($s{=}16$, $\sigma{=}5$) KCMamba achieves MSE $1.41$
+versus $22.72$ for Fair Mamba. The ablation study identifies the
+$Q_\text{net}/R_\text{net}$ subnetworks as the primary source of robustness:
+removing the learned $K$-gain increases degradation by $2.4\times$.
 
 The thesis also describes the complete production software system: an
 asynchronous, event-driven trading engine built in a hexagonal architecture,
@@ -104,12 +126,6 @@ trading adapter.
 \input{chapters/en/04_experiments}
 \cleardoublepage
 
-\input{chapters/en/06_implementation}
-\cleardoublepage
-
-\input{chapters/en/07_user_docs}
-\cleardoublepage
-
 \input{chapters/en/05_conclusion}
 \cleardoublepage
 
@@ -122,10 +138,83 @@ Special thanks to the time series forecasting community for the open
 datasets (ETTh1, ETTh2, Exchange-Rate) without which the empirical evaluation
 would not have been possible.
 
+% ─── STATEMENT OF OWN CONTRIBUTIONS (OTDK required) ─────────────────────────
+\chapter*{Statement of Own Contributions}
+\addcontentsline{toc}{chapter}{Statement of Own Contributions}
+
+The following table, as required by the 37th OTDK call, clearly distinguishes
+the applicant student's own contributions from those of the supervisor
+and the broader research community.
+
+\begin{center}
+\begin{tabular}{|p{7.0cm}|p{7.0cm}|}
+\hline
+\textbf{András Kovács (own contributions)} & \textbf{Supervisor / literature} \\
+\hline
+Full design of the KCMamba architecture:
+$Q_\text{net}$, $R_\text{net}$, $K_\text{net}$ subnetworks,
+the adaptive Kalman-gate mechanism, and the
+heteroscedastic NLL loss function. &
+Published results of the Mamba and S4 base architectures
+\cite{gu2023mamba,gu2021s4}. \\
+\hline
+Design and implementation of the Fair~Mamba baseline,
+ensuring fair comparison at equal parameter count. &
+LTSF-Linear, iTransformer, and other baselines
+from the literature \cite{zeng2023transformers,liu2023itransformer}. \\
+\hline
+Design of the experimental protocol: 9~noise types,
+extended $T/s$ grid, ablation study,
+Wilcoxon significance tests. &
+Open datasets (ETTh1/h2/m1, Exchange-Rate,
+Weather etc.) and standard MSE/MAE metrics. \\
+\hline
+Independent development of the complete software system:
+asynchronous trading engine, backtesting framework,
+Binance adapter, web dashboard. &
+Supervisor consultations and professional feedback
+throughout the development process. \\
+\hline
+\end{tabular}
+\end{center}
+
 % ============================================================
 %  BACK MATTER
 % ============================================================
 \appendix
+
+% ─── AI TOOLS DOCUMENTATION (OTDK required) ──────────────────────────────────
+\chapter{Use of Artificial Intelligence Tools}
+\label{app:ai}
+
+In accordance with the 37th OTDK call, the following documents the AI-based
+tools used during the preparation of this paper and their mode of use.
+
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{5.5cm}|p{4.5cm}|}
+\hline
+\textbf{Tool} & \textbf{Mode of use} & \textbf{Areas affected} \\
+\hline
+GitHub Copilot\newline(GPT-4o based) &
+Code completion and snippet generation during Python implementation
+(benchmark scripts, sweep logic, tests). &
+Implementation, experimental sweep \\
+\hline
+ChatGPT\newline(GPT-4o) &
+Grammar and style checking, \LaTeX{} syntax questions.
+\emph{Not} used for content generation. &
+Editorial assistance \\
+\hline
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent
+\textbf{Important note:} The tools were used solely as assistants.
+The scientific content, architectural design decisions, experimental protocol,
+and interpretation of results are entirely the author's own intellectual work.
+All AI-suggested code snippets were reviewed, tested, and revised as needed
+by the author.
 
 % Bibliography
 \phantomsection

@@ -1,6 +1,6 @@
 % ============================================================
 %  KCMamba: Kalman-vezérelt állapottér-modell idősor-előrejelzésre
-%  ELTE Informatikai Kar, BSc Szakdolgozat
+%  ELTE Informatikai Kar – TDK-dolgozat (37. OTDK)
 %  Sablon: mcserep/elteikthesis v2.4  (MIT Licence)
 %  Letöltés: bash setup.sh
 % ============================================================
@@ -17,10 +17,10 @@
 \title{KCMamba: Kalman-vezérelt szelektív\\
        állapottér-modell robusztus\\
        idősor-előrejelzésre}
-\date{2026}
+\date{2026. május}
 
-\author{Kovács András (K2WEMI)}
-\degree{programtervező informatikus BSc}
+\author{Kovács András}
+\degree{programtervező informatikus BSc, III. évfolyam}
 
 \supervisor{Kristian Fenech Arian}
 \affiliation{oktató}
@@ -36,6 +36,8 @@
 % Cellaszínezéshez (04_kiserletek.tex táblázatokban)
 \PassOptionsToPackage{table}{xcolor}
 \usepackage{colortbl}
+
+
 
 % Hosszú kód-/parancssorok automatikus tördelése
 \usepackage{fvextra}
@@ -60,11 +62,25 @@
 % Teendők listája (csak draft módban hasznos), véglegesben töröljük
 %\listoftodos[\todolabel]
 
-% Fedőlap (kötelező)
-\maketitle
+% ─── KÜLSŐ BORÍTÓ (OTDK előírás: „TDK-dolgozat" felirat + szerző neve) ───────
+\begin{titlepage}
+    \vspace*{\fill}
+    \begin{center}
+        {\Huge\bfseries TDK-dolgozat}\\[2.5cm]
+        {\LARGE KCMamba: Kalman-vezérelt szelektív\\[0.4em]
+                állapottér-modell robusztus\\[0.4em]
+                idősor-előrejelzésre}\\[3cm]
+        {\Large Kovács András}\\[0.5cm]
+        {\large programtervező informatikus BSc, III. évfolyam}\\[2cm]
+        {\large Eötvös Loránd Tudományegyetem\\[0.3em]
+                Informatikai Kar}\\[0.8cm]
+        {\large Budapest, 2026. május}
+    \end{center}
+    \vspace*{\fill}
+\end{titlepage}
 
-% Témabejelentő (kötelező), PDF becsatolva
-\includepdf[pages=-,scale=0.75]{temabejelento.pdf}
+% Belső címlap (kötelező: intézmény, kar, tanszék, szerző, évfolyam, témavezető)
+\maketitle
 
 % Kivonat (kötelező)
 \chapter*{Kivonat}
@@ -81,15 +97,21 @@ adatokon passzív előrejelzőként, zajosított bemeneten aktív szűrőként v
 Empirikus értékelést végzünk három nyilvános LTSF-adatkészleten
 (Exchange-Rate, ETTh1, ETTh2), szintetikusan zajosított
 ($\sigma \in \{0, 1, 3, 5\}$) és alacsony adatbőségű (stride $\in \{1, 16\}$)
-körülmények között. Kísérleteink szerint a KCMamba MSE-degradációja
-$\sigma\!=\!0$-ról $\sigma\!=\!5$-re átlagosan $1\,528\%$, míg a Fair Mamba
-baseline esetén $28\,234\%$, ez közel $18{,}5\times$-es robusztusság-előnyt
-jelent.
+körülmények között.
+
+Az Exchange-Rate adatkészleten végzett 3-mag kísérletben ($s=16$)
+a KCMamba átlagos MSE-degradációja $\sigma{=}0$-tól $\sigma{=}5$-ig
+$+1\,528\%$, a Fair Mambáé $+28\,234\%$, ami $18{,}5\times$-os stabilitási
+különbséget jelent; a legsúlyosabb konfigurációban ($s{=}16$, $\sigma{=}5$)
+a KCMamba MSE-je $1{,}41$, a Fair Mambáé $22{,}72$.
+Az ablációs vizsgálat kimutatta, hogy a tanult $K$-gain elhagyása
+a degradációt $2{,}4\times$-ra növeli, ezzel azonosítva a
+$Q_\text{net}/R_\text{net}$ alhálózatokat mint a robusztusság
+elsődleges forrását.
 
 A szakdolgozat a teljes szoftverrendszer leírását is tartalmazza: egy aszinkron,
-eseményvezérelt kereskedési motort hexagonális architektúrában, webalapú
-irányítópultot, visszatesztelő keretrendszert és élő Binance-kereskedési
-adaptert.
+eseményvezérelt kereskedési motort hexagonális architektúrában, visszatesztelő
+keretrendszert és élő Binance-kereskedési adaptert.
 
 \cleardoublepage
 
@@ -109,15 +131,19 @@ conditions.
 We conduct empirical evaluation on three public LTSF benchmarks
 (Exchange-Rate, ETTh1, ETTh2) under synthetically injected noise
 ($\sigma \in \{0, 1, 3, 5\}$) and low data-availability regimes
-(stride $\in \{1, 16\}$). Our results show that KCMamba achieves an average
-MSE degradation of $1\,528\%$ as noise increases from $\sigma\!=\!0$ to
-$\sigma\!=\!5$, compared to $28\,234\%$ for Fair Mamba, a
-$18{.}5\times$ robustness advantage.
+(stride $\in \{1, 16\}$).
+
+In the Exchange-Rate benchmark ($s=16$, 3-seed experiment), KCMamba's average
+MSE degradation from $\sigma{=}0$ to $\sigma{=}5$ is $+1\,528\%$, compared
+to $+28\,234\%$ for Fair Mamba, an $18.5\times$ stability gap; in the
+hardest configuration ($s{=}16$, $\sigma{=}5$) KCMamba achieves MSE $1.41$
+versus $22.72$ for Fair Mamba. The ablation study identifies the
+$Q_\text{net}/R_\text{net}$ subnetworks as the primary source of robustness:
+removing the learned $K$-gain increases degradation by $2.4\times$.
 
 The thesis also describes the complete production software system: an
 asynchronous, event-driven trading engine built in a hexagonal architecture,
-a web-based dashboard, a backtesting framework, and a live Binance
-trading adapter.
+a backtesting framework, and a live Binance trading adapter.
 
 \cleardoublepage
 
@@ -141,12 +167,6 @@ trading adapter.
 \input{chapters/04_kiserletek}
 \cleardoublepage
 
-\input{chapters/06_implementacio}
-\cleardoublepage
-
-\input{chapters/07_felhasznaloi_dok}
-\cleardoublepage
-
 \input{chapters/05_osszegzes}
 \cleardoublepage
 
@@ -158,6 +178,46 @@ valamint az ELTE Informatikai Karának a kutatási infrastruktúra biztosítás�
 Külön köszönet illeti az idősor-előrejelzési közösséget a nyílt adatkészletekért
 (ETTh1, ETTh2, Exchange-Rate), amelyek nélkül az empirikus értékelés nem lett volna lehetséges.
 
+% ─── SAJÁT EREDMÉNYEK NYILATKOZATA (OTDK kötelező) ───────────────────────────
+\chapter*{A saját eredmények lehatárolása}
+\addcontentsline{toc}{chapter}{A saját eredmények lehatárolása}
+
+Az alábbi táblázat az OTDK~37 előírásainak megfelelően egyértelműen elkülöníti
+a pályázó hallgató saját eredményeit a témavezető, illetve a tágabb kutatócsoport
+eredményeitől.
+
+\begin{center}
+\begin{tabular}{|p{7.0cm}|p{7.0cm}|}
+\hline
+\textbf{Kovács András saját eredményei} & \textbf{Témavezető / irodalom} \\
+\hline
+A KCMamba architektúra teljes tervezése: a
+$Q_\text{net}$-, $R_\text{net}$-, $K_\text{net}$-alhálózatok,
+az adaptív Kalman-gate mechanizmus és a
+heteroszkedasztikus NLL-veszteségfüggvény kidolgozása. &
+A Mamba és S4 alaparchitektúra publikált eredményei
+\cite{gu2023mamba,gu2021s4}. \\
+\hline
+A Fair~Mamba baseline megtervezése és implementálása,
+amely azonos paraméterszámon biztosít igazságos összehasonlítást. &
+Az LTSF-Linear, iTransformer és egyéb baseline-ok
+az irodalomból \cite{zeng2023transformers,liu2023itransformer}. \\
+\hline
+A kísérleti protokoll kialakítása: 9~zajtípus,
+kiterjesztett $T/s$ rács, ablációs vizsgálat,
+Wilcoxon-szignifikancia-tesztek. &
+A nyílt adatkészletek (ETTh1/h2/m1, Exchange-Rate,
+Weather stb.) és a sztenderd MSE/MAE metrikák. \\
+\hline
+A teljes szoftverrendszer önálló fejlesztése:
+aszinkron kereskedési motor, visszatesztelő
+keret, Binance-adapter, webes irányítópult. &
+Témavezetői konzultációk és szakmai visszajelzések
+a fejlesztési folyamat során. \\
+\hline
+\end{tabular}
+\end{center}
+
 % ============================================================
 %  FÜGGELÉKEK
 % ============================================================
@@ -167,6 +227,40 @@ Külön köszönet illeti az idősor-előrejelzési közösséget a nyílt adatk
 % \cleardoublepage
 % \input{chapters/B_teljes_tablazatok}
 % \cleardoublepage
+
+% ─── AI-ESZKÖZÖK DOKUMENTÁCIÓJA (OTDK kötelező) ──────────────────────────────
+\chapter{Mesterséges intelligencia alapú eszközök felhasználása}
+\label{app:ai}
+
+Az OTDK~37 felhívásának megfelelően az alábbiakban dokumentáljuk a pályamunka
+készítése során igénybe vett mesterséges intelligencia alapú eszközöket és
+azok felhasználási módját.
+
+\begin{center}
+\begin{tabular}{|p{3.5cm}|p{5.5cm}|p{4.5cm}|}
+\hline
+\textbf{Eszköz} & \textbf{Felhasználási mód} & \textbf{Érintett területek} \\
+\hline
+GitHub Copilot\newline(GPT-4o alapú) &
+Kódkiegészítés és kódrészlet-generálás a Python implementáció során
+(benchmark szkriptek, sweep logika, tesztek). &
+Implementáció, kísérleti sweep \\
+\hline
+ChatGPT\newline(GPT-4o) &
+Nyelvhelyesség-ellenőrzés, \LaTeX{} szintaxis-kérdések.
+Tartalomgenerálásra \emph{nem} alkalmaztuk. &
+Szövegszerkesztési segítség \\
+\hline
+\end{tabular}
+\end{center}
+
+\bigskip
+\noindent
+\textbf{Fontos megjegyzés:} Az eszközök kizárólag segédeszközként kerültek
+alkalmazásra. A tudományos tartalom, az architektúra-tervezési döntések, a
+kísérleti protokoll és az eredmények értelmezése teljes egészében a szerző
+saját szellemi terméke. Az AI-eszközök által javasolt kódrészleteket minden
+esetben a szerző ellenőrizte, tesztelte és szükség szerint módosította.
 
 % Irodalomjegyzék (kötelező)
 \phantomsection

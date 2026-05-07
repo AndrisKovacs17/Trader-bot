@@ -150,6 +150,35 @@ def _load_dataset(name: str, seq_len: int, batch_size: int, noise_scale: float =
         # Összefűzés: minden sorozat külön szegmensként, közöttük nincs folytonosság
         # → de a Dataset csak seq_len ablakokat vesz, határsértés nem fordul elő
         data = np.concatenate(series_list).reshape(-1, 1)  # (N_total, 1)
+    elif name == "SynthLDS":
+        # Synthetic LDS: state_t = 0.9*state_{t-1} + w_t,  y_t = state_t + v_t
+        # Q/R = 0.1  ->  Kalman steady-state gain K_ss ~ 0.072
+        rng   = np.random.default_rng(42)
+        d_lds, N_lds = 8, 50_000
+        sqQ, sqR = float(np.sqrt(0.1)), 1.0
+        x_lds = np.empty((N_lds, d_lds), dtype="float32")
+        state = rng.standard_normal(d_lds).astype("float32")
+        pn = rng.standard_normal((N_lds, d_lds)).astype("float32") * sqQ
+        on = rng.standard_normal((N_lds, d_lds)).astype("float32") * sqR
+        for t in range(N_lds):
+            state    = 0.9 * state + pn[t]
+            x_lds[t] = state + on[t]
+        data = x_lds
+    elif name == "Lorenz":
+        # Lorenz attractor (sigma=10, rho=28, beta=8/3) + Gaussian obs noise
+        rng        = np.random.default_rng(42)
+        N_lor, dt  = 20_000, 0.01
+        sl, rl, bl = 10.0, 28.0, 8.0 / 3.0
+        xyz        = np.empty((N_lor, 3), dtype="float32")
+        state_lor  = np.array([1.0, 0.0, 0.0], dtype="float64")
+        obs_n      = rng.standard_normal((N_lor, 3)).astype("float32") * 0.5
+        for t in range(N_lor):
+            dx = sl * (state_lor[1] - state_lor[0])
+            dy = state_lor[0] * (rl - state_lor[2]) - state_lor[1]
+            dz = state_lor[0] * state_lor[1] - bl * state_lor[2]
+            state_lor += dt * np.array([dx, dy, dz])
+            xyz[t] = state_lor.astype("float32")
+        data = xyz + obs_n
     else:
         raw = _fetch_raw(name)
         df = pd.read_csv(io.StringIO(raw))
@@ -346,6 +375,141 @@ def _make_kca_mamba(d_model: int, heads: int, d_state: int):
             return out, Q, R, stats
 
     return KCAMambaBlock(d_model, heads, d_state)
+
+
+def _make_kca_fixed_k(d_model: int, heads: int, d_state: int, k_fixed: float = 0.5):
+    """Ablation (b): KCA-Mamba with constant K (no adaptive gain)."""
+    import torch, torch.nn as nn, torch.nn.functional as F
+    class KCAFixedK(nn.Module):
+        def __init__(self, d, h, s, k_val, ks=4):
+            super().__init__()
+            self.H, self.D, self.E = h, s, h * s
+            self._k = k_val
+            self.in_proj  = nn.Linear(d, self.E * 2)
+            self.conv1d   = nn.Conv1d(self.E, self.E, ks, groups=self.E, padding=ks-1)
+            self.out_proj = nn.Linear(self.E, d)
+            self.res_proj = nn.Linear(d, d)
+            self.proj_v   = nn.Linear(self.E, self.E)
+            self.v_norm   = nn.LayerNorm(self.E)
+            self.res_gate_bias = nn.Parameter(torch.tensor(-1.0))
+            self._mu0 = nn.Parameter(torch.zeros(1, h, s))
+        def _scan(self, A, B, mu0):
+            T, step = A.shape[1], 1
+            while step < T:
+                Ar, As, Bs = A[:,step:], A[:,:-step], B[:,:-step]
+                A = torch.cat([A[:,:step], Ar*As], dim=1)
+                B = torch.cat([B[:,:step], B[:,step:]+Ar*Bs], dim=1)
+                step *= 2
+            return B + A * mu0.unsqueeze(1)
+        def forward(self, x):
+            B, T, _ = x.shape
+            xw, xg = self.in_proj(x).chunk(2, dim=-1)
+            gate   = F.silu(xg)
+            xc     = F.silu(self.conv1d(xw.transpose(1,2))[:,:,:T].transpose(1,2))
+            v      = self.v_norm(self.proj_v(xc)).view(B, T, self.H, self.D)
+            K      = torch.full((B,T,self.H,1), self._k, device=x.device, dtype=x.dtype)
+            mu     = self._scan(torch.clamp(1.0-K,0.01,0.99), K*v, self._mu0).reshape(B,T,self.E)
+            yp  = self.out_proj(mu * gate)
+            rg  = torch.sigmoid(self.res_gate_bias)
+            out = yp + rg * (self.res_proj(x) - yp)
+            stats = {"_yp":yp,"K_mean":self._k,"K_std":0.0,"K_min":self._k,"K_max":self._k,
+                     "A_mean":1.0-self._k,"R_mean":0.0,"res_gate_mean":float(rg.item())}
+            _z = torch.zeros(B, T, self.H, 1, device=x.device, dtype=x.dtype)
+            return out, _z, _z, stats
+    return KCAFixedK(d_model, heads, d_state, k_fixed)
+
+
+def _make_kca_kbase(d_model: int, heads: int, d_state: int):
+    """Ablation (c): KCA-Mamba with K = Q/(Q+R) only, no K_net correction."""
+    import torch, torch.nn as nn, torch.nn.functional as F
+    class KCAKbase(nn.Module):
+        def __init__(self, d, h, s, ks=4):
+            super().__init__()
+            self.H, self.D, self.E = h, s, h * s
+            self.in_proj  = nn.Linear(d, self.E * 2)
+            self.conv1d   = nn.Conv1d(self.E, self.E, ks, groups=self.E, padding=ks-1)
+            self.out_proj = nn.Linear(self.E, d)
+            self.res_proj = nn.Linear(d, d)
+            self.proj_v   = nn.Linear(self.E, self.E)
+            self.Q_net    = nn.Sequential(nn.Linear(self.E,64),nn.SiLU(),nn.Linear(64,h))
+            self.R_net    = nn.Sequential(nn.Linear(self.E,64),nn.SiLU(),nn.Linear(64,h))
+            self.q_scale  = nn.Parameter(torch.tensor(-2.0))
+            self.r_scale  = nn.Parameter(torch.tensor( 1.5))
+            self.mu_init  = nn.Parameter(torch.zeros(1, h, s))
+            self.v_norm   = nn.LayerNorm(self.E)
+            self.res_gate_bias = nn.Parameter(torch.tensor(-1.0))
+        def _scan(self, A, B, mu0):
+            T, step = A.shape[1], 1
+            while step < T:
+                Ar, As, Bs = A[:,step:], A[:,:-step], B[:,:-step]
+                A = torch.cat([A[:,:step], Ar*As], dim=1)
+                B = torch.cat([B[:,:step], B[:,step:]+Ar*Bs], dim=1)
+                step *= 2
+            return B + A * mu0.unsqueeze(1)
+        def forward(self, x):
+            B, T, _ = x.shape
+            xw, xg = self.in_proj(x).chunk(2, dim=-1)
+            gate   = F.silu(xg)
+            xc     = F.silu(self.conv1d(xw.transpose(1,2))[:,:,:T].transpose(1,2))
+            v      = self.v_norm(self.proj_v(xc)).view(B, T, self.H, self.D)
+            Q = (F.softplus(self.Q_net(xc))*F.softplus(self.q_scale)).unsqueeze(-1)
+            R = (F.softplus(self.R_net(xc))*F.softplus(self.r_scale)).unsqueeze(-1)
+            K = torch.clamp(Q/(Q+R+1e-6), 1e-4, 0.999)
+            mu = self._scan(torch.clamp(1.0-K,0.01,0.99), K*v, self.mu_init).reshape(B,T,self.E)
+            yp  = self.out_proj(mu * gate)
+            rg  = torch.sigmoid(self.res_gate_bias)
+            out = yp + rg * (self.res_proj(x) - yp)
+            stats = {"_yp":yp,"K_mean":K.mean().item(),"K_std":K.std().item(),
+                     "K_min":K.min().item(),"K_max":K.max().item(),
+                     "A_mean":torch.clamp(1.0-K,0.01,0.99).mean().item(),
+                     "R_mean":R.mean().item(),"res_gate_mean":float(rg.item())}
+            return out, Q, R, stats
+    return KCAKbase(d_model, heads, d_state)
+
+def _make_dlinear(input_dim: int, seq_len: int = 96):
+    """DLinear (Zeng et al. 2023, Are Transformers Effective for Time Series Forecasting?).
+    Decomposes input into trend (moving average) + seasonal (residual), then projects
+    each component independently with a single linear layer.
+    Output shape matches input: (B, T, D) — next-step prediction for each position.
+    """
+    import torch
+    import torch.nn as nn
+
+    class DLinear(nn.Module):
+        def __init__(self, d: int, kernel_size: int = 25):
+            super().__init__()
+            self.kernel_size = kernel_size
+            # One linear per component: (seq_len → seq_len), applied per channel
+            self.trend_linear    = nn.Linear(1, 1, bias=True)
+            self.seasonal_linear = nn.Linear(1, 1, bias=True)
+
+        def _moving_avg(self, x: "torch.Tensor") -> "torch.Tensor":
+            # x: (B, T, D)
+            B, T, D = x.shape
+            ks = self.kernel_size
+            pad_l = (ks - 1) // 2
+            pad_r = ks - 1 - pad_l
+            # Replicate padding on time axis
+            x_pad = torch.cat([
+                x[:, :1, :].expand(B, pad_l, D),
+                x,
+                x[:, -1:, :].expand(B, pad_r, D),
+            ], dim=1)  # (B, T + ks - 1, D)
+            # Unfold → average over kernel window
+            # Shape after unfold: (B, T, D, ks) via a loop over D is slow; do it efficiently
+            x_unfold = x_pad.unfold(1, ks, 1)  # (B, T, D, ks)
+            return x_unfold.mean(dim=-1)        # (B, T, D)
+
+        def forward(self, x: "torch.Tensor") -> "torch.Tensor":
+            trend    = self._moving_avg(x)             # (B, T, D)
+            seasonal = x - trend                       # (B, T, D)
+            # Point-wise linear applied independently per time step and channel
+            # Equivalent to a scalar affine transform: weight*val + bias
+            out_t = self.trend_linear(trend.unsqueeze(-1)).squeeze(-1)
+            out_s = self.seasonal_linear(seasonal.unsqueeze(-1)).squeeze(-1)
+            return out_t + out_s
+
+    return DLinear(input_dim)
 
 
 def _make_arima_model(input_dim: int, p: int = 5, q: int = 3, hidden_dim: int = 256):
@@ -577,6 +741,7 @@ def _train_one(model, name: str, train_loader, test_loader, c: dict, device) -> 
     # ── Test ─────────────────────────────────────────────────────────────────
     model.eval()
     test_mses: list[float] = []
+    test_maes: list[float] = []
     kalman_acc: dict[str, list[float]] = {}
     sample_true = sample_pred_t = sample_noisy_t = None
     sample_kla_filtered: "list[float] | None" = None
@@ -594,6 +759,7 @@ def _train_one(model, name: str, train_loader, test_loader, c: dict, device) -> 
                 out      = res[0] if isinstance(res, tuple) else res
                 yp_batch = None
             test_mses.append(float(F.mse_loss(out[:, :-1], y_b[:, :-1]).item()))
+            test_maes.append(float(F.l1_loss(out[:, :-1], y_b[:, :-1]).item()))
             if i == 0:
                 N = min(512, out.shape[1])
                 sample_pred_t   = out[0, :N, -1].cpu()
@@ -621,6 +787,7 @@ def _train_one(model, name: str, train_loader, test_loader, c: dict, device) -> 
         "params":       sum(p.numel() for p in model.parameters()),
         "epoch_losses": epoch_losses,
         "test_mse":     round(float(sum(test_mses) / max(len(test_mses), 1)), 6),
+        "test_mae":     round(float(sum(test_maes) / max(len(test_maes), 1)), 6),
         "train_time_s": round(train_time, 2),
         "peak_vram_mb": round(peak_vram, 2),
         "kalman_stats": avg_kalman,

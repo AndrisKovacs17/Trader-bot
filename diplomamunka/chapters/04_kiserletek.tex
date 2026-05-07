@@ -18,14 +18,13 @@ CUDA~12, float32 pontosság.
 A fő kísérleti vizsgálat három adatkészletre terjedt ki (részletes leírás a
 \ref{sec:datasets}.~alfejezetben):
 
-\begin{itemize}
-    \item \textbf{Exchange-Rate}, 8 valutaárfolyam, 1990--2016
-          (7\,588 nap, 8 változó)~\cite{lai2018modeling}.
-    \item \textbf{ETTh1}, kínai transzformátorállomás, óránkénti terhelés
-          és hőmérséklet (17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
-    \item \textbf{ETTh2}, ugyanaz az állomás, másik csatorna-sorozat
-          (17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
-\end{itemize}
+Az \textbf{Exchange-Rate} adatkészlet 8 valutaárfolyamot tartalmaz
+1990--2016 közötti 7\,588 napon (8 változó)~\cite{lai2018modeling};
+az \textbf{ETTh1} egy kínai transzformátorállomás óránkénti terhelés-
+és hőmérséklet-adatait foglalja össze (17\,420 lépés,
+7 változó)~\cite{zhou2021informer}; az \textbf{ETTh2} ugyanazon
+állomás másik csatorna-sorozata
+(17\,420 lépés, 7 változó)~\cite{zhou2021informer}.
 
 
 \subsection{Zajmodell}
@@ -172,6 +171,58 @@ a Fair Mamba $\sigma \ge 3$ esetén összeomlik ($+1\,817\%$), a KCMamba $+492\%
     \label{tab:etth2}
 \end{table}
 
+\subsection{DLinear-alapvonal és szintetikus zajrobusztusság}
+\label{sec:dlinear_synth}
+
+A valós adathalmazokhoz képest erősebb ellenőrzést nyújt két szintetikus adathalmaz,
+amelyeken a KCMamba Kalman-alapú szűrése \emph{elméletileg} optimális.
+Az \textbf{SynthLDS} egy 8 dimenziós lineáris dinamikus rendszer
+($\mathbf{A}=0{,}9\mathbf{I}$, folyamatzaj $Q=0{,}1$, megfigyelési zaj $R=1{,}0$;
+elméleti Kalman-erősítés $K_\text{ss}\approx0{,}072$). A \textbf{Lorenz-attraktor}
+kaotikus dinamikát tartalmaz Gauss-megfigyelési zajjal ($\sigma_\text{obs}=0{,}5$).
+A kísérletbe a lineáris dekompozíciós \textbf{DLinear}-t~\cite{zeng2023transformers}
+is bevontam alapvonalként ($T{=}96$, $s{=}64$, 3~mag, 5~epoch).
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|l|ccc|}
+    \hline
+    \textbf{Adathalmaz} & \textbf{Modell} &
+    $\sigma=0$ & $\sigma=3$ & $\sigma=5$ \\
+    \hline\hline
+    \multirow{3}{*}{SynthLDS}
+      & DLinear    & $1{,}891_{\pm1{,}00}$ & $3{,}650_{\pm2{,}36}$ & $6{,}750_{\pm7{,}10}$ \\
+      & Fair Mamba & $0{,}939_{\pm0{,}00}$ & $10{,}027_{\pm0{,}04}$ & $5{,}214_{\pm0{,}18}$ \\
+      & KCMamba    & $\mathbf{0{,}903}_{\pm0{,}00}$ & $\mathbf{1{,}035}_{\pm0{,}01}$ & $\mathbf{1{,}117}_{\pm0{,}01}$ \\
+    \hline
+    \multirow{3}{*}{Lorenz}
+      & DLinear    & $1{,}938_{\pm1{,}26}$ & $4{,}299_{\pm2{,}54}$ & $8{,}542_{\pm8{,}64}$ \\
+      & Fair Mamba & $\mathbf{0{,}010}_{\pm0{,}00}$ & $6{,}976_{\pm0{,}22}$ & $11{,}551_{\pm0{,}84}$ \\
+      & KCMamba    & $0{,}326_{\pm0{,}04}$ & $\mathbf{0{,}697}_{\pm0{,}01}$ & $\mathbf{0{,}841}_{\pm0{,}01}$ \\
+    \hline
+  \end{tabular}
+  \caption{MSE átlag~$\pm$~szórás szintetikus adathalmazokon (3~mag, 5~epoch).
+           Félkövérrel zajszintenként a legkisebb MSE.
+           SynthLDS-en $\sigma{=}5$-nél a KCMamba $\mathbf{6\times}$ jobb a
+           DLinear-nél ($1{,}117$ vs $6{,}750$) és $\mathbf{4{,}7\times}$ jobb a
+           Fair Mambánál ($5{,}214$).
+           Lorenz-on $\sigma{=}5$-nél a KCMamba $\mathbf{10\times}$ jobb a
+           DLinear-nél ($8{,}542$) és $\mathbf{14\times}$ jobb a Fair Mambánál ($11{,}551$).}
+  \label{tab:synth_noise}
+\end{table}
+
+Míg Lorenz $\sigma=0$-nál a Fair Mamba lényegesen jobb ($0{,}010$ vs $0{,}326$) ---
+a determinisztikus kaotikus dinamika explicit zajmodell nélkül is megtanulható ---,
+$\sigma{\geq}3$-nál a Kalman-dekompozíció döntő előnnyé válik.
+SynthLDS-en a Fair Mamba MSE-je $\sigma=3$-nál tízszeresére ugrik
+($0{,}939 \to 10{,}027$), míg a KCMamba szinte változatlan marad
+($0{,}903 \to 1{,}035$, $+12\%$). Ez az eredmény közvetlenül alátámasztja a
+Kalman-filtrálás zajállóságára vonatkozó elméleti várakozást: az adaptív
+$Q/R$-dekompozíció az LDS-típusú struktúrát kivételesen hatékonyan aknázza ki.
+A DLinear magas varianciájú eredményei ($\pm7{,}10$ szórás $\sigma=5$-nél) azt
+mutatják, hogy a lineáris mozgóátlag-dekompozíció instabil magas zajszinten.
+
 \subsection{Összefoglaló statisztika}
 
 \begin{table}[H]
@@ -206,7 +257,11 @@ A három adatkészlet 24 konfigurációját aggregálva a $\sigma=0 \to \sigma=5
         \hline
     \end{tabular}
     \caption{Átlagos MSE-degradáció $\sigma=0 \to \sigma=5$ zajszint-növelésnél.
-             A KCMamba zajállósága $18{,}5\times$ jobb, mint a Fair Mambáé.}
+             A KCMamba zajállósága $18{,}5\times$ jobb, mint a Fair Mambáé.
+             A 3-maggal végzett ablációs kísérletek
+             (\ref{sec:ablation}.~szekció) megerősítik ezt az eredményt:
+             $s{=}16$, $\sigma{=}5$-nél KCMamba~$1{,}409_{\pm0{,}055}$
+             vs Fair~$22{,}716_{\pm0{,}239}$.}
     \label{tab:degradation}
 \end{table}
 
@@ -493,3 +548,93 @@ A KCMamba az egyetlen architektúra, amely nem omlik össze.
            A KCMamba minden konfigurációban stabil. A Fair Mamba $s{=}16$-nál $\sigma{\geq}3$ esetén katasztrofikusan összeomlik.}
   \label{fig:stride_longseq}
 \end{figure}
+
+
+
+\section{Ablációs vizsgálat és statisztikai szignifikancia}
+\label{sec:ablation}
+
+A KCMamba robusztusságában három mechanizmus játszik szerepet:
+(1) a $Q_\text{net}$/$R_\text{net}$ alhálózatok, amelyek az adaptív zajbecslést
+végzik; (2) a $K_\text{net}$ tartalom-függő korrekció, amely $K$-t az
+aktuális bemenettől függően finomhangolja; és (3) a cross-attention réteg.
+Az alábbi ablációk az első két komponenst vizsgálják:
+
+Három összehasonlított variáns: a \textbf{KCMamba (full)} tartalmazza a teljes
+$Q_\text{net}/R_\text{net}/K_\text{net}$ készletet; a \textbf{w/o $K_\text{net}$}
+(\texttt{kca\_kbase}) esetén a tartalom-függő $K$-korrekció eltávolított,
+$K = Q/(Q+R)$ (puszta Kalman-prior, nincs $K_\text{net}$ finomhangolás);
+a \textbf{fix $K$} (\texttt{kca\_fixed\_k}) verzióban mind a három
+Kalman-hálózat rögzített, a $K$-gain tanulhatatlan konstans.
+
+A kísérleteket 3 véletlenmagot felhasználva ismételtem Exchange-Rate
+adatkészleten ($T{=}96$, $s \in \{1,16\}$, 5~epoch, FastAI LR-kereső).
+Az eredmények átlag $\pm$ szórás a \ref{tab:ablation_s1} és
+\ref{tab:ablation_s16} táblázatokban láthatók.
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Modell} & $\sigma{=}0$ & $\sigma{=}1$ & $\sigma{=}3$ & $\sigma{=}5$ \\
+    \hline\hline
+    KCMamba (full)     & $0{,}037_{\pm0{,}021}$ & $\mathbf{0{,}518}_{\pm0{,}007}$ & $0{,}902_{\pm0{,}046}$ & $\mathbf{1{,}414}_{\pm0{,}024}$ \\
+    w/o $K_\text{net}$ & $0{,}033_{\pm0{,}015}$ & $0{,}553_{\pm0{,}008}$ & $\mathbf{0{,}892}_{\pm0{,}044}$ & $1{,}423_{\pm0{,}024}$ \\
+    fix $K$            & $\mathbf{0{,}022}_{\pm0{,}005}$ & $0{,}768_{\pm0{,}035}$ & $1{,}450_{\pm0{,}013}$ & $2{,}164_{\pm0{,}044}$ \\
+    Fair Mamba         & $0{,}064_{\pm0{,}018}$ & $0{,}789_{\pm0{,}202}$ & $1{,}479_{\pm0{,}054}$ & $3{,}200_{\pm0{,}094}$ \\
+    \hline
+  \end{tabular}
+  \caption{Ablációs kísérlet, Exchange/$s{=}1$, MSE átlag~$\pm$~szórás (3~mag).
+           Félkövérrel zajszintenként a legkisebb MSE.
+           Zajmentes adaton ($\sigma{=}0$) a fix~$K$ teljesít legjobban ---
+           az adaptív mechanizmus ekkor felesleges terhet jelent.
+           $\sigma{\geq}1$-nél a tanult $Q/R$ dekompozíció döntő előnyt hoz.}
+  \label{tab:ablation_s1}
+\end{table}
+
+\begin{table}[H]
+  \centering
+  \small
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \textbf{Modell} & $\sigma{=}0$ & $\sigma{=}1$ & $\sigma{=}3$ & $\sigma{=}5$ \\
+    \hline\hline
+    KCMamba (full)     & $0{,}531_{\pm0{,}079}$ & $\mathbf{0{,}730}_{\pm0{,}092}$ & $1{,}129_{\pm0{,}052}$ & $\mathbf{1{,}409}_{\pm0{,}055}$ \\
+    w/o $K_\text{net}$ & $0{,}653_{\pm0{,}077}$ & $0{,}788_{\pm0{,}081}$ & $\mathbf{1{,}087}_{\pm0{,}050}$ & $1{,}509_{\pm0{,}051}$ \\
+    fix $K$            & $0{,}507_{\pm0{,}094}$ & $0{,}764_{\pm0{,}099}$ & $1{,}268_{\pm0{,}011}$ & $1{,}800_{\pm0{,}011}$ \\
+    Fair Mamba         & $\mathbf{0{,}005}_{\pm0{,}001}$ & $0{,}844_{\pm0{,}113}$ & $8{,}035_{\pm0{,}073}$ & $22{,}716_{\pm0{,}239}$ \\
+    \hline
+  \end{tabular}
+  \caption{Ablációs kísérlet, Exchange/$s{=}16$, MSE átlag~$\pm$~szórás (3~mag).
+           $\sigma{=}0$-nál a Fair Mamba szinte tökéletes illeszkedést ér el
+           ($0{,}005$); ez a $+152\,350\%$-os degradáció forrása.
+           $\sigma{\geq}3$-nál a Fair Mamba összeomlásával szemben mindhárom
+           KC-változat stabil marad.}
+  \label{tab:ablation_s16}
+\end{table}
+
+\paragraph{Bootstrap konfidenciaintervallumok.}
+Az 1000-szeres visszatevéses mintavételen alapuló 95\%-os CI-k megerősítik,
+hogy a KCMamba előnye a Fair Mambával szemben $\sigma{\geq}1$-nél
+statisztikailag szignifikáns: a KCMamba felső CI-határa alatta marad a Fair
+Mamba alsó CI-határának. Például $s{=}1$, $\sigma{=}3$-nál a KCMamba-intervallum
+$[0{,}872;\,0{,}956]$, a Fair Mambáé $[1{,}421;\,1{,}528]$ --- ezek nem fednek
+át. $s{=}16$, $\sigma{=}3$-nál a különbség még élesebb: KCMamba $[1{,}089;\,1{,}188]$
+vs Fair $[7{,}976;\,8{,}117]$.
+
+\paragraph{Következtetések.}
+Két főmegállapítás rajzolódik ki.
+
+\textbf{(i) A $Q/R$-hálózatok a legfontosabb komponensek.}
+Fix~$K$-val ($s{=}1$, $\sigma{=}5$) az MSE $1{,}414$-ről $2{,}164$-re nő
+($+53\%$). A $K_\text{net}$ tartalom-függő korrekció eltávolítása
+(kca\_kbase) ezzel szemben alig ront: $1{,}423 \approx 1{,}414$.
+A zajrobusztusság tehát elsősorban az adaptív $Q/R$ dekompozícióból ered.
+
+\textbf{(ii) $s{=}16$-nál az adaptivitás különösen értékes.}
+Ritka ablakozásnál fix~$K$ degradációja erősebbé válik
+($+28\%$, $\sigma{=}5$-nél: $1{,}800$ vs $1{,}409$), míg a kca\_kbase
+$\sigma{=}3$-nál meglepő módon kissé jobb ($1{,}087$ vs $1{,}129$) ---
+ez arra utal, hogy extrém kis adatmennyiségnél a $K_\text{net}$
+finomhangolás overfittinghez vezethet.

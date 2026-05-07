@@ -10,43 +10,35 @@ A KCMamba architektúra differenciálható Kalman-szűrési mechanizmust
 integrál a Mamba SSM-be. A három adatkészleten végzett kísérletekből
 az alábbi következtetések vonhatók le:
 
-\begin{enumerate}
-    \item Zajrobusztusság: $\sigma=0 \to \sigma=5$ zajszint-növelésnél
-          a KCMamba átlagos MSE-degradációja $+1\,528\%$, a Fair Mambáé $+28\,234\%$,
-          ami $18{,}5\times$-os különbség. Exchange/$s=16$-nál
-          a különbség öt nagyságrend: $+66\%$ vs $+152\,350\%$.
-    \item Hosszú szekvencia (\ref{sec:longseq}.~fejezet): az új mérések
-          ($T \in \{96,192,336,512\}$, ETTm1 + Exchange) a KCMamba
-          erősségét hosszabb kontextusnál is igazolják.
-          \begin{itemize}
-              \item $T=336$, $\sigma=1$: KCMamba MSE $0{,}502$ vs LSTM $0{,}735$
-                    ($\mathbf{-31{,}7\%}$, a legnagyobb LSTM-mel szembeni arány). 
-              \item $T=512$, $\sigma=3$ (Exchange): KCMamba $0{,}773$,
-                    Fair Mamba $2{,}121$ ($\mathbf{-63{,}6\%}$, a legnagyobb
-                    Fair Mambával szembeni arány).
-              \item ETTm1-en $\sigma=3$-nál a KCMamba MSE-je egyedüli
-                    modellként monoton csökken a szekvenciahossz növekedésével
-                    ($0{,}673 \to 0{,}466$, $-31\%$, $T{:}\,96 \to 512$).
-          \end{itemize}
-    \item Stride $\times$ szekvenciahossz (\ref{sec:stride_longseq}.~fejezet):
-          az Exchange adatkészleten $s \in \{1,16\}$ és $T \in \{192,336,512\}$
-          kombinációkban mérve két mintázat rajzolódott ki.
-          $s{=}1$, $\sigma{=}3$-nál a KCMamba előnye az LSTM-mel szemben
-          monoton nő a szekvenciahosszal ($T{=}512$-nél $+35\%$: $0{,}836$
-          vs $1{,}292$). $s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba
-          katasztrofálisan összeomlik ($8{,}1$--$8{,}5$ MSE), ami $7$--$9\times$-es
-          stabilitásbeli különbség a KCMamba-hoz képest, amely $1{,}1$--$1{,}3$
-          között marad.
-    \item Kalman-gain adaptáció: a modell által az adatokból
-          megtanult $K$-érték a zajszint emelkedésével monoton csökken
-          ($0.706 \to 0.073$), ami konzisztens az explicit Kalman-egyenletekből
-          származtatható várakozásokkal. Ez megerősíti, hogy az architekturális
-          prior érdemben irányítja a tanulási folyamatot.
+A legfőbb megállapítás a KCMamba zajrobusztusságára vonatkozik:
+$\sigma=0 \to \sigma=5$ zajszint-növelésnél az átlagos MSE-degradáció
+$+1\,528\%$, a Fair Mambáé $+28\,234\%$, ami $18{,}5\times$-os különbség.
+Exchange/$s=16$-nál ez öt nagyságrenddé tágul: $+66\%$ vs $+152\,350\%$.
 
-    \item Kevés adat: $s=16$ stride esetén a Kalman-struktúra
-          implicit regularizáló hatást fejt ki, ami ellensúlyozza
-          az adathiányt.
-\end{enumerate}
+A hosszú szekvencia vizsgálat (\ref{sec:longseq}.~fejezet,
+$T \in \{96,192,336,512\}$, ETTm1 és Exchange) a KCMamba erősségét
+hosszabb kontextusnál is igazolja. A legmarkánsabb eredmények:
+$T{=}336$, $\sigma{=}1$-nél a KCMamba MSE-je $0{,}502$ az LSTM
+$0{,}735$-éhez képest ($\mathbf{-31{,}7\%}$, a legnagyobb LSTM-mel szembeni
+arány). $T{=}512$, $\sigma{=}3$-nál (Exchange) a KCMamba $0{,}773$,
+a Fair Mamba $2{,}121$ ($\mathbf{-63{,}6\%}$, a legnagyobb Fair Mambával
+szembeni arány). Az ETTm1 adatkészleten $\sigma{=}3$-nál egyedüli
+modellként a KCMamba MSE-je monoton csökken a szekvenciahossz
+növekedésével ($0{,}673 \to 0{,}466$, $-31\%$, $T{:}\,96 \to 512$).
+
+A stride $\times$ szekvenciahossz vizsgálatban (\ref{sec:stride_longseq}.~fejezet,
+Exchange, $s \in \{1,16\}$, $T \in \{192,336,512\}$) $s{=}1$,
+$\sigma{=}3$-nál a KCMamba előnye az LSTM-mel szemben monoton nő
+a szekvenciahosszal ($T{=}512$-nél $+35\%$: $0{,}836$ vs $1{,}292$).
+$s{=}16$, $\sigma{\geq}3$-nál a Fair Mamba katasztrofálisan összeomlik
+($8{,}1$--$8{,}5$ MSE), ami $7$--$9\times$-es stabilitásbeli különbség
+a KCMambával szemben ($1{,}1$--$1{,}3$).
+
+A modell megtanulta, hogy a zajszint emelkedésével csökkenti $K$-t
+($0{,}706 \to 0{,}073$), ami konzisztens az explicit Kalman-egyenletekből
+várt viselkedéssel --- az architekturális prior érdemben irányítja a
+tanulási folyamatot. Emellett $s=16$ stride esetén a Kalman-struktúra
+implicit regularizáló hatásként részben ellensúlyozza az adathiányt.
 
 \section{Korlátok}
 
